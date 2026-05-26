@@ -1,0 +1,6 @@
+# Operating-system and editor junk we don't want in the repository
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.log

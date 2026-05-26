@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallop &amp; Friends</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Nunito', Arial, sans-serif; background: #fff9ff; min-height: 100vh; }
+        .hidden { display: none !important; }
+
+        @keyframes rainbowShift {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .rainbow-bg {
+            background: linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #c77dff);
+            background-size: 300% 300%;
+            animation: rainbowShift 6s ease infinite;
+        }
+
+        /* ── HEADER ── */
+        header { padding: 44px 20px 36px; text-align: center; position: relative; overflow: hidden; }
+        .stars { position: absolute; inset: 0; pointer-events: none; }
+        .star { position: absolute; animation: twinkle 2.5s ease-in-out infinite; }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.25; transform: scale(0.7); }
+            50%       { opacity: 1;    transform: scale(1.3); }
+        }
+        header h1 { font-family: 'Fredoka One', cursive; font-size: clamp(2.4rem, 8vw, 5rem); color: white; text-shadow: 3px 4px 0 rgba(0,0,0,0.18); position: relative; z-index: 1; }
+        header p  { color: white; font-size: clamp(1rem, 3vw, 1.35rem); font-weight: 700; margin-top: 10px; text-shadow: 1px 2px 0 rgba(0,0,0,0.15); position: relative; z-index: 1; }
+
+        /* ── GRID ── */
+        .horse-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 26px; max-width: 1200px; margin: 44px auto; padding: 0 24px; }
+
+        /* ── CARD ── */
+        .horse-card { border-radius: 22px; overflow: hidden; cursor: pointer; box-shadow: 0 5px 18px rgba(0,0,0,0.12); transition: transform 0.28s ease, box-shadow 0.28s ease; }
+        .horse-card:hover { transform: translateY(-9px) scale(1.03); box-shadow: 0 16px 36px rgba(0,0,0,0.22); }
+        .card-top { height: 200px; overflow: hidden; position: relative; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+        .horse-card:hover .card-img { transform: scale(1.07); }
+        .card-emoji-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 5rem; }
+        .card-info { background: white; padding: 18px 20px 20px; }
+        .card-info h2 { font-family: 'Fredoka One', cursive; font-size: 1.65rem; color: #2d2d2d; }
+        .card-info .breed-label { color: #999; font-size: 0.92rem; font-weight: 700; margin-top: 3px; }
+        .card-info .click-hint { color: #ccc; font-size: 0.78rem; font-weight: 600; margin-top: 8px; }
+
+        /* ── PLAY BUTTON ── */
+        .play-btn-wrap { text-align: center; padding: 10px 20px 50px; }
+        .play-btn { font-family: 'Fredoka One', cursive; font-size: 1.7rem; padding: 20px 54px; border: none; border-radius: 60px; cursor: pointer; color: white; text-shadow: 1px 2px 0 rgba(0,0,0,0.2); box-shadow: 0 8px 30px rgba(0,0,0,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease; animation: rainbowShift 4s ease infinite; background: linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #c77dff); background-size: 300% 300%; }
+        .play-btn:hover { transform: scale(1.07) translateY(-4px); box-shadow: 0 16px 44px rgba(0,0,0,0.28); }
+
+        /* ── FOOTER ── */
+        footer { text-align: center; padding: 28px 20px; color: white; font-weight: 700; font-size: 1.05rem; text-shadow: 1px 1px 0 rgba(0,0,0,0.15); }
+
+        /* ── MODAL ── */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.58); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 26px; max-width: 610px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 70px rgba(0,0,0,0.32); animation: popIn 0.28s ease; }
+        @keyframes popIn { 0% { transform: scale(0.65); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .modal-header { padding: 28px 28px 22px; display: flex; align-items: center; gap: 18px; border-radius: 26px 26px 0 0; flex-wrap: wrap; }
+        .modal-big-emoji { font-size: 3.8rem; line-height: 1; }
+        .modal-title { flex: 1; min-width: 0; }
+        .modal-title h2 { font-family: 'Fredoka One', cursive; font-size: 2rem; color: white; text-shadow: 1px 2px 0 rgba(0,0,0,0.2); line-height: 1.1; }
+        .modal-title .modal-breed { color: rgba(255,255,255,0.88); font-weight: 700; font-size: 1rem; margin-top: 3px; }
+        .close-btn { background: rgba(255,255,255,0.28); border: none; color: white; font-size: 1.3rem; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0; align-self: flex-start; }
+        .close-btn:hover { background: rgba(255,255,255,0.5); }
+        .modal-body { padding: 22px 28px 30px; }
+        .info-block { margin-bottom: 22px; }
+        .info-block h3 { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: #555; margin-bottom: 7px; display: flex; align-items: center; gap: 6px; }
+        .info-block p { color: #3a3a3a; font-size: 0.97rem; line-height: 1.7; }
+        .info-block ul { padding-left: 22px; color: #3a3a3a; font-size: 0.97rem; line-height: 1.7; }
+        .info-block ul li { margin-bottom: 5px; }
+
+        /* ═══════════════ GAME PAGE ═══════════════ */
+        #gamePage { min-height: 100vh; background: linear-gradient(180deg, #1a1a3e 0%, #2d1b69 50%, #1a3a5c 100%); padding-bottom: 50px; }
+        .game-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; flex-wrap: wrap; gap: 12px; background: rgba(255,255,255,0.07); }
+        .back-btn { font-family: 'Fredoka One', cursive; font-size: 1.05rem; padding: 10px 22px; border-radius: 30px; border: none; background: rgba(255,255,255,0.15); color: white; cursor: pointer; transition: background 0.2s; }
+        .back-btn:hover { background: rgba(255,255,255,0.28); }
+        .score-display { font-family: 'Fredoka One', cursive; font-size: 1.5rem; color: #ffd93d; text-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+        .q-display { font-family: 'Fredoka One', cursive; font-size: 1.05rem; color: rgba(255,255,255,0.65); }
+
+        /* Question type badge */
+        .q-type-badge { display: inline-block; font-size: 0.75rem; font-weight: 800; padding: 3px 12px; border-radius: 20px; margin-bottom: 10px; letter-spacing: 0.5px; text-transform: uppercase; }
+
+        .progress-wrap { padding: 14px 24px 0; max-width: 800px; margin: 0 auto; }
+        .progress-track { background: rgba(255,255,255,0.15); border-radius: 10px; height: 12px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #6bcb77, #ffd93d); transition: width 0.5s ease; width: 0%; }
+
+        .clue-box { max-width: 720px; margin: 28px auto 0; padding: 0 24px; }
+        .clue-label { font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: rgba(255,255,255,0.55); text-align: center; margin-bottom: 10px; }
+        .clue-text { background: white; border-radius: 20px; padding: 22px 28px; text-align: center; font-size: clamp(1.05rem, 2.5vw, 1.45rem); font-weight: 700; color: #2d2d2d; box-shadow: 0 8px 32px rgba(0,0,0,0.35); line-height: 1.55; }
+
+        .drop-zone { max-width: 420px; margin: 22px auto; min-height: 148px; border: 4px dashed rgba(255,255,255,0.35); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; transition: all 0.2s ease; cursor: default; }
+        .dz-text { font-family: 'Fredoka One', cursive; font-size: 1.25rem; color: rgba(255,255,255,0.5); }
+        .drop-zone.drag-over { border-color: #ffd93d; background: rgba(255,217,61,0.12); transform: scale(1.03); }
+        .drop-zone.correct { border-color: #6bcb77; background: rgba(107,203,119,0.18); animation: correctPulse 0.4s ease; }
+        @keyframes correctPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+        .drop-zone.wrong { border-color: #ff6b6b; background: rgba(255,107,107,0.18); animation: shake 0.45s ease; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-14px); } 40% { transform: translateX(14px); } 60% { transform: translateX(-9px); } 80% { transform: translateX(9px); } }
+
+        .horse-picker { display: flex; justify-content: center; flex-wrap: wrap; gap: 18px; max-width: 860px; margin: 8px auto 0; padding: 0 20px; }
+        .picker-card { background: white; border-radius: 16px; overflow: hidden; width: 155px; cursor: grab; user-select: none; touch-action: none; box-shadow: 0 6px 22px rgba(0,0,0,0.35); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .picker-card:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 14px 32px rgba(0,0,0,0.45); }
+        .picker-card:active { cursor: grabbing; }
+        .picker-card.is-dragging { opacity: 0.45; transform: scale(0.93); }
+        .picker-card img { width: 100%; height: 110px; object-fit: cover; display: block; pointer-events: none; }
+        .picker-emoji-fb { width: 100%; height: 110px; display: none; align-items: center; justify-content: center; font-size: 3.5rem; }
+        .picker-name { font-family: 'Fredoka One', cursive; font-size: 1rem; text-align: center; padding: 10px 8px 12px; color: #333; }
+
+        /* ═══════════════ END SCREEN ═══════════════ */
+        #endScreen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 20px; }
+        @keyframes bounceEnd { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
+        .end-emoji { font-size: 6rem; margin-bottom: 20px; animation: bounceEnd 1.2s ease infinite; }
+        .end-score { font-family: 'Fredoka One', cursive; font-size: clamp(2rem, 6vw, 3.5rem); color: white; text-shadow: 2px 3px 0 rgba(0,0,0,0.2); margin-bottom: 14px; }
+        .end-msg { font-size: 1.25rem; font-weight: 700; color: rgba(255,255,255,0.88); margin-bottom: 38px; max-width: 480px; line-height: 1.5; }
+        .end-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+        .end-btn { font-family: 'Fredoka One', cursive; font-size: 1.25rem; padding: 16px 36px; border-radius: 50px; border: none; cursor: pointer; color: white; text-shadow: 1px 1px 0 rgba(0,0,0,0.2); box-shadow: 0 6px 22px rgba(0,0,0,0.28); transition: transform 0.2s, box-shadow 0.2s; }
+        .end-btn:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
+        .end-btn-again { background: linear-gradient(135deg, #6bcb77, #4d96ff); }
+        .end-btn-back  { background: linear-gradient(135deg, #f953c6, #b91d73); }
+
+        /* ═══════════════ VET MATHS GAME ═══════════════ */
+        .vet-btn { background: linear-gradient(135deg, #11998e, #38ef7d, #4d96ff, #11998e); background-size: 300% 300%; }
+
+        #mathGamePage { min-height: 100vh; background: linear-gradient(180deg, #0f2027 0%, #203a43 50%, #2c5364 100%); padding-bottom: 50px; }
+
+        .case-wrap { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+
+        .case-file { background: rgba(255,255,255,0.96); border-radius: 22px; padding: 20px 22px; margin-top: 24px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); border-left: 8px solid #e74c3c; }
+        .case-patient { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+        .case-photo { width: 76px; height: 76px; border-radius: 16px; object-fit: cover; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .case-photo-fb { width: 76px; height: 76px; border-radius: 16px; display: none; align-items: center; justify-content: center; font-size: 2.4rem; flex-shrink: 0; }
+        .case-title { font-family: 'Fredoka One', cursive; font-size: 1.45rem; color: #c0392b; line-height: 1.12; }
+        .case-sub { font-size: 0.72rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #e67e22; margin-top: 4px; }
+        .case-story { font-size: 1.06rem; line-height: 1.6; color: #2d2d2d; font-weight: 600; }
+        .case-intro { font-style: italic; color: #5a5a5a; margin-bottom: 9px; font-weight: 600; }
+
+        .calc-card { background: white; border-radius: 22px; padding: 22px; margin-top: 18px; text-align: center; box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
+        .calc-label { font-family: 'Fredoka One', cursive; color: #999; font-size: 0.95rem; margin-bottom: 8px; }
+        .calc-problem { font-family: 'Fredoka One', cursive; font-size: clamp(2rem, 7vw, 3rem); color: #2c3e50; margin-bottom: 18px; letter-spacing: 1px; }
+        .calc-inputs { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
+        .calc-field { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .calc-field label { font-weight: 800; color: #777; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .calc-field input { width: 130px; font-family: 'Fredoka One', cursive; font-size: 1.7rem; text-align: center; padding: 10px; border: 3px solid #d0d7de; border-radius: 14px; color: #2c3e50; outline: none; transition: border-color 0.2s; -moz-appearance: textfield; }
+        .calc-field input::-webkit-outer-spin-button, .calc-field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .calc-field input:focus { border-color: #4d96ff; }
+        .mix-btn { font-family: 'Fredoka One', cursive; font-size: 1.3rem; padding: 14px 38px; border: none; border-radius: 50px; cursor: pointer; color: white; text-shadow: 1px 1px 0 rgba(0,0,0,0.18); background: linear-gradient(135deg, #11998e, #38ef7d); box-shadow: 0 6px 22px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; }
+        .mix-btn:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+        .mix-btn:disabled { opacity: 0.55; cursor: default; transform: none; box-shadow: none; }
+        .calc-feedback { min-height: 28px; margin-top: 14px; font-family: 'Fredoka One', cursive; font-size: 1.15rem; }
+        .calc-feedback.ok { color: #27ae60; }
+        .calc-feedback.no { color: #e74c3c; animation: shake 0.45s ease; }
+
+        /* medicine lab */
+        .vet-lab { display: flex; justify-content: center; align-items: flex-end; gap: 22px; height: 168px; margin: 26px auto 0; }
+        .dropper { font-size: 3rem; transform-origin: bottom center; }
+        .beaker { width: 96px; height: 130px; border: 6px solid rgba(255,255,255,0.7); border-top: none; border-radius: 0 0 30px 30px; position: relative; overflow: hidden; background: rgba(255,255,255,0.06); }
+        .beaker .liquid { position: absolute; left: 0; right: 0; bottom: 0; height: 26%; background: linear-gradient(180deg, #4d96ff, #2c5364); transition: height 1s ease, background 1s ease; }
+        .beaker .bubble { position: absolute; bottom: 12%; width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.75); opacity: 0; }
+        .beaker-glow { position: absolute; inset: 0; border-radius: 0 0 30px 30px; box-shadow: 0 0 0 rgba(56,239,125,0); transition: box-shadow 0.6s; pointer-events: none; }
+        .vet-lab.mixing .dropper.left  { animation: pourL 1.5s ease; }
+        .vet-lab.mixing .dropper.right { animation: pourR 1.5s ease; }
+        .vet-lab.mixing .liquid { height: 78%; background: linear-gradient(180deg, #a8ff78, #38ef7d 55%, #11998e); }
+        .vet-lab.mixing .bubble { animation: rise 1.3s ease-in-out forwards; }
+        .vet-lab.mixing .beaker-glow { box-shadow: 0 0 38px rgba(56,239,125,0.85); }
+        @keyframes pourL { 0%, 100% { transform: rotate(0); } 40%, 70% { transform: rotate(46deg) translateX(8px); } }
+        @keyframes pourR { 0%, 100% { transform: rotate(0); } 40%, 70% { transform: rotate(-46deg) translateX(-8px); } }
+        @keyframes rise { 0% { transform: translateY(0) scale(0.6); opacity: 0.9; } 100% { transform: translateY(-98px) scale(1.15); opacity: 0; } }
+        .lab-caption { text-align: center; color: rgba(255,255,255,0.5); font-weight: 700; margin-top: 10px; font-size: 0.9rem; }
+
+        /* interactive medicine-mixing station */
+        .mix-locked { text-align: center; color: rgba(255,255,255,0.55); font-weight: 700; font-size: 0.95rem; margin: 26px auto 0; }
+        .mix-station { background: rgba(255,255,255,0.06); border-radius: 22px; margin: 18px auto 0; padding: 24px 20px; max-width: 760px; }
+        .mix-headline { font-family: 'Fredoka One', cursive; color: #a8ff78; font-size: 1.25rem; text-align: center; margin-bottom: 22px; line-height: 1.3; }
+        .mix-area { display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap; }
+        .mix-col { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+        .ingredient-shelf { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; max-width: 320px; }
+        .ingredient, .medicine { width: 92px; background: white; border-radius: 16px; padding: 14px 8px 12px; text-align: center; cursor: grab; box-shadow: 0 6px 20px rgba(0,0,0,0.32); user-select: none; touch-action: none; transition: transform 0.15s, box-shadow 0.15s; }
+        .ingredient:active, .medicine:active { cursor: grabbing; }
+        .ingredient:hover, .medicine:hover { transform: translateY(-4px) scale(1.05); }
+        .ingredient.dragging-src, .medicine.dragging-src { opacity: 0.3; }
+        .ing-emoji, .med-emoji { font-size: 2.5rem; display: block; line-height: 1; }
+        .ingredient .ing-emoji { animation: bobble 2.2s ease-in-out infinite; }
+        .medicine .med-emoji { animation: bobble 1.4s ease-in-out infinite; }
+        .ing-name, .med-name { font-family: 'Fredoka One', cursive; font-size: 0.82rem; color: #444; margin-top: 7px; }
+        @keyframes bobble { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        .cauldron { position: relative; width: 150px; height: 128px; border: 6px solid rgba(255,255,255,0.7); border-top-width: 3px; border-radius: 16px 16px 64px 64px; background: rgba(255,255,255,0.05); overflow: hidden; display: flex; align-items: flex-end; justify-content: center; transition: transform 0.2s, border-color 0.2s, background 0.2s; }
+        .cauldron.over { border-color: #ffd93d; background: rgba(255,217,61,0.16); transform: scale(1.06); }
+        .cauldron-liquid { position: absolute; left: 0; right: 0; bottom: 0; height: 14%; background: linear-gradient(180deg, #6bb6ff, #2c5364); transition: height 0.55s ease, background 0.55s ease; }
+        .cauldron-label { position: relative; z-index: 2; font-family: 'Fredoka One', cursive; font-size: 0.78rem; color: rgba(255,255,255,0.78); padding: 10px 6px; text-align: center; }
+        .cauldron .bubble { position: absolute; bottom: 14%; width: 11px; height: 11px; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; }
+        .cauldron.fizz .bubble { animation: rise 1.1s ease-in-out; }
+
+        .patient-zone { text-align: center; }
+        .patient-ring { width: 138px; height: 138px; border-radius: 50%; border: 5px dashed rgba(255,255,255,0.4); padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-sizing: border-box; }
+        .patient-ring.over { border-color: #6bcb77; background: rgba(107,203,119,0.16); transform: scale(1.06); }
+        .patient-ring.healed { animation: correctPulse 0.5s ease; border-color: #38ef7d; border-style: solid; }
+        .patient-horse { width: 118px; height: 118px; border-radius: 50%; object-fit: cover; display: block; }
+        .patient-label { color: rgba(255,255,255,0.7); font-weight: 800; margin-top: 10px; font-size: 0.9rem; }
+
+        .drag-ghost { position: fixed; z-index: 9999; pointer-events: none; opacity: 0.92; transform: scale(1.1); box-shadow: 0 14px 36px rgba(0,0,0,0.5); }
+
+        /* cure celebration overlay */
+        .cure-overlay { display: none; position: fixed; inset: 0; background: rgba(10,30,40,0.85); z-index: 1200; align-items: center; justify-content: center; padding: 20px; }
+        .cure-overlay.active { display: flex; }
+        .cure-card { background: white; border-radius: 28px; max-width: 470px; width: 100%; text-align: center; padding: 34px 28px; box-shadow: 0 24px 70px rgba(0,0,0,0.5); position: relative; overflow: hidden; animation: popIn 0.4s ease; }
+        .cure-hearts { position: absolute; inset: 0; pointer-events: none; }
+        .cure-heart { position: absolute; bottom: 10px; font-size: 1.6rem; animation: floatUp 2.6s ease-in infinite; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 18% { opacity: 1; } 100% { transform: translateY(-300px) scale(1.2); opacity: 0; } }
+        .cure-photo { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 6px solid #38ef7d; box-shadow: 0 0 30px rgba(56,239,125,0.6); margin-bottom: 16px; position: relative; }
+        .cure-title { font-family: 'Fredoka One', cursive; font-size: 2rem; color: #27ae60; margin-bottom: 10px; position: relative; }
+        .cure-text { font-size: 1.05rem; line-height: 1.6; color: #2d2d2d; font-weight: 600; margin-bottom: 24px; position: relative; }
+
+        /* persistent vet rank card (main page) */
+        .vet-card { display: flex; align-items: center; gap: 16px; max-width: 440px; margin: 34px auto 0; background: white; border-radius: 22px; padding: 18px 22px; box-shadow: 0 8px 26px rgba(0,0,0,0.12); border: 3px solid #38ef7d; }
+        .vc-emoji { font-size: 3rem; line-height: 1; flex-shrink: 0; }
+        .vc-info { flex: 1; min-width: 0; text-align: left; }
+        .vc-tier { font-family: 'Fredoka One', cursive; font-size: 1.4rem; color: #11998e; line-height: 1.1; }
+        .vc-points { font-weight: 800; color: #555; font-size: 0.95rem; margin-top: 2px; }
+        .vc-progress { background: #eee; border-radius: 8px; height: 9px; overflow: hidden; margin-top: 8px; }
+        .vc-progress-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #11998e, #38ef7d); width: 0%; transition: width 0.6s ease; }
+        .vc-next { color: #999; font-size: 0.8rem; font-weight: 700; margin-top: 5px; }
+
+        /* vet points panel (maths end screen) */
+        .end-vet { background: rgba(255,255,255,0.94); border-radius: 22px; padding: 20px 24px; max-width: 440px; margin: 0 auto 30px; box-shadow: 0 8px 26px rgba(0,0,0,0.22); }
+        .ev-earned { font-family: 'Fredoka One', cursive; font-size: 1.5rem; color: #11998e; }
+        .ev-earned.zero { color: #e67e22; font-size: 1.1rem; }
+        .ev-levelup { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: #e91e63; margin: 12px 0; animation: bounceEnd 1s ease infinite; }
+        .ev-total { font-weight: 800; color: #444; font-size: 1.05rem; margin-top: 10px; }
+        .ev-tier-badge { font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: #2c3e50; margin-top: 6px; }
+        .ev-progress { background: #e6e6e6; border-radius: 8px; height: 10px; overflow: hidden; margin-top: 12px; }
+        .ev-progress-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #11998e, #38ef7d); width: 0%; }
+        .ev-next { color: #11998e; font-size: 1rem; font-weight: 800; margin-top: 10px; background: rgba(56,239,125,0.14); border-radius: 12px; padding: 8px 12px; }
+        .ev-feed { color: #e67e22; font-weight: 800; margin-top: 10px; }
+
+        /* ═══════════════ FEED KITCHEN (just for fun) ═══════════════ */
+        .feed-btn { background: linear-gradient(135deg, #f7971e, #ffd200, #f97316, #f7971e); background-size: 300% 300%; }
+        .play-btn:disabled, .play-btn.locked { opacity: 0.5; cursor: default; box-shadow: none; animation: none; filter: grayscale(0.4); }
+        .play-btn:disabled:hover, .play-btn.locked:hover { transform: none; box-shadow: none; }
+        #feedGamePage { min-height: 100vh; background: linear-gradient(180deg, #3a2a12 0%, #6b4f1d 50%, #4a7a2c 100%); padding-bottom: 50px; }
+        .feed-headline { font-family: 'Fredoka One', cursive; color: #ffe08a; font-size: 1.3rem; text-align: center; margin: 26px auto 18px; line-height: 1.35; max-width: 700px; }
+        .trough-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-bottom: 22px; }
+        .trough-item { display: flex; flex-direction: column; align-items: center; gap: 7px; width: 150px; }
+        .trough-horse { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255,255,255,0.85); box-shadow: 0 5px 16px rgba(0,0,0,0.35); transition: transform 0.2s; }
+        .trough-item.fed .trough-horse { animation: munch 0.6s ease 3; border-color: #6bcb77; }
+        @keyframes munch { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(5px) rotate(-3deg); } }
+        .trough-name { font-family: 'Fredoka One', cursive; color: white; font-size: 1rem; }
+        .trough { width: 124px; height: 44px; border: 4px solid #b07d3a; border-top: none; border-radius: 6px 6px 26px 26px; background: rgba(0,0,0,0.18); position: relative; overflow: hidden; transition: all 0.2s; display: flex; align-items: flex-end; justify-content: center; }
+        .trough.active { border-color: #ffd93d; box-shadow: 0 0 14px rgba(255,217,61,0.5); }
+        .trough.over { border-color: #ffd93d; background: rgba(255,217,61,0.22); transform: scale(1.06); }
+        .trough.filled { background: linear-gradient(180deg, #c98a3c, #7a5320); }
+        .trough-feed { font-size: 1.2rem; padding-bottom: 3px; opacity: 0; }
+        .trough.filled .trough-feed { opacity: 1; }
+        .feed-mix { display: flex; align-items: center; justify-content: center; gap: 26px; flex-wrap: wrap; margin-bottom: 8px; }
+        .feed-bowl { position: relative; width: 168px; height: 110px; border: 7px solid rgba(255,255,255,0.85); border-top-width: 3px; border-radius: 14px 14px 90px 90px; background: rgba(255,255,255,0.06); overflow: hidden; display: flex; align-items: flex-end; justify-content: center; transition: transform 0.2s, border-color 0.2s, background 0.2s; }
+        .feed-bowl.over { border-color: #ffd93d; background: rgba(255,217,61,0.18); transform: scale(1.05); }
+        .feed-bowl.plop { animation: correctPulse 0.3s ease; }
+        .feed-bowl.ready { border-color: #6bcb77; box-shadow: 0 0 26px rgba(107,203,119,0.6); }
+        .feed-bowl-fill { position: absolute; left: 0; right: 0; bottom: 0; height: 0%; background: linear-gradient(180deg, #d9a441, #8a5a1e); transition: height 0.4s ease; }
+        .feed-bowl-label { position: relative; z-index: 2; font-family: 'Fredoka One', cursive; font-size: 0.82rem; color: rgba(255,255,255,0.85); text-align: center; padding: 8px; }
+        .feed-shelf { margin: 6px auto 0; max-width: 640px; }
+
+        /* grown-ups reset panel */
+        .admin-link { background: none; border: none; color: #c4c4c4; font-weight: 700; font-size: 0.82rem; cursor: pointer; text-decoration: underline; }
+        .admin-link:hover { color: #888; }
+        .admin-title { font-family: 'Fredoka One', cursive; font-size: 1.4rem; color: #2c3e50; margin-bottom: 6px; }
+        .admin-p { color: #555; font-size: 0.95rem; margin-bottom: 12px; line-height: 1.5; }
+        .admin-label { display: block; font-weight: 800; color: #777; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; margin: 12px 0 4px; }
+        .admin-input { width: 100%; font-family: 'Fredoka One', cursive; font-size: 1.3rem; padding: 9px 12px; border: 3px solid #d0d7de; border-radius: 12px; color: #2c3e50; outline: none; box-sizing: border-box; -moz-appearance: textfield; }
+        .admin-input::-webkit-outer-spin-button, .admin-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .admin-input:focus { border-color: #4d96ff; }
+        .admin-msg { min-height: 20px; font-weight: 800; font-size: 0.9rem; margin-top: 10px; }
+        .admin-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+        .admin-cancel { font-family: 'Fredoka One', cursive; font-size: 1rem; padding: 12px 20px; border: none; border-radius: 40px; background: #e6e6e6; color: #555; cursor: pointer; }
+        .admin-cancel:hover { background: #d8d8d8; }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════ MAIN PAGE ════════════════ -->
+<div id="mainPage">
+    <header class="rainbow-bg">
+        <div class="stars" id="stars"></div>
+        <h1>🐎 Gallop &amp; Friends 🐎</h1>
+        <p>Click on a horse to learn all about them! 🌈</p>
+    </header>
+    <div class="horse-grid" id="horseGrid"></div>
+    <div class="vet-card" id="vetCard">
+        <div class="vc-emoji" id="vcEmoji">🌱</div>
+        <div class="vc-info">
+            <div class="vc-tier" id="vcTier">Apprentice</div>
+            <div class="vc-points" id="vcPoints">0 vet points</div>
+            <div class="vc-progress"><div class="vc-progress-fill" id="vcProgressFill"></div></div>
+            <div class="vc-next" id="vcNext"></div>
+        </div>
+    </div>
+    <div class="play-btn-wrap">
+        <button class="play-btn" onclick="showGame()">🎮 Play the Horse Game!</button>
+        <div style="height:20px"></div>
+        <button class="play-btn vet-btn" onclick="showMathGame()">🩺 Play the Vet Maths Game!</button>
+        <p style="margin-top:12px;color:#999;font-weight:700;font-size:0.95rem;">Be the horse vet — solve the maths to mix the medicine and heal the horse! 🧪</p>
+        <div style="height:20px"></div>
+        <button class="play-btn feed-btn" id="feedBtn" onclick="showFeedGame()">🥕 Mix the Feed!</button>
+        <p id="feedHint" style="margin-top:12px;color:#999;font-weight:700;font-size:0.95rem;"></p>
+        <div style="margin-top:6px"><button class="admin-link" onclick="openAdmin()">🔒 Grown-ups</button></div>
+    </div>
+    <footer class="rainbow-bg">
+        <p>Made with 💖 especially for Ella &nbsp;·&nbsp; Gallop &amp; Friends 🐴✨</p>
+    </footer>
+</div>
+
+<!-- ════════════════ GROWN-UPS RESET PANEL (password 0101) ════════════════ -->
+<div class="cure-overlay" id="adminOverlay">
+    <div class="cure-card" style="text-align:left;max-width:390px;">
+        <div id="adminStep1">
+            <div class="admin-title">🔒 Grown-ups only</div>
+            <p class="admin-p">Enter the password to set Ella's progress.</p>
+            <input id="adminPw" type="password" inputmode="numeric" class="admin-input" placeholder="Password" onkeydown="if(event.key==='Enter')adminCheckPw()">
+            <div id="adminPwMsg" class="admin-msg"></div>
+            <div class="admin-btns">
+                <button class="mix-btn" onclick="adminCheckPw()">Enter</button>
+                <button class="admin-cancel" onclick="closeAdmin()">Cancel</button>
+            </div>
+        </div>
+        <div id="adminStep2" class="hidden">
+            <div class="admin-title">Set Ella's progress</div>
+            <label class="admin-label">Vet points (sets her rank)</label>
+            <input id="adminPts" type="number" inputmode="numeric" class="admin-input">
+            <label class="admin-label">Feed Kitchen plays</label>
+            <input id="adminFeed" type="number" inputmode="numeric" class="admin-input">
+            <div id="adminMsg" class="admin-msg"></div>
+            <div class="admin-btns">
+                <button class="mix-btn" onclick="adminApply()">Save</button>
+                <button class="admin-cancel" onclick="adminReset0()">Reset to 0</button>
+                <button class="admin-cancel" onclick="closeAdmin()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════ GAME PAGE ════════════════ -->
+<div id="gamePage" class="hidden">
+    <div class="game-nav">
+        <button class="back-btn" onclick="showMain()">🐴 Back to Horses</button>
+        <div class="score-display">⭐ <span id="scoreVal">0</span> points</div>
+        <div class="q-display">Question <span id="qNum">1</span> / <span id="qTotal">50</span></div>
+    </div>
+    <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="clue-box">
+        <div class="clue-label" id="clueLabel">🤔 Which horse am I?</div>
+        <div class="clue-text" id="clueText"></div>
+    </div>
+    <div class="drop-zone" id="dropZone">
+        <span class="dz-text">🐴 Drag the right horse here!</span>
+    </div>
+    <div class="horse-picker" id="horsePicker"></div>
+</div>
+
+<!-- ════════════════ END SCREEN ════════════════ -->
+<div id="endScreen" class="hidden rainbow-bg">
+    <div class="end-emoji" id="endEmoji">🏆</div>
+    <div class="end-score" id="endScore"></div>
+    <div class="end-msg"   id="endMsg"></div>
+    <div class="end-btns">
+        <button class="end-btn end-btn-again" onclick="playAgain()">🎮 Play Again!</button>
+        <button class="end-btn end-btn-back"  onclick="showMain()">🐴 Back to Horses</button>
+    </div>
+</div>
+
+<!-- ════════════════ VET MATHS GAME PAGE ════════════════ -->
+<div id="mathGamePage" class="hidden">
+    <div class="game-nav">
+        <button class="back-btn" onclick="showMain()">🐴 Back to Horses</button>
+        <div class="score-display">🩺 <span id="mScoreVal">0</span> points</div>
+        <div class="q-display">Patient <span id="mQNum">1</span> / <span id="mQTotal">4</span></div>
+    </div>
+    <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="mProgressFill"></div></div>
+    </div>
+
+    <div class="case-wrap">
+        <div class="case-file">
+            <div class="case-patient">
+                <img id="mCaseImg" class="case-photo" alt="">
+                <div class="case-photo-fb" id="mCaseImgFb"></div>
+                <div>
+                    <div class="case-title" id="mCaseTitle"></div>
+                    <div class="case-sub">🚑 Tierärztlicher Notfall</div>
+                </div>
+            </div>
+            <div class="case-story" id="mCaseStory"></div>
+        </div>
+
+        <div class="calc-card">
+            <div class="calc-label" id="mCalcLabel">🧮 Deine Berechnung:</div>
+            <div class="calc-problem" id="mProblem"></div>
+            <div class="calc-inputs" id="mInputs"></div>
+            <button class="mix-btn" id="mMixBtn" onclick="checkMathAnswer()">🧪 Mix the medicine!</button>
+            <div class="calc-feedback" id="mFeedback"></div>
+        </div>
+
+        <div class="mix-locked" id="mMixLocked">🔒 Solve the calculation above to unlock the medicine lab! 🧪</div>
+
+        <div class="mix-station hidden" id="mMixStation">
+            <div class="mix-headline" id="mMixHeadline"></div>
+            <div class="mix-area">
+                <div class="ingredient-shelf" id="mShelf"></div>
+                <div class="mix-col">
+                    <div class="cauldron mix-drop" id="mCauldron" data-drop="cauldron">
+                        <div class="cauldron-liquid" id="mCauldronLiquid"></div>
+                        <span class="bubble" style="left:25%;animation-delay:.05s"></span>
+                        <span class="bubble" style="left:50%;animation-delay:.35s"></span>
+                        <span class="bubble" style="left:70%;animation-delay:.20s"></span>
+                        <div class="cauldron-label" id="mCauldronLabel">Drop ingredients here</div>
+                    </div>
+                    <div class="medicine-tray" id="mMedicineTray"></div>
+                </div>
+                <div class="patient-zone hidden" id="mPatientZone">
+                    <div class="patient-ring mix-drop" id="mPatientDrop" data-drop="horse">
+                        <img class="patient-horse" id="mPatientHorse" alt="">
+                    </div>
+                    <div class="patient-label">Bring the medicine here! 💉</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- horse sounds played (at random) when a horse is treated (CC0 / public domain, bigsoundbank.com) -->
+<audio id="sndWhinny" src="horse-sounds/cure-whinny.mp3" preload="auto"></audio>
+<audio id="sndSnort"  src="horse-sounds/cure-snort.mp3"  preload="auto"></audio>
+<audio id="sndStamp"  src="horse-sounds/cure-stamp.mp3"  preload="auto"></audio>
+
+<!-- ════════════════ CURE CELEBRATION ════════════════ -->
+<div class="cure-overlay" id="mCureOverlay">
+    <div class="cure-card">
+        <div class="cure-hearts" id="mCureHearts"></div>
+        <img id="mCureImg" class="cure-photo" alt="">
+        <div class="cure-title">💚 Geheilt! 💚</div>
+        <div class="cure-text" id="mCureText"></div>
+        <button class="end-btn end-btn-again" onclick="nextAfterCure()">Next patient →</button>
+    </div>
+</div>
+
+<!-- ════════════════ VET MATHS END SCREEN ════════════════ -->
+<div id="mathEndScreen" class="hidden rainbow-bg" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;">
+    <div class="end-emoji" id="mEndEmoji">🏆</div>
+    <div class="end-score" id="mEndScore"></div>
+    <div class="end-msg"   id="mEndMsg"></div>
+    <div class="end-vet"   id="mEndVet"></div>
+    <div class="end-btns">
+        <button class="end-btn end-btn-again" onclick="mathPlayAgain()">🩺 Treat More Horses!</button>
+        <button class="end-btn end-btn-back"  onclick="showMain()">🐴 Back to Horses</button>
+    </div>
+</div>
+
+<!-- ════════════════ FEED KITCHEN (just for fun) ════════════════ -->
+<div id="feedGamePage" class="hidden">
+    <div class="game-nav">
+        <button class="back-btn" onclick="showMain()">🐴 Back to Horses</button>
+        <div class="score-display">🥕 Feed Kitchen</div>
+        <div class="q-display" id="feedTokenLabel"></div>
+    </div>
+    <div class="case-wrap">
+        <div class="feed-headline" id="feedHeadline"></div>
+        <div class="trough-row" id="troughRow"></div>
+        <div class="feed-mix">
+            <div class="feed-bowl mix-drop" id="feedBowl" data-drop="feedbowl">
+                <div class="feed-bowl-fill" id="feedBowlFill"></div>
+                <div class="feed-bowl-label" id="feedBowlLabel">Drop food here</div>
+            </div>
+            <div class="scoop-tray" id="scoopTray"></div>
+        </div>
+        <div class="ingredient-shelf feed-shelf" id="feedShelf"></div>
+    </div>
+</div>
+
+<!-- ════════════════ MODAL ════════════════ -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <div class="modal-header" id="modalHeader">
+            <span class="modal-big-emoji" id="modalEmoji"></span>
+            <div class="modal-title">
+                <h2 id="modalName"></h2>
+                <div class="modal-breed" id="modalBreed"></div>
+            </div>
+            <button class="close-btn" id="closeBtn" aria-label="Close">✕</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  HORSE DATA  — 10 horses × 5 questions each = 50 total
+// ═══════════════════════════════════════════════════════════
+const horses = [
+  {
+    name: "Stella", breed: "Arabian", emoji: "🐎",
+    image: "horse-images/stella-arabian.jpg",
+    cardGradient: "linear-gradient(135deg, #c471ed, #f64f59)",
+    coat: "Pearly white coat with a silky silver mane and tail",
+    temperament: "Gentle, curious, and loves cuddles. She nudges you with her nose to say hello!",
+    story: "Stella was born on a magical snowy morning in France. Her owner named her Stella — which means 'star' in Latin — because she shone like a star in the snow. She grew up in a cosy stable in the French countryside, where she fell in love with apples, carrots, and having her mane brushed. She once sneaked into her owner's kitchen looking for apple slices and accidentally knocked over a whole fruit bowl!",
+    facts: [
+      "🌟 Arabians are one of the OLDEST horse breeds on Earth — over 5,000 years old!",
+      "🦴 They have one fewer rib than most other horse breeds.",
+      "🏕️ Ancient Bedouin tribes let their beloved Arabians sleep inside their tents.",
+      "🌬️ Arabians can gallop long distances without getting tired."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "My name means 'star' ⭐ and I was born during a magical snowstorm in France!" },
+      { label: "🐴 Breed Question",   text: "I am one of the OLDEST horse breeds in the world — over 5,000 years old! My breed comes from the Middle East and has a beautiful dished face. Which horse am I?" },
+      { label: "🎨 Coat Question",    text: "I have a pearly white coat and a silky silver mane that shimmers in the sunlight. Which horse am I? ✨" },
+      { label: "💝 Personality",      text: "I am gentle and curious, and I love cuddles. I will nudge people with my soft nose just to say hello! Which horse am I? 🥰" },
+      { label: "🌟 Fun Fact",         text: "I have ONE FEWER rib than most other horses — that makes me a little bit different on the inside! Which horse am I? 🦴" }
+    ]
+  },
+  {
+    name: "Biscuit", breed: "Clydesdale", emoji: "🐴",
+    image: "horse-images/biscuit-clydesdale.jpg",
+    cardGradient: "linear-gradient(135deg, #f7971e, #ffd200)",
+    coat: "Rich golden chestnut with long, fluffy white feathered hooves that look like socks",
+    temperament: "Calm, gentle, patient, and absolutely loves children. Like a giant soft teddy bear.",
+    story: "Biscuit grew up on a big farm in Scotland, where he helped carry huge hay bales every autumn. He got his sweet name because the farmer's young daughter always sneaked him oat biscuits as treats. Now retired, he spends his days enjoying sunny green fields and being petted by visitors who can't believe how enormous and fluffy he is.",
+    facts: [
+      "🏋️ Clydesdales can weigh over 2,000 pounds — as heavy as a small car!",
+      "🍳 Their hooves are almost the size of a frying pan!",
+      "📺 The famous Budweiser beer commercials star Clydesdale horses.",
+      "👑 Clydesdales have been given as special royal gifts to Queen Elizabeth II."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "A little girl named me after the oat treats 🍪 she sneaked me every single morning on the farm!" },
+      { label: "🐴 Breed Question",   text: "My breed is a huge draught horse from Scotland that can weigh as much as a small car! We have giant fluffy feathered hooves. Which horse am I? 🏋️" },
+      { label: "🎨 Coat Question",    text: "I have a rich golden-chestnut coat with long, fluffy WHITE hooves that look like I'm wearing cosy socks! Which horse am I? 🧦" },
+      { label: "💝 Personality",      text: "I am calm, gentle, and incredibly patient. Everyone says I am like a giant soft teddy bear! Which horse am I? 🧡" },
+      { label: "🌟 Fun Fact",         text: "My hooves are almost the size of a FRYING PAN — they are enormous! Which horse am I? 🍳" }
+    ]
+  },
+  {
+    name: "Thunder", breed: "Mustang", emoji: "🐎",
+    image: "horse-images/thunder-mustang.jpg",
+    cardGradient: "linear-gradient(135deg, #c0392b, #e74c3c)",
+    coat: "Deep dark bay — very dark chocolate brown — with a jet-black mane, tail, and legs",
+    temperament: "Brave, independent, and fiercely loyal once he decides to trust you.",
+    story: "Thunder was born wild in the rolling golden hills of Nevada, USA. He ran free with his herd for four whole years — galloping across plains, splashing through rivers, and sleeping under the stars. A kind ranger named Maria spent months earning his trust. Now Thunder lives at a rescue ranch, helping other wild horses feel safe around people.",
+    facts: [
+      "💨 Mustangs can gallop up to 55 miles per hour!",
+      "⛵ They descended from Spanish horses brought to America over 500 years ago.",
+      "🐎 About 80,000 wild mustangs still roam free in the USA.",
+      "🦾 Mustangs are incredibly tough and can survive harsh weather."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "I was born completely WILD 🏃 in Nevada and ran free across the open plains for four whole years!" },
+      { label: "🐴 Breed Question",   text: "My breed are wild horses of America, descended from Spanish horses brought over 500 years ago. About 80,000 of us still roam free today! Which horse am I? 🌵" },
+      { label: "🎨 Coat Question",    text: "I have a very dark chocolate-brown coat with a jet-black mane, tail, and legs. Which horse am I? 🍫" },
+      { label: "💝 Personality",      text: "I am brave and independent. I don't trust easily — but once I do, I am fiercely loyal forever! Which horse am I? 💪" },
+      { label: "🌟 Fun Fact",         text: "I can gallop up to 55 miles per hour — faster than a car driving through a school zone! Which horse am I? 💨" }
+    ]
+  },
+  {
+    name: "Dotty", breed: "Appaloosa", emoji: "🐴",
+    image: "horse-images/dotty-appaloosa.jpg",
+    cardGradient: "linear-gradient(135deg, #f953c6, #b91d73)",
+    coat: "White with bold dark brown leopard spots scattered all over — like a polka-dot costume!",
+    temperament: "Playful, mischievous, very clever, and loves being the centre of attention.",
+    story: "The moment Dotty was born in Idaho, everyone gasped at her polka-dot spots! She once escaped her paddock three times in one week by flipping the latch with her nose. She loves popping balloons and untying shoelaces. She will do anything to get attention!",
+    facts: [
+      "👁️ Appaloosas have white showing around their eyes, just like humans!",
+      "🦶 They have striped hooves — no other breed has this!",
+      "🏹 They were the beloved horses of the Nez Perce Native American tribe.",
+      "🌨️ No two Appaloosas have the same spot pattern — like snowflakes!"
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "I escaped my paddock THREE times in one week 😏 — I figured out how to flip the gate latch open with my nose!" },
+      { label: "🐴 Breed Question",   text: "My breed is famous for leopard spots, striped hooves, and visible white around our eyes — just like humans have! We were the favourite horse of the Nez Perce tribe. Which horse am I? 🐆" },
+      { label: "🎨 Coat Question",    text: "I have a white body covered in bold dark brown spots — I look like I am wearing a polka-dot party costume! Which horse am I? 🎉" },
+      { label: "💝 Personality",      text: "I am playful and mischievous. I love attention so much that I will untie your shoelaces just to make you notice me! Which horse am I? 😄" },
+      { label: "🌟 Fun Fact",         text: "I have STRIPED hooves — which is completely unique to my breed. No other horse breed has this! Which horse am I? 🦶" }
+    ]
+  },
+  {
+    name: "Midnight", breed: "Friesian", emoji: "🐎",
+    image: "horse-images/midnight-friesian.jpg",
+    cardGradient: "linear-gradient(135deg, #1a1a2e, #4a4a8a)",
+    coat: "Pure jet black from the tip of her nose to the end of her tail — not a single white hair anywhere",
+    temperament: "Elegant, calm, and graceful. She carries herself like a queen wherever she goes.",
+    story: "Midnight comes from the Netherlands, where Friesian horses have been bred for over 1,000 years. Trained in dressage — horse ballet — she has performed across Europe. Her favourite thing is having her flowing mane braided with fresh flowers before a show.",
+    facts: [
+      "⚔️ Friesians were used as war horses by knights in the Middle Ages!",
+      "🚨 The breed almost went completely extinct — twice in history!",
+      "👨‍👩‍👧 All purebred Friesians trace their family tree to just three stallions.",
+      "💃 They are one of the best breeds for dressage — horse dancing!"
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "I am jet black from head to tail 🌸 and my absolute favourite thing is having flowers braided into my long, flowing mane!" },
+      { label: "🐴 Breed Question",   text: "My breed comes from the Netherlands and has been bred for over 1,000 years. We are always jet black and were once used as war horses by knights! Which horse am I? ⚔️" },
+      { label: "🎨 Coat Question",    text: "I am pure jet black all over — from my nose to my tail — without a single white hair anywhere on my body! Which horse am I? 🖤" },
+      { label: "💝 Personality",      text: "I am elegant and graceful, and I carry myself like a queen wherever I go. I love to perform on stage! Which horse am I? 👑" },
+      { label: "🌟 Fun Fact",         text: "My breed almost went completely EXTINCT twice in history — but thankfully people worked hard to save us! Which horse am I? 🚨" }
+    ]
+  },
+  {
+    name: "Sunny", breed: "Palomino", emoji: "🐴",
+    image: "horse-images/sunny-palomino.jpg",
+    cardGradient: "linear-gradient(135deg, #f9d423, #f97316)",
+    coat: "Shimmering golden coat with a pale, creamy-yellow mane and tail that glow in the sunlight",
+    temperament: "Cheerful, friendly, social, and always happy. She whinny loudly if you ignore her!",
+    story: "Sunny grew up in California and was trained as a parade horse. She has marched in over 20 parades and holds her head high like a superstar. She loves music and sways side-to-side when she hears a beat. She will stand by the fence calling out to anyone passing — she cannot stand being left out.",
+    facts: [
+      "🎨 Palomino is a colour, not a breed — many different breeds can be palomino!",
+      "👑 Queen Isabella of Spain kept 100 palominos in her royal stables.",
+      "🎬 Palomino horses have starred in many famous movies and TV shows.",
+      "✨ Their golden coats shine so brightly they look magical in sunlight!"
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "I have marched in over 20 parades 🎵 and I start swaying from side to side the moment I hear music!" },
+      { label: "🐴 Breed Question",   text: "Here is a tricky one — my colour is called Palomino, but it is actually a COLOUR not a breed! Many different breeds can have my golden look. Which horse am I? 🎨" },
+      { label: "🎨 Coat Question",    text: "I have a shimmering GOLDEN coat with a pale creamy-yellow mane and tail that glow in the sunlight. Which horse am I? ☀️" },
+      { label: "💝 Personality",      text: "I am cheerful and social — I will whinny loudly if I think someone is ignoring me! I just love attention! Which horse am I? 😤" },
+      { label: "🌟 Fun Fact",         text: "Queen Isabella of Spain loved horses with my colouring so much that she kept 100 of them in her royal stables! Which horse am I? 👑" }
+    ]
+  },
+  {
+    name: "Patches", breed: "Paint Horse", emoji: "🐴",
+    image: "horse-images/patches-paint.jpg",
+    cardGradient: "linear-gradient(135deg, #11998e, #38ef7d)",
+    coat: "Big bold patches of warm chestnut brown and bright white all over (tobiano pattern)",
+    temperament: "Sweet, curious, patient, and perfect for beginners. Loves sniffing everything.",
+    story: "Patches grew up on a Texas cattle ranch, where cowboys called her 'the best cow horse in three counties.' She could sense where a cow was about to run before even the cow knew! Now she lives at a children's riding school where she patiently teaches kids to ride. Her favourite hobby is sniffing pockets for hidden snacks.",
+    facts: [
+      "🌈 A Paint horse's coat pattern is completely unique — no two are ever the same!",
+      "🐄 Paint horses are related to Quarter Horses and brilliant at herding cattle.",
+      "👃 Horses can smell things from miles away — even better than dogs!",
+      "🎨 There are two main Paint patterns: tobiano (like Patches!) and overo."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "Cowboys called me the best cow horse 🤠 in THREE whole counties — I could predict where a cow would run!" },
+      { label: "🐴 Breed Question",   text: "My breed is the American Paint Horse — we have big patches of two colours and are closely related to the Quarter Horse. We are brilliant at herding cattle! Which horse am I? 🐄" },
+      { label: "🎨 Coat Question",    text: "I have big bold patches of warm chestnut brown AND bright white all over my body. This pattern is called tobiano! Which horse am I? 🎨" },
+      { label: "💝 Personality",      text: "I am sweet and incredibly patient — perfect for children who are learning to ride for the very first time! Which horse am I? 🌟" },
+      { label: "🌟 Fun Fact",         text: "No two horses of my breed have the same coat pattern — every single one of us is completely unique, like a fingerprint! Which horse am I? 🌈" }
+    ]
+  },
+  {
+    name: "Cupcake", breed: "Shetland Pony", emoji: "🐴",
+    image: "horse-images/cupcake-shetland.jpg",
+    cardGradient: "linear-gradient(135deg, #f48fb1, #fce4ec)",
+    coat: "Dapple grey — silvery grey with round lighter spots like polka dots",
+    temperament: "Cheeky, clever, a tiny bit stubborn, but absolutely the most adorable creature ever.",
+    story: "Cupcake comes from the Shetland Islands in Scotland, where she has a super thick fluffy coat. She is tiny but thinks she is the biggest horse in the world. Once she squeezed through a family's doggy door and ate two pieces of buttered toast before anyone could catch her!",
+    facts: [
+      "💪 Shetland ponies can carry TWICE their own body weight!",
+      "🎂 Despite being tiny, they can live to 30 years old or more!",
+      "⛏️ Long ago, Shetland ponies worked underground in coal mines.",
+      "❄️ Their thick double-layer coat keeps them warm in freezing winters."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "I squeezed through a DOGGY DOOR 🍞 and ate two whole pieces of buttered toast right off someone's breakfast table!" },
+      { label: "🐴 Breed Question",   text: "My breed comes from the wild Shetland Islands in Scotland. We are very small with super thick fluffy coats, but we are incredibly strong for our size! Which horse am I? 🏴󠁧󠁢󠁳󠁣󠁴󠁿" },
+      { label: "🎨 Coat Question",    text: "I have a dapple grey coat — silvery grey with round lighter spots scattered all over, like polka dots! Which horse am I? 🔘" },
+      { label: "💝 Personality",      text: "I am cheeky and clever! Even though I am tiny, I am completely convinced that I am the biggest and most important horse in the whole stable! Which horse am I? 😂" },
+      { label: "🌟 Fun Fact",         text: "Even though I am one of the smallest horses around, I can carry TWICE my own bodyweight — I am stronger than I look! Which horse am I? 💪" }
+    ]
+  },
+  {
+    name: "Brio", breed: "Haflinger", emoji: "🐎",
+    image: "horse-images/brio-haflinger.jpg",
+    cardGradient: "linear-gradient(135deg, #d4a55a, #c67c2d)",
+    coat: "Rich chestnut (reddish-brown) coat with a long, flowing pale golden mane and tail",
+    temperament: "Energetic, bouncy, playful, and wonderful with children. He can never stand still!",
+    story: "Brio was born high in the Alps of Austria. From day one he could never stand still — always trotting in circles and play-bowing like a puppy. His name means 'lively spirit' in Italian, which describes him perfectly. He lives with four children who ride him up mountain trails every summer. His favourite snack is wildflowers — especially the yellow ones. He once ate an entire flower arrangement off the kitchen table.",
+    facts: [
+      "🏔️ Haflingers originated in the Tyrolean Alps of Austria and Italy.",
+      "💛 They always have a chestnut coat with a golden mane — no exceptions!",
+      "🎂 Haflingers can live incredibly long lives — some reach 40 years old!",
+      "🏋️ Despite being small, they are very strong and sure-footed on mountain paths."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "I was born in the snowy Alps of Austria 🏔️ and my name means 'lively spirit' in Italian — because I have NEVER been able to stand still!" },
+      { label: "🐴 Breed Question",   text: "My breed comes from the Tyrolean Alps between Austria and Italy. We ALWAYS have a chestnut coat with a golden mane — that combination is a rule for our breed! Which horse am I? 🏔️" },
+      { label: "🎨 Coat Question",    text: "I have a rich reddish-brown (chestnut) coat with a long, flowing pale GOLDEN mane and tail. Which horse am I? 💛" },
+      { label: "💝 Personality",      text: "I am energetic and bouncy — from the moment I was born I could never stand still for more than a second! Which horse am I? 🤸" },
+      { label: "🌟 Fun Fact",         text: "My breed can live to an incredibly old age — some Haflingers reach 40 years old! Which horse am I? 🎂" }
+    ]
+  },
+  {
+    name: "Luna", breed: "Lipizzaner", emoji: "🐎",
+    image: "horse-images/luna-lipizzaner.jpg",
+    cardGradient: "linear-gradient(135deg, #2c3e50, #3498db)",
+    coat: "Brilliant silvery white — but she was born completely dark brown and slowly turned white!",
+    temperament: "Intelligent, elegant, patient, and absolutely loves to perform in front of a crowd.",
+    story: "Luna is a Lipizzaner mare from Vienna's Spanish Riding School — the oldest riding school in the world. She can perform the capriole: a leap where all four hooves leave the ground at the same time! She has performed for kings and presidents. Off stage she is gentle and loves being groomed. She was named Luna because her coat is as pale and silvery as the full moon.",
+    facts: [
+      "🌑 Lipizzaners are born dark — they turn white slowly as they grow up!",
+      "🏛️ The Spanish Riding School in Vienna has been training them for over 450 years.",
+      "🦄 They are one of the rarest horse breeds in the world.",
+      "🎬 In WWII, General Patton rescued a herd of Lipizzaners — it became a Disney film!"
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "I can jump into the air with ALL four hooves off the ground at once 🤸 — this incredible move is called a capriole!" },
+      { label: "🐴 Breed Question",   text: "My breed has been trained at the Spanish Riding School in Vienna, Austria for over 450 YEARS — it is the oldest riding school in the world! Which horse am I? 🏛️" },
+      { label: "🎨 Coat Question",    text: "I look brilliant white now — but here is the secret: I was born completely DARK BROWN and slowly turned white as I grew older! Which horse am I? 🌑" },
+      { label: "💝 Personality",      text: "I am intelligent and elegant, and I absolutely LOVE performing incredible moves in front of a crowd. I am practically a gymnast! Which horse am I? 🎭" },
+      { label: "🌟 Fun Fact",         text: "During World War II, an American general helped rescue horses of my breed from danger — and it even became a famous Disney movie! Which horse am I? 🎬" }
+    ]
+  }
+];
+
+// ═══════════════════════════════════════════════════════════
+//  BUILD MAIN GRID
+// ═══════════════════════════════════════════════════════════
+const grid = document.getElementById('horseGrid');
+horses.forEach((horse, i) => {
+    const card = document.createElement('div');
+    card.className = 'horse-card';
+    card.innerHTML = `
+        <div class="card-top">
+            <img src="${horse.image}" alt="${horse.name}" class="card-img"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="card-emoji-fallback" style="display:none;background:${horse.cardGradient}">${horse.emoji}</div>
+        </div>
+        <div class="card-info">
+            <h2>${horse.name}</h2>
+            <p class="breed-label">${horse.breed}</p>
+            <p class="click-hint">👆 Click to learn more!</p>
+        </div>`;
+    card.addEventListener('click', () => openModal(i));
+    grid.appendChild(card);
+});
+
+// ═══════════════════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════════════════
+function openModal(i) {
+    const h = horses[i];
+    document.getElementById('modalHeader').style.background = h.cardGradient;
+    document.getElementById('modalEmoji').textContent = h.emoji;
+    document.getElementById('modalName').textContent = h.name;
+    document.getElementById('modalBreed').textContent = h.breed;
+    document.getElementById('modalBody').innerHTML = `
+        <img src="${h.image}" alt="${h.name}" style="width:100%;height:220px;object-fit:cover;border-radius:14px;margin-bottom:20px;display:block;" onerror="this.style.display='none'">
+        <div class="info-block"><h3>🎨 Coat &amp; Colour</h3><p>${h.coat}</p></div>
+        <div class="info-block"><h3>💝 Temperament</h3><p>${h.temperament}</p></div>
+        <div class="info-block"><h3>📖 ${h.name}'s Story</h3><p>${h.story}</p></div>
+        <div class="info-block"><h3>🌟 Fun Facts About ${h.name}'s Breed</h3><ul>${h.facts.map(f=>`<li>${f}</li>`).join('')}</ul></div>`;
+    document.getElementById('modalOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+document.getElementById('closeBtn').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target.id === 'modalOverlay') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ═══════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function showGame() {
+    document.getElementById('mainPage').classList.add('hidden');
+    document.getElementById('gamePage').classList.remove('hidden');
+    startGame();
+}
+function showMain() {
+    document.getElementById('gamePage').classList.add('hidden');
+    document.getElementById('endScreen').classList.add('hidden');
+    document.getElementById('mathGamePage').classList.add('hidden');
+    document.getElementById('mathEndScreen').classList.add('hidden');
+    document.getElementById('feedGamePage').classList.add('hidden');
+    document.getElementById('mCureOverlay').classList.remove('active');
+    document.querySelectorAll('.mix-drop').forEach(t => t.classList.remove('active', 'over'));
+    document.getElementById('mainPage').classList.remove('hidden');
+    renderVetCard();
+    renderFeedButton();
+}
+function playAgain() {
+    document.getElementById('endScreen').classList.add('hidden');
+    document.getElementById('gamePage').classList.remove('hidden');
+    startGame();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GAME LOGIC
+// ═══════════════════════════════════════════════════════════
+let score = 0, currentQ = 0, questionPool = [], answered = false;
+
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+// Build a flat shuffled pool of all 50 questions
+function buildQuestionPool() {
+    const pool = [];
+    horses.forEach((h, horseIdx) => {
+        h.questions.forEach(q => {
+            pool.push({ text: q.text, label: q.label, horseIdx });
+        });
+    });
+    return shuffle(pool);   // ← different order every single game!
+}
+
+function startGame() {
+    score = 0; currentQ = 0; answered = false;
+    questionPool = buildQuestionPool();
+    document.getElementById('qTotal').textContent = questionPool.length;
+    updateHUD();
+    showQuestion();
+}
+
+function updateHUD() {
+    document.getElementById('scoreVal').textContent = score;
+    document.getElementById('qNum').textContent = Math.min(currentQ + 1, questionPool.length);
+    document.getElementById('progressFill').style.width = (currentQ / questionPool.length * 100) + '%';
+}
+
+function showQuestion() {
+    if (currentQ >= questionPool.length) { showEndScreen(); return; }
+    updateHUD();
+
+    const q = questionPool[currentQ];
+    document.getElementById('clueLabel').textContent = q.label;
+    document.getElementById('clueText').textContent  = q.text;
+
+    // 4 choices: correct horse + 3 random wrong horses
+    const correctIdx = q.horseIdx;
+    const wrong = shuffle(horses.map((_, i) => i).filter(i => i !== correctIdx)).slice(0, 3);
+    const choices = shuffle([correctIdx, ...wrong]);
+
+    const picker = document.getElementById('horsePicker');
+    picker.innerHTML = '';
+    choices.forEach(idx => {
+        const h = horses[idx];
+        const card = document.createElement('div');
+        card.className = 'picker-card';
+        card.draggable = true;
+        card.dataset.name = h.name;
+        card.innerHTML = `
+            <img src="${h.image}" alt="${h.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="picker-emoji-fb" style="background:${h.cardGradient}">${h.emoji}</div>
+            <div class="picker-name">${h.name}</div>`;
+
+        card.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('horseName', h.name);
+            setTimeout(() => card.classList.add('is-dragging'), 0);
+        });
+        card.addEventListener('dragend', () => card.classList.remove('is-dragging'));
+        card.addEventListener('touchstart', touchStart, { passive: false });
+        card.addEventListener('touchmove',  touchMove,  { passive: false });
+        card.addEventListener('touchend',   touchEnd,   { passive: false });
+        picker.appendChild(card);
+    });
+
+    const dz = document.getElementById('dropZone');
+    dz.className = 'drop-zone';
+    dz.innerHTML = '<span class="dz-text">🐴 Drag the right horse here!</span>';
+}
+
+// Drop zone events
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    checkAnswer(e.dataTransfer.getData('horseName'));
+});
+
+function checkAnswer(name) {
+    if (answered) return;
+    answered = true;
+    const correct = horses[questionPool[currentQ].horseIdx];
+    const dz = document.getElementById('dropZone');
+
+    if (name === correct.name) {
+        score++;
+        dz.classList.add('correct');
+        dz.innerHTML = `
+            <div style="font-size:2.5rem">🎉</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:1.4rem;color:#1b5e20;margin:6px 0">Yes! That's ${correct.name}!</div>
+            <div style="font-size:0.95rem;color:#2e7d32">+1 point! 🌟</div>`;
+        setTimeout(() => { answered = false; currentQ++; showQuestion(); }, 1600);
+    } else {
+        dz.classList.add('wrong');
+        dz.innerHTML = `
+            <div style="font-size:2.5rem">😬</div>
+            <div style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:#b71c1c">Oops! Try again!</div>`;
+        setTimeout(() => {
+            answered = false;
+            dz.className = 'drop-zone';
+            dz.innerHTML = '<span class="dz-text">🐴 Drag the right horse here!</span>';
+        }, 1200);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TOUCH DRAG SUPPORT
+// ═══════════════════════════════════════════════════════════
+let touchCard = null, touchGhost = null, touchName = null;
+
+function touchStart(e) {
+    e.preventDefault();
+    touchCard = e.currentTarget;
+    touchName = touchCard.dataset.name;
+    touchGhost = touchCard.cloneNode(true);
+    Object.assign(touchGhost.style, {
+        position: 'fixed', opacity: '0.88', zIndex: '9999', pointerEvents: 'none',
+        width: touchCard.offsetWidth + 'px', borderRadius: '16px',
+        transform: 'scale(1.12)', boxShadow: '0 14px 36px rgba(0,0,0,0.5)',
+    });
+    document.body.appendChild(touchGhost);
+    moveGhost(e.touches[0]);
+    touchCard.style.opacity = '0.3';
+}
+function touchMove(e) {
+    e.preventDefault();
+    if (!touchGhost) return;
+    moveGhost(e.touches[0]);
+    const r = dropZone.getBoundingClientRect(), t = e.touches[0];
+    dropZone.classList.toggle('drag-over', t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom);
+}
+function touchEnd(e) {
+    e.preventDefault();
+    if (!touchGhost) return;
+    const t = e.changedTouches[0];
+    document.body.removeChild(touchGhost); touchGhost = null;
+    if (touchCard) { touchCard.style.opacity = '1'; touchCard = null; }
+    dropZone.classList.remove('drag-over');
+    const r = dropZone.getBoundingClientRect();
+    if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) checkAnswer(touchName);
+    touchName = null;
+}
+function moveGhost(touch) {
+    touchGhost.style.left = (touch.clientX - touchGhost.offsetWidth  / 2) + 'px';
+    touchGhost.style.top  = (touch.clientY - touchGhost.offsetHeight / 2) + 'px';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  END SCREEN
+// ═══════════════════════════════════════════════════════════
+function showEndScreen() {
+    document.getElementById('gamePage').classList.add('hidden');
+    document.getElementById('endScreen').classList.remove('hidden');
+    document.getElementById('progressFill').style.width = '100%';
+    const total = questionPool.length;
+    const pct = score / total;
+    let emoji, msg;
+    if (pct === 1)       { emoji = '🏆'; msg = `PERFECT SCORE! You got every single one right! You are the ultimate horse expert, Ella!`; }
+    else if (pct >= 0.8) { emoji = '🌟'; msg = `Amazing! You really know your horses! Just a few more to learn — you're nearly perfect!`; }
+    else if (pct >= 0.6) { emoji = '⭐'; msg = `Great job! You are getting really good at this! Keep reading about the horses and you will ace it next time!`; }
+    else if (pct >= 0.4) { emoji = '🐴'; msg = `Good try! Play again and you will get an even better score — the more you play the better you get!`; }
+    else                 { emoji = '🌈'; msg = `Keep practising! Every horse expert had to start somewhere — you have got this, Ella!`; }
+    document.getElementById('endEmoji').textContent = emoji;
+    document.getElementById('endScore').textContent = `You got ${score} out of ${total}! 🎊`;
+    document.getElementById('endMsg').textContent   = msg;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  VET MATHS GAME
+//  17 horse-emergency cases (German story) · 50 calculations
+//  25 double-digit × · 25 triple-digit ÷ (whole number + Rest)
+//  Numbers are randomised every game.
+// ═══════════════════════════════════════════════════════════
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function genMult() { return { a: rnd(21, 99), b: rnd(12, 49) }; }                 // 62 × 31 style
+// Division: dividend sits just above an easily-divided round number, so the result
+// is a round number (e.g. 720÷6 = 120) plus a small remainder (723÷6 = 120 R3).
+// Good for "estimate first, then solve exactly".
+function genDiv() {
+    const b = rnd(3, 9);                                  // single-digit divisor
+    const kMin = Math.max(2, Math.ceil(120 / (10 * b)));
+    const kMax = Math.min(16, Math.floor(950 / (10 * b)));
+    const k = rnd(kMin, kMax);                            // round quotient q = 10*k
+    const base = 10 * b * k;                              // the easy round number (base ÷ b = 10k)
+    const r = rnd(1, b - 1);                              // small remainder so it's "close to" base
+    return { a: base + r, b: b };                         // dividend = base + r
+}
+
+// 50 horse-vet learning cases. Each = one horse + a real vet concept (told in German, with a
+// sound-out aid in brackets for the big science word) + a loosely-linked maths task.
+// A session randomly picks 2 multiplication + 2 division cases from different horses.
+const mathCases = [
+  { horseIdx: 0, title: "Stella schläft im Stehen", intro: "Stella döst auf der Weide und steht dabei fest auf allen vier Beinen. Pferde haben einen Stehapparat (Steh-ap-pa-rat), der sie ohne Muskelkraft hält – so können sie im Schlaf sofort weglaufen.", cured: "Stella wacht frisch ausgeruht auf und schüttelt ihre silberne Mähne. Tolle Beobachtung, Tierärztin! ⭐",
+    steps: [ { op: 'mult', story: n => `Stella döst <b>${n.a} Minuten</b> pro Schläfchen, <b>${n.b} Schläfchen</b> am Tag. Wie viele Minuten Schlaf insgesamt?` } ] },
+  { horseIdx: 6, title: "Patches' Bauch wird abgehört", intro: "Mit dem Stethoskop (Ste-tos-kop) hörst du an Patches' Bauch. Ein gesunder Darm gluckert und rumpelt – ein ganz stiller Bauch wäre ein Warnzeichen.", cured: "Patches' Darm gluckert gesund weiter und sie schnuppert an deiner Tasche. Gut gemacht! 🌈",
+    steps: [ { op: 'div', story: n => `Du hörst <b>${n.a} Sekunden</b> lang in <b>${n.b} Bauchbereiche</b> hinein. Wie viele Sekunden pro Bereich – und wie viele Sekunden bleiben übrig?` } ] },
+  { horseIdx: 1, title: "Biscuit hat einen Hufabszess", intro: "Biscuit hält sein Bein hoch und mag nicht auftreten. Mit der Hufzange findest du einen Hufabszess (Huf-aps-tsess) – eine kleine, schmerzhafte Eiterstelle tief in der Hufwand.", cured: "Biscuits Huf ist offen, der Druck ist weg und er stapft wieder fröhlich los. Stark, Doktor! 🧦",
+    steps: [ { op: 'mult', story: n => `Mit der Hufzange drückst du <b>${n.a} Sekunden</b> auf jede Stelle und prüfst <b>${n.b} Stellen</b> rund um den Huf. Wie viele Sekunden suchst du insgesamt?` } ] },
+  { horseIdx: 8, title: "Brios Huf-Umschlag", intro: "Du wickelst Brios Huf über Nacht in einen warmen Breiumschlag (Brei-um-schlag) mit Zugsalbe. Er zieht den Abszess sanft aus der Sohle heraus.", cured: "Am Morgen läuft Brio wieder ohne zu lahmen über die Almwiese. Geheilt! 🏔️",
+    steps: [ { op: 'div', story: n => `Du verteilst <b>${n.a} g</b> Zugsalbe gleichmäßig auf <b>${n.b} Umschläge</b>. Wie viel pro Umschlag – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 7, title: "Cupcakes scharfe Zähne", intro: "Cupcake lässt beim Fressen halb gekaute Heubällchen fallen – das nennt man Quidding (Kwid-ding). Scharfe Zahnhaken (Tsaan-haa-ken) an den Backenzähnen schneiden in ihre Backe.", cured: "Die Zahnhaken sind glatt gefeilt und Cupcake mampft wieder vergnügt. Gut gemacht! 🦷",
+    steps: [ { op: 'mult', story: n => `Du feilst <b>${n.a} Sekunden</b> pro Zahn, an <b>${n.b} Zähnen</b>. Wie viele Sekunden insgesamt?` } ] },
+  { horseIdx: 9, title: "Lunas Zähne wachsen immer", intro: "Pferdezähne wachsen das ganze Leben lang nach! Lunas Backenzähne (Ba-ken-tse-ne) nutzen sich beim Kauen ab und müssen jedes Jahr kontrolliert werden.", cured: "Lunas Zähne sind geprüft und gleichmäßig – sie tänzelt zufrieden davon. Wunderbar! ✨",
+    steps: [ { op: 'div', story: n => `Lunas Backenzähne sind in einem Jahr <b>${n.a} mm</b> nachgewachsen. Du teilst das Abschleifen auf <b>${n.b} kleine Schritte</b> auf. Wie viele mm pro Schritt – und wie viele mm bleiben übrig?` } ] },
+  { horseIdx: 4, title: "Wie alt ist Midnight?", intro: "An den Kauflächen (Kau-fle-chen) der Zähne kann man das Alter eines Pferdes schätzen. Bei Midnight liest du ab: ungefähr zwölf Jahre alt!", cured: "Midnights Zähne sind gesund und du kennst nun ihr Alter. Elegant gelöst! 🖤",
+    steps: [ { op: 'mult', story: n => `Du prüfst die Kauflächen <b>${n.a} Sekunden</b> pro Zahn, an <b>${n.b} Zähnen</b>, um Midnights Alter zu schätzen. Wie viele Sekunden insgesamt?` } ] },
+  { horseIdx: 2, title: "Thunders Wolfszähne", intro: "Thunder wirft beim Reiten den Kopf hoch. Du findest Wolfszähne (Wolfs-tse-ne) – kleine Extrazähne genau dort, wo das Gebiss liegt und drückt.", cured: "Die Wolfszähne sind entfernt und Thunder läuft entspannt. Frei und stark! 💨",
+    steps: [ { op: 'div', story: n => `Nach dem Eingriff teilst du <b>${n.a} ml</b> Mundspülung gleichmäßig auf <b>${n.b} Anwendungen</b> auf. Wie viel pro Anwendung – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 3, title: "Dottys toter Winkel", intro: "Dotty erschrickt, wenn man von hinten kommt. Pferde haben direkt hinter sich und direkt vor der Nase einen toten Winkel (to-ter Win-kel) – man kommt am besten von der Seite.", cured: "Dotty bleibt ruhig, weil du sie richtig ansprichst. Clever gemacht! 🎉",
+    steps: [ { op: 'mult', story: n => `Du übst das seitliche Annähern <b>${n.a} Sekunden</b> pro Runde, <b>${n.b} Runden</b> lang. Wie viele Sekunden insgesamt?` } ] },
+  { horseIdx: 5, title: "Sunnys Ohren verraten viel", intro: "Sunnys Ohren liegen flach an – ein Zeichen für Ärger! Pferde zeigen mit ihrer Körpersprache (Kör-per-sprah-che) genau, wie sie sich fühlen.", cured: "Sunnys Ohren stehen wieder fröhlich nach vorn und sie tanzt zur Musik. Bravo! ☀️",
+    steps: [ { op: 'div', story: n => `Du beobachtest Sunnys Ohren und Körpersprache insgesamt <b>${n.a} Minuten</b>, aufgeteilt auf <b>${n.b} Beobachtungen</b>. Wie viele Minuten pro Beobachtung – und wie viele bleiben übrig?` } ] },
+  { horseIdx: 7, title: "Cupcakes warme Hufe", intro: "Cupcakes Hufe fühlen sich warm an und sie tritt vorsichtig auf. Zu viel Blut staut sich in der harten Hufkapsel (Huf-kap-sel) und drückt schmerzhaft.", cured: "Cupcakes Hufe sind wieder schön kühl und sie flitzt frech umher. Toll gemacht! 🍞",
+    steps: [ { op: 'mult', story: n => `Du kühlst jeden Huf <b>${n.a} Minuten</b>, in <b>${n.b} Kühl-Runden</b>. Wie viele Minuten insgesamt?` } ] },
+  { horseIdx: 7, title: "Zu viel Frühlingsgras", intro: "Zu viel süßes Frühlingsgras kann bei Ponys eine schmerzhafte Hufrehe (Huf-reh-e), auch Laminitis (La-mi-nii-tis) genannt, auslösen. Cupcake darf jetzt nur wenig Gras.", cured: "Cupcakes Hufrehe ist abgeklungen und sie darf wieder auf die kleine Weide. Geschafft! 🍞",
+    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} g</b> Heu gleichmäßig auf <b>${n.b} kleine Portionen</b> auf. Wie viel pro Portion – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 2, title: "Thunders versteckte Lahmheit", intro: "Thunder lahmt, aber man sieht nichts. Mit einem Nervenblock (Ner-fen-block) betäubst du einen Nerv im Bein – läuft er dann gesund, weißt du, woher der Schmerz kommt.", cured: "Du hast die Stelle gefunden und Thunder läuft wieder klar. Detektivarbeit gelungen! 💪",
+    steps: [ { op: 'mult', story: n => `Die Betäubung wirkt <b>${n.a} Minuten</b> pro Stelle, du testest <b>${n.b} Stellen</b>. Wie viele Minuten insgesamt?` } ] },
+  { horseIdx: 5, title: "Sunnys Beugeprobe", intro: "Du hältst Sunnys Bein kurz gebeugt und lässt sie antraben – das ist die Beugeprobe (Boy-ge-pro-be). Steife erste Schritte zeigen dir das wehe Gelenk.", cured: "Das Gelenk ist behandelt und Sunny trabt wieder rund. Klasse, Doktor! ☀️",
+    steps: [ { op: 'div', story: n => `Du hältst die Beuge <b>${n.a} Sekunden</b> und teilst sie auf <b>${n.b} Tests</b> auf. Wie viele Sekunden pro Test – und wie viele bleiben übrig?` } ] },
+  { horseIdx: 6, title: "Stille in Patches' Bauch", intro: "Patches scharrt und schaut zum Bauch – das sieht nach Kolik (Ko-lik) aus. An zwei Stellen ist der Bauch ganz still, dort hat der Darm aufgehört zu arbeiten.", cured: "Patches' Darm arbeitet wieder und die Bauchschmerzen sind weg. Gerettet! 🌈",
+    steps: [ { op: 'mult', story: n => `Patches bekommt <b>${n.a} ml</b> Bauchmedizin pro Gabe, <b>${n.b} Gaben</b>. Wie viele ml insgesamt?` } ] },
+  { horseIdx: 0, title: "Spazieren hilft bei Kolik", intro: "Bei einer Kolik führst du Stella langsam im Kreis. Bewegung bringt die Darmbewegung (Darm-be-veh-gung) wieder in Gang – Stillstehen macht die Schmerzen schlimmer.", cured: "Nach dem Spaziergang gluckert Stellas Bauch wieder gesund. Gut gemacht! ⭐",
+    steps: [ { op: 'div', story: n => `Du führst Stella <b>${n.a} Minuten</b> und teilst sie in <b>${n.b} Runden</b> auf. Wie viele Minuten pro Runde – und wie viele bleiben übrig?` } ] },
+  { horseIdx: 1, title: "Biscuits Magensonde", intro: "Bei einer Verstopfung schiebst du Biscuit eine weiche Nasenschlundsonde (Naa-zen-schlund-zon-de) durch die Nase bis in den Magen, um Öl direkt zum Darm zu bringen.", cured: "Das Öl wirkt, die Verstopfung löst sich und Biscuit frisst wieder. Stark! 🧡",
+    steps: [ { op: 'mult', story: n => `Du gibst <b>${n.a} ml</b> Öl pro Gabe durch die Sonde, <b>${n.b} Gaben</b> lang. Wie viele ml insgesamt?` } ] },
+  { horseIdx: 3, title: "Dotty kann nicht spucken", intro: "Pferde können nicht erbrechen! Der Muskel an Dottys Speiseröhre (Spei-ze-rö-re) lässt das Futter nur in eine Richtung – darum ist eine Verstopfung so ernst.", cured: "Dottys Verdauung läuft wieder rund und sie hüpft über den Zaun. Geschafft! 🎉",
+    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} ml</b> Gleitmittel gleichmäßig auf <b>${n.b} Gaben</b> auf. Wie viel pro Gabe – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 8, title: "Brio hat nasse Fesseln", intro: "Nach dem nassen Winter hat Brio krustige Stellen an den Fesseln. Bleibt Haut lange nass, weicht sie auf und es entsteht Mauke (Mau-ke), eine Hautentzündung.", cured: "Brios Beine sind trocken und sauber verheilt – er tobt wieder bergauf. Geheilt! 🏔️",
+    steps: [ { op: 'mult', story: n => `Du cremst die Mauke-Stellen mit <b>${n.a} g</b> Salbe pro Behandlung ein, <b>${n.b} Behandlungen</b> lang. Wie viel Salbe insgesamt?` } ] },
+  { horseIdx: 3, title: "Dottys Sommerjucken", intro: "Dotty scheuert sich im Sommer Mähne und Schweif wund. Sie hat ein Sommerekzem (Som-mer-ek-tsem) – eine Allergie gegen den Speichel winziger Gnitzen (Gnit-zen).", cured: "Mit der richtigen Decke hört das Jucken auf und Dotty ist glücklich. Toll! 🎉",
+    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} ml</b> Juckreiz-Lotion gleichmäßig auf <b>${n.b} Hautstellen</b> auf. Wie viel pro Stelle – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 4, title: "Midnight hustet im Stall", intro: "Midnight hustet im Stall, draußen aber nicht. Staub und Schimmelsporen im Heu lösen Equines Asthma (E-kvii-nes Ast-ma) aus – das reizt ihre Atemwege.", cured: "Mit staubfreiem Heu hustet Midnight nicht mehr und atmet frei. Elegant gelöst! 🖤",
+    steps: [ { op: 'mult', story: n => `Midnight inhaliert <b>${n.a} Minuten</b> pro Sitzung, <b>${n.b} Sitzungen</b> lang. Wie viele Minuten insgesamt?` } ] },
+  { horseIdx: 4, title: "Heu einweichen", intro: "Du weichst Midnights Heu vor dem Füttern in Wasser ein. Nasses Heu lässt viel weniger Staubsporen (Staub-spo-ren) in die Luft – so atmet sie leichter.", cured: "Midnight frisst eingeweichtes Heu und hustet nicht mehr. Gut mitgedacht! 🖤",
+    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} Liter</b> Einweichwasser gleichmäßig auf <b>${n.b} Heunetze</b> auf. Wie viele Liter pro Netz – und wie viele bleiben übrig?` } ] },
+  { horseIdx: 8, title: "Brios lockiges Fell", intro: "Brio trägt mitten im Sommer noch sein dickes, lockiges Winterfell. Schuld ist eine kleine Drüse im Gehirn, die Hypophyse (Hü-po-fü-ze), die falsche Signale sendet.", cured: "Brio bekommt die richtige Medizin und fühlt sich viel wohler. Gut erkannt! 🏔️",
+    steps: [ { op: 'mult', story: n => `Weil sein dickes Lockenfell nicht ausfällt, scherst du Brio <b>${n.a} Minuten</b> pro Körperstelle, an <b>${n.b} Stellen</b>. Wie viele Minuten insgesamt?` } ] },
+  { horseIdx: 5, title: "Sunnys Muskeln verkrampfen", intro: "Nach einem schnellen Galopp bleibt Sunny mit steinharten Muskeln stehen. Den Muskeln ist die Energie ausgegangen – das nennt man Kreuzverschlag (Kreuz-fer-schlaag).", cured: "Mit Ruhe und viel Flüssigkeit werden Sunnys Muskeln wieder weich. Bravo! ☀️",
+    steps: [ { op: 'div', story: n => `Gegen den Kreuzverschlag braucht Sunny viel Flüssigkeit: Du teilst <b>${n.a} ml</b> Elektrolyt-Lösung gleichmäßig auf <b>${n.b} Gaben</b> auf. Wie viel pro Gabe – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 5, title: "Kaltes Wasser gegen Schwellung", intro: "Sunnys Sehne ist heiß und geschwollen. Kaltes Wasser lässt die Blutgefäße (Bluut-ge-fe-se) enger werden – das nimmt die Schwellung und kühlt die Hitze.", cured: "Die Schwellung ist weg und Sunny läuft wieder locker. Klasse gekühlt! ☀️",
+    steps: [ { op: 'mult', story: n => `Du kühlst die Sehne <b>${n.a} Minuten</b> pro Runde, <b>${n.b} Runden</b> lang. Wie viele Minuten insgesamt?` } ] },
+  { horseIdx: 1, title: "Biscuits Sehne braucht Halt", intro: "Nach einer Zerrung legst du Biscuit einen festen Stützverband an. Ohne Halt dehnt sich die entzündete Beugesehne (Boy-ge-zeh-ne) bei jedem Schritt weiter.", cured: "Biscuits Sehne ist gestützt und heilt schön ruhig. Gut gemacht! 🧡",
+    steps: [ { op: 'div', story: n => `Du schneidest <b>${n.a} cm</b> Verband in <b>${n.b} gleiche Stücke</b>. Wie viele cm pro Stück – und wie viele cm bleiben übrig?` } ] },
+  { horseIdx: 2, title: "Ultraschall zeigt die Sehne", intro: "Du fährst mit dem Ultraschall (Ul-tra-schall) über Thunders Bein. Auf dem Bildschirm zeigt sich eine dunkle Lücke in der Sehne – dort sind Fasern gerissen.", cured: "Thunders Sehne wird geschont und heilt langsam zu. Stark erkannt! 💪",
+    steps: [ { op: 'mult', story: n => `Du machst <b>${n.a} Sekunden</b> Ultraschall pro Bein, bei <b>${n.b} Untersuchungen</b>. Wie viele Sekunden insgesamt?` } ] },
+  { horseIdx: 1, title: "Hufe wachsen wie Nägel", intro: "Biscuits Hufe wachsen etwa einen Zentimeter im Monat – wie deine Fingernägel! Ohne Ausschneiden gerät das Hufwachstum (Huf-vaks-tum) aus dem Gleichgewicht.", cured: "Der Hufschmied hat Biscuits Hufe schön ausgeschnitten. Er steht wieder gerade! 🧡",
+    steps: [ { op: 'div', story: n => `Der Huf ist <b>${n.a} mm</b> zu lang. Du teilst das Kürzen auf <b>${n.b} Schritte</b> auf. Wie viele mm pro Schritt – und wie viele mm bleiben übrig?` } ] },
+  { horseIdx: 6, title: "Patches' weiße Linie", intro: "Beim Auskratzen findest du an Patches' Huf die weiße Linie (wei-se Li-nie) weich und dunkel statt fest und hell. Dort haben sich Bakterien eingenistet.", cured: "Die kranke Stelle ist versorgt und der Huf wird wieder fest. Gut aufgepasst! 🌈",
+    steps: [ { op: 'mult', story: n => `Du pinselst <b>${n.a} Tropfen</b> Huf-Tinktur pro Tag auf, <b>${n.b} Tage</b> lang. Wie viele Tropfen insgesamt?` } ] },
+  { horseIdx: 6, title: "Es riecht aus dem Huf", intro: "Aus Patches' Huf riecht es streng. Der weiche, dunkle Strahl ist mit Strahlfäule (Strahl-foy-le) infiziert – das passiert in nassen, schmutzigen Boxen.", cured: "Patches' Huf ist sauber, trocken und riecht wieder gut. Toll gemacht! 🌈",
+    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} ml</b> Huf-Desinfektion gleichmäßig auf <b>${n.b} Behandlungen</b> auf. Wie viel pro Behandlung – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 2, title: "Ein neues Pferd ist krank", intro: "Ein neues Pferd hat Fieber und dicke Beulen unter dem Kiefer. Das ist Druse (Druu-ze) – die Bakterien stecken über Wassereimer leicht andere an, darum bleibt Thunder getrennt.", cured: "Thunder ist gesund geblieben, weil du alles getrennt hast. Klug gehandelt! 💨",
+    steps: [ { op: 'mult', story: n => `Du desinfizierst <b>${n.a} Sekunden</b> pro Eimer, bei <b>${n.b} Eimern</b>. Wie viele Sekunden insgesamt?` } ] },
+  { horseIdx: 5, title: "Sunny schwitzt stark", intro: "Sunny schwitzt nach dem heißen Tag noch stark. Mit dem Schweiß verliert sie nicht nur Wasser, sondern auch Elektrolyte (E-lek-tro-lü-te) – wichtige Salze für Muskeln und Nerven.", cured: "Sunny hat ihre Salze zurück und fühlt sich wieder fit. Bravo! ☀️",
+    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} g</b> Elektrolyt-Pulver gleichmäßig auf <b>${n.b} Eimer</b> Wasser auf. Wie viel pro Eimer – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 0, title: "Stellas Hautfaltentest", intro: "Du kneifst eine Hautfalte an Stellas Hals und lässt los – das ist der Hautfaltentest (Haut-fal-ten-test). Bleibt die Falte stehen, hat das Pferd zu wenig getrunken.", cured: "Stella trinkt wieder genug und ihre Haut schnippt sofort zurück. Gut geprüft! ⭐",
+    steps: [ { op: 'mult', story: n => `Du machst den Test <b>${n.a} Sekunden</b> pro Durchgang, <b>${n.b} Durchgänge</b> lang. Wie viele Sekunden insgesamt?` } ] },
+  { horseIdx: 7, title: "Cupcakes Salzleckstein", intro: "In Cupcakes Box hängt ein Salzleckstein. Pferde spüren selbst, wann ihr Körper mehr Mineralstoffe (Mi-ne-raal-schtof-fe) braucht, und lecken dann daran.", cured: "Cupcake leckt zufrieden am Salzstein und ist bestens versorgt. Toll! 🍞",
+    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} g</b> Mineralsalz gleichmäßig auf <b>${n.b} Lecksteine</b> auf. Wie viel pro Stein – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 1, title: "Biscuits Rippen fühlen", intro: "Du streichst flach über Biscuits Rippen. Du fühlst sie, siehst sie aber nicht – das ist genau die richtige Körperkondition (Kör-per-kon-di-tsion).", cured: "Biscuit hat ein gesundes Gewicht und glänzt vor Gesundheit. Gut beurteilt! 🧡",
+    steps: [ { op: 'mult', story: n => `Du tastest <b>${n.a} Sekunden</b> pro Stelle ab, an <b>${n.b} Stellen</b>. Wie viele Sekunden insgesamt?` } ] },
+  { horseIdx: 8, title: "Brio frisst gern lange", intro: "Brio ist ein Dauerfresser (Dau-er-fres-ser): In der Natur frisst ein Pferd bis zu sechzehn Stunden am Tag kleine Mengen. Ein leerer Magen kann sonst wehtun.", cured: "Brio bekommt öfter kleine Portionen und sein Magen ist glücklich. Gut geplant! 🏔️",
+    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} g</b> Heu gleichmäßig auf <b>${n.b} Fütterungen</b> auf. Wie viel pro Fütterung – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 4, title: "Midnights Magen brennt", intro: "Midnight nimmt ab und ist nach dem Fressen unruhig. Ohne ständig Heu brennt die Magensäure die Magenwand – so entsteht ein Magengeschwür (Maa-gen-ge-schwür).", cured: "Midnight bekommt öfter Heu und ihr Magen heilt. Elegant gelöst! 🖤",
+    steps: [ { op: 'mult', story: n => `Midnight bekommt <b>${n.a} ml</b> Magenschutz pro Gabe, <b>${n.b} Gaben</b>. Wie viele ml insgesamt?` } ] },
+  { horseIdx: 0, title: "Stella trinkt zu wenig", intro: "Im Stallbuch siehst du: Stella hat nur halb so viel getrunken wie sonst. Ein plötzlicher Rückgang der Flüssigkeit (Flüs-sig-keit) ist oft das erste Zeichen für eine Krankheit.", cured: "Stella trinkt wieder normal und ist putzmunter. Gut aufgepasst! ⭐",
+    steps: [ { op: 'div', story: n => `Du füllst <b>${n.a} ml</b> frisches Wasser gleichmäßig in <b>${n.b} Eimer</b>. Wie viele ml pro Eimer – und wie viele bleiben übrig?` } ] },
+  { horseIdx: 2, title: "Thunder vermisst die Herde", intro: "Thunder ist im neuen Stall unruhig und wippt hin und her. Pferde sind Herdentiere (Her-den-tier) – ganz allein zu sein macht ihnen echte Angst.", cured: "Thunder hat neue Stallfreunde und ist wieder entspannt. Schön gemacht! 💨",
+    steps: [ { op: 'mult', story: n => `Thunder darf <b>${n.a} Minuten</b> pro Treffen zu seinen Freunden, <b>${n.b} Treffen</b> am Tag. Wie viele Minuten insgesamt?` } ] },
+  { horseIdx: 4, title: "Midnight wird betäubt", intro: "Midnight braucht Nähte, hält aber vor Angst nicht still. Du gibst eine Sedierung (Se-die-rung) – sie macht schläfrig, sodass sie im Stehen sicher behandelt wird.", cured: "Die Wunde ist genäht und Midnight wacht ruhig wieder auf. Gut gemacht! 🖤",
+    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} ml</b> Beruhigungsmittel gleichmäßig auf <b>${n.b} Spritzen</b> auf. Wie viel pro Spritze – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 6, title: "Die Tierärztin kommt zum Hof", intro: "Patches ist zu lahm für den Anhänger. Darum kommt die Tierärztin mit ihrer Fahrpraxis (Faar-prak-sis) zum Hof – Pferde behandelt man oft direkt im Stall.", cured: "Patches ist im eigenen Stall versorgt und ruht zufrieden. Praktisch gelöst! 🌈",
+    steps: [ { op: 'mult', story: n => `Die Fahrt dauert <b>${n.a} Minuten</b> pro Hof, du besuchst <b>${n.b} Höfe</b>. Wie viele Minuten insgesamt?` } ] },
+  { horseIdx: 3, title: "Dottys Tetanus-Impfung", intro: "Dotty bekommt ihre Impfung gegen Wundstarrkrampf (Wund-schtarr-krampf), auch Tetanus (Te-ta-nus) genannt. Die Bakterien stecken im Boden, schon ein kleiner Schnitt reicht.", cured: "Dotty ist geimpft und gut geschützt – sie hüpft fröhlich davon. Super! 🎉",
+    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} ml</b> Impfstoff gleichmäßig auf <b>${n.b} Spritzen</b> auf. Wie viel pro Spritze – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 6, title: "An vier Stellen horchen", intro: "Du hörst nicht nur an einer Stelle: An vier Darmquadranten (Darm-kva-dran-ten) lauschst du in Patches' Bauch. So findest du genau, wo der Darm still ist.", cured: "Alle vier Bereiche gluckern wieder – Patches ist gesund. Gründlich gemacht! 🌈",
+    steps: [ { op: 'mult', story: n => `Du hörst <b>${n.a} Sekunden</b> pro Quadrant, in <b>${n.b} Durchgängen</b>. Wie viele Sekunden insgesamt?` } ] },
+  { horseIdx: 8, title: "Brios Wurmkur wechselt", intro: "Brio bekommt mehrmals im Jahr eine Entwurmung (Ent-wur-mung) – aber jedes Mal ein anderes Mittel. Sonst gewöhnen sich die Würmer daran.", cured: "Brio ist wurmfrei und voller Energie. Klug gewechselt! 🏔️",
+    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} ml</b> Wurmpaste gleichmäßig auf <b>${n.b} Pferde</b> auf. Wie viel pro Pferd – und wie viel bleibt übrig?` } ] },
+  { horseIdx: 3, title: "Gnitzen bei Dämmerung", intro: "Bei Sonnenauf- und -untergang sind die Gnitzen (Gnit-zen) am aktivsten. In dieser Zeit bleibt Dotty mit Decke im Stall, damit die Mücken sie nicht stechen.", cured: "Dotty wird kaum noch gestochen und kratzt sich nicht mehr. Gut getimt! 🎉",
+    steps: [ { op: 'mult', story: n => `Dotty trägt die Decke <b>${n.a} Minuten</b> pro Phase, <b>${n.b} Phasen</b> am Tag. Wie viele Minuten insgesamt?` } ] },
+  { horseIdx: 2, title: "Thunders Nasenbremse", intro: "Thunder hält für die Spritze nicht still. Du legst eine Nasenbremse (Naa-zen-brem-ze) an die Oberlippe – sie setzt im Gehirn beruhigende Stoffe frei, sodass er ruhig wird.", cured: "Thunder steht ruhig, die Spritze ist gesetzt. Sicher gearbeitet! 💪",
+    steps: [ { op: 'div', story: n => `Mit der Nasenbremse bleibt Thunder <b>${n.a} Sekunden</b> ruhig. Du teilst die Zeit auf <b>${n.b} Behandlungsschritte</b> auf. Wie viele Sekunden pro Schritt – und wie viele bleiben übrig?` } ] },
+  { horseIdx: 9, title: "Luna röhrt beim Galopp", intro: "Luna macht beim schnellen Galopp ein lautes Röhren. Mit einer kleinen Kamera durch die Nase siehst du den Kehlkopf (Keel-kopf) – eine Seite ist gelähmt und blockiert die Luft.", cured: "Lunas Atmung ist behandelt und sie galoppiert wieder leise. Wunderbar! ✨",
+    steps: [ { op: 'mult', story: n => `Die Kamera filmt <b>${n.a} Sekunden</b> pro Untersuchung, bei <b>${n.b} Untersuchungen</b>. Wie viele Sekunden insgesamt?` } ] },
+  { horseIdx: 0, title: "Blutprobe am Hals", intro: "Du nimmst Stella Blut aus der großen Drosselvene (Dros-sel-veh-ne) am Hals. Sie liegt dicht unter der Haut und ist die sicherste Stelle für eine Blutprobe.", cured: "Die Blutprobe ist genommen und Stella war ganz tapfer. Gut gemacht! ⭐",
+    steps: [ { op: 'div', story: n => `Du füllst <b>${n.a} ml</b> Blut gleichmäßig in <b>${n.b} Röhrchen</b>. Wie viele ml pro Röhrchen – und wie viele bleiben übrig?` } ] },
+  { horseIdx: 9, title: "Spritze ins Gelenk", intro: "Lunas Sprunggelenk tut weh, auch nach Ruhe. Du gibst eine Gelenkspritze (Ge-lenk-spri-tse) mit entzündungshemmender Medizin direkt ins Gelenk – das wirkt am besten.", cured: "Lunas Gelenk ist beweglich und sie springt eine perfekte Kapriole. Wunderbar! ✨",
+    steps: [ { op: 'mult', story: n => `Die Gelenkspritze wirkt <b>${n.a} Minuten</b> und du wiederholst die Behandlung an <b>${n.b} Tagen</b>. Wie viele Minuten Wirkung insgesamt?` } ] },
+  { horseIdx: 1, title: "Röntgen zeigt den Huf", intro: "Du machst ein Röntgenbild (Rönt-gen-bild) von Biscuits Huf. Darauf siehst du das Hufbein (Huf-bein) – bei schwerer Rehe kann es sich nach unten drehen.", cured: "Biscuits Hufbein steht gut und der Huf heilt prima. Stark erkannt! 🧡",
+    steps: [ { op: 'div', story: n => `Für das Röntgen brauchst du <b>${n.a} Sekunden</b> Belichtungszeit, verteilt auf <b>${n.b} Aufnahmen</b> vom Huf. Wie viele Sekunden pro Aufnahme – und wie viele bleiben übrig?` } ] }
+];
+
+let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false;
+let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null;
+
+// Ingredients Ella drags into the cauldron to brew each medicine.
+const mIngredientPool = [
+  { emoji: '🌿', name: 'Kräuter' },  { emoji: '💧', name: 'Tinktur' },
+  { emoji: '🧂', name: 'Heilsalz' }, { emoji: '🍯', name: 'Honig' },
+  { emoji: '🫧', name: 'Heilschaum' }, { emoji: '🌸', name: 'Blüten' },
+  { emoji: '🧊', name: 'Kühlgel' }
+];
+
+// A session is 4 fresh questions: 2 multiplication + 2 division,
+// each from a different horse's story, reshuffled every game.
+function buildMathPool() {
+    const all = [];
+    mathCases.forEach((c, ci) => c.steps.forEach(st => {
+        const n = st.op === 'mult' ? genMult() : genDiv();
+        all.push({ caseIndex: ci, horseIdx: c.horseIdx, title: c.title, intro: c.intro, cured: c.cured, op: st.op, n, story: st.story(n) });
+    }));
+    const used = new Set(), chosen = [];
+    const pick = (arr, count) => {
+        for (const q of shuffle(arr)) {
+            if (count === 0) break;
+            if (!used.has(q.horseIdx)) { chosen.push(q); used.add(q.horseIdx); count--; }
+        }
+    };
+    pick(all.filter(q => q.op === 'mult'), 2);
+    pick(all.filter(q => q.op === 'div'), 2);
+    return shuffle(chosen);
+}
+
+function showMathGame() {
+    document.getElementById('mainPage').classList.add('hidden');
+    document.getElementById('mathGamePage').classList.remove('hidden');
+    startMathGame();
+}
+function startMathGame() {
+    mScore = 0; mQ = 0; mBusy = false;
+    mPool = buildMathPool();
+    document.getElementById('mQTotal').textContent = mPool.length;
+    showMathQuestion();
+}
+function mathPlayAgain() {
+    document.getElementById('mathEndScreen').classList.add('hidden');
+    document.getElementById('mathGamePage').classList.remove('hidden');
+    startMathGame();
+}
+
+function showMathQuestion() {
+    if (mQ >= mPool.length) { showMathEnd(); return; }
+    const q = mPool[mQ];
+    mFirstTry = true; mBusy = false;
+
+    document.getElementById('mScoreVal').textContent = mScore;
+    document.getElementById('mQNum').textContent = mQ + 1;
+    document.getElementById('mProgressFill').style.width = (mQ / mPool.length * 100) + '%';
+
+    const h = horses[q.horseIdx];
+    const img = document.getElementById('mCaseImg'), fb = document.getElementById('mCaseImgFb');
+    img.style.display = 'block'; fb.style.display = 'none';
+    img.src = h.image; img.alt = h.name;
+    img.onerror = function () { this.style.display = 'none'; fb.style.display = 'flex'; fb.style.background = h.cardGradient; fb.textContent = h.emoji; };
+    document.getElementById('mCaseTitle').textContent = q.title;
+    document.getElementById('mCaseStory').innerHTML = `<div class="case-intro">${q.intro}</div>` + q.story;
+
+    renderProblem(q);
+
+    // reset to the calculation phase
+    mPhase = 'calc';
+    document.getElementById('mMixStation').classList.add('hidden');
+    document.getElementById('mMixLocked').classList.remove('hidden');
+    document.getElementById('mInputs').classList.remove('hidden');
+    const fbEl = document.getElementById('mFeedback');
+    fbEl.textContent = ''; fbEl.className = 'calc-feedback';
+    const btn = document.getElementById('mMixBtn');
+    btn.classList.remove('hidden'); btn.disabled = false; btn.textContent = '✅ Check the dose!';
+}
+
+function calcField(id, label) {
+    return `<div class="calc-field"><label>${label}</label><input id="${id}" type="number" inputmode="numeric" autocomplete="off"></div>`;
+}
+function attachMathInputs() {
+    const inputs = document.getElementById('mInputs');
+    inputs.querySelectorAll('input').forEach(inp =>
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') checkMathAnswer(); }));
+    setTimeout(() => { const el = inputs.querySelector('input'); if (el) el.focus(); }, 60);
+}
+
+function renderProblem(q) {
+    document.getElementById('mProblem').style.display = 'none';   // no equation shown: she sets it up from the story
+    const inputs = document.getElementById('mInputs');
+    const label = document.getElementById('mCalcLabel');
+    mDivPhase = null;
+    if (q.op === 'mult') {
+        label.textContent = '🧮 Work out the total — set up the maths yourself:';
+        inputs.innerHTML = calcField('mAns', 'Answer');
+    } else {
+        mDivPhase = 'estimate';
+        label.textContent = '🤔 Step 1 — Estimate: round the number, then roughly how much is it each?';
+        inputs.innerHTML = calcField('mEst', 'About how much?');
+    }
+    attachMathInputs();
+}
+
+function checkMathAnswer() {
+    if (mBusy) return;
+    const q = mPool[mQ];
+    const fbEl = document.getElementById('mFeedback');
+
+    // ── MULTIPLICATION: no estimate, just solve exactly ──
+    if (q.op === 'mult') {
+        const ans = parseInt(document.getElementById('mAns').value, 10);
+        if (isNaN(ans)) { fbEl.className = 'calc-feedback no'; fbEl.textContent = '✏️ Type your answer first!'; return; }
+        if (ans === q.n.a * q.n.b) mathCorrect(q, fbEl); else mathWrong(fbEl);
+        return;
+    }
+
+    // ── DIVISION: estimate first, then exact ──
+    const quo = Math.floor(q.n.a / q.n.b), rem = q.n.a % q.n.b;   // quo is the round number by design
+
+    if (mDivPhase === 'estimate') {
+        const est = parseInt(document.getElementById('mEst').value, 10);
+        if (isNaN(est)) { fbEl.className = 'calc-feedback no'; fbEl.textContent = '✏️ Type your estimate first!'; return; }
+        const tol = Math.max(10, Math.round(quo * 0.2));         // "close enough" band
+        if (Math.abs(est - quo) <= tol) {
+            fbEl.className = 'calc-feedback ok';
+            fbEl.textContent = `👍 Good estimate! It's about ${quo}. Now work out the exact answer.`;
+            mDivPhase = 'exact';
+            document.getElementById('mCalcLabel').textContent = '✏️ Step 2 — Now the exact answer, with the remainder:';
+            document.getElementById('mInputs').innerHTML = calcField('mAns', 'Answer') + calcField('mRem', 'Remainder (Rest)');
+            attachMathInputs();
+        } else {
+            fbEl.className = 'calc-feedback no';
+            fbEl.textContent = '🤔 Not close yet — round the number to an easy one, then divide. Try again!';
+            const e = document.getElementById('mEst'); e.value = ''; e.focus();
+            // the estimate does not change her points, so mFirstTry is left alone
+        }
+        return;
+    }
+
+    // exact phase
+    const ans = parseInt(document.getElementById('mAns').value, 10);
+    const r2 = parseInt(document.getElementById('mRem').value, 10);
+    if (isNaN(ans) || isNaN(r2)) { fbEl.className = 'calc-feedback no'; fbEl.textContent = '✏️ Fill in both the answer and the Rest!'; return; }
+    if (ans === quo && r2 === rem) mathCorrect(q, fbEl); else mathWrong(fbEl);
+}
+
+function mathCorrect(q, fbEl) {
+    mBusy = true;
+    if (mFirstTry) { mScore++; document.getElementById('mScoreVal').textContent = mScore; }
+    fbEl.className = 'calc-feedback ok';
+    fbEl.textContent = '✅ Perfect dose! Now mix the medicine yourself! 🧪';
+    startMixPhase(q);
+}
+function mathWrong(fbEl) {
+    mFirstTry = false;
+    fbEl.className = 'calc-feedback no';
+    fbEl.textContent = '❌ Not quite — check your maths and try again!';
+    const a = document.getElementById('mAns'); if (a) a.value = '';
+    const r = document.getElementById('mRem'); if (r) r.value = '';
+    if (a) a.focus();
+}
+
+// ── Interactive mixing: drag ingredients into the cauldron, then drag the medicine to the horse ──
+function startMixPhase(q) {
+    mPhase = 'mix';
+    document.getElementById('mInputs').classList.add('hidden');
+    document.getElementById('mMixBtn').classList.add('hidden');
+    document.getElementById('mMixLocked').classList.add('hidden');
+    document.getElementById('mMixStation').classList.remove('hidden');
+    document.getElementById('mMixHeadline').textContent = 'Drag the ingredients into the cauldron! 🧪';
+
+    const liquid = document.getElementById('mCauldronLiquid');
+    liquid.style.height = '14%';
+    liquid.style.background = 'linear-gradient(180deg, #6bb6ff, #2c5364)';
+    document.getElementById('mCauldronLabel').textContent = 'Drop ingredients here';
+    document.getElementById('mCauldron').classList.add('active');
+    document.getElementById('mMedicineTray').innerHTML = '';
+    document.getElementById('mPatientZone').classList.add('hidden');
+    document.getElementById('mPatientDrop').classList.remove('active', 'over', 'healed');
+
+    const shelf = document.getElementById('mShelf');
+    shelf.innerHTML = '';
+    const picks = shuffle(mIngredientPool).slice(0, 3);
+    mIngTotal = picks.length; mIngAdded = 0;
+    picks.forEach(ing => {
+        const el = document.createElement('div');
+        el.className = 'ingredient';
+        el.innerHTML = `<span class="ing-emoji">${ing.emoji}</span><span class="ing-name">${ing.name}</span>`;
+        makeDraggable(el, { type: 'ingredient' });
+        shelf.appendChild(el);
+    });
+}
+
+function addIngredient(srcEl) {
+    srcEl.remove();
+    mIngAdded++;
+    const c = document.getElementById('mCauldron');
+    c.classList.remove('fizz'); void c.offsetWidth; c.classList.add('fizz');
+    const liquid = document.getElementById('mCauldronLiquid');
+    liquid.style.height = (14 + Math.round(mIngAdded / mIngTotal * 64)) + '%';
+    if (mIngAdded >= mIngTotal) {
+        liquid.style.background = 'linear-gradient(180deg, #a8ff78, #38ef7d 55%, #11998e)';
+        document.getElementById('mCauldronLabel').textContent = 'Medicine ready! ✨';
+        c.classList.remove('active');
+        readyMedicine();
+    } else {
+        document.getElementById('mCauldronLabel').textContent = 'Keep going!';
+    }
+}
+
+function readyMedicine() {
+    mPhase = 'treat';
+    document.getElementById('mMixHeadline').textContent = 'Now drag the medicine to the horse! 💉';
+    const med = document.createElement('div');
+    med.className = 'medicine';
+    med.innerHTML = `<span class="med-emoji">💉</span><span class="med-name">Medizin</span>`;
+    makeDraggable(med, { type: 'medicine' });
+    document.getElementById('mMedicineTray').appendChild(med);
+
+    const h = horses[mPool[mQ].horseIdx];
+    const img = document.getElementById('mPatientHorse');
+    img.style.display = 'block'; img.src = h.image; img.alt = h.name;
+    img.onerror = function () { this.style.display = 'none'; };
+    document.getElementById('mPatientZone').classList.remove('hidden');
+    document.getElementById('mPatientDrop').classList.add('active');
+}
+
+function treatHorse(srcEl) {
+    srcEl.remove();
+    const drop = document.getElementById('mPatientDrop');
+    drop.classList.remove('active', 'over');
+    drop.classList.add('healed');
+    playHealSound();
+    const q = mPool[mQ];
+    setTimeout(() => showCure(q), 650);
+}
+
+// A random horse sound (whinny, snort, or a short hoof stamp) plays each time a horse is healed.
+const mHealSounds = [
+    { id: 'sndWhinny' },
+    { id: 'sndSnort' },
+    { id: 'sndStamp', maxMs: 2300 }   // the stamp clip is long, so play just a couple of clops
+];
+function playHealSound() {
+    mHealSounds.forEach(s => { const el = document.getElementById(s.id); if (el) el.pause(); });
+    const pick = mHealSounds[Math.floor(Math.random() * mHealSounds.length)];
+    const snd = document.getElementById(pick.id);
+    if (!snd) return;
+    try { snd.currentTime = 0; } catch (e) {}
+    snd.volume = 0.85;
+    snd.play().catch(() => {});
+    if (pick.maxMs) setTimeout(() => snd.pause(), pick.maxMs);
+}
+
+function handleDrop(target, payload, srcEl) {
+    const zone = target.dataset.drop;
+    if (zone === 'cauldron' && payload.type === 'ingredient') addIngredient(srcEl);
+    else if (zone === 'horse' && payload.type === 'medicine') treatHorse(srcEl);
+    else if (zone === 'feedbowl' && payload.type === 'food') addFood();
+    else if (zone === 'trough' && payload.type === 'scoop') fillTrough(target);
+}
+
+// Pointer-based drag works for both mouse and touch (tablets).
+function makeDraggable(el, payload) {
+    el.addEventListener('pointerdown', e => {
+        if (mDrag) return;
+        e.preventDefault();
+        const ghost = el.cloneNode(true);
+        ghost.classList.add('drag-ghost');
+        ghost.style.width = el.offsetWidth + 'px';
+        document.body.appendChild(ghost);
+        el.classList.add('dragging-src');
+        mDrag = { el, payload, ghost };
+        moveGhost(e);
+        document.addEventListener('pointermove', mDragMove);
+        document.addEventListener('pointerup', mDragUp);
+    });
+}
+function moveGhost(e) {
+    if (!mDrag) return;
+    mDrag.ghost.style.left = (e.clientX - mDrag.ghost.offsetWidth / 2) + 'px';
+    mDrag.ghost.style.top = (e.clientY - mDrag.ghost.offsetHeight / 2) + 'px';
+}
+function mDragMove(e) {
+    if (!mDrag) return;
+    e.preventDefault();
+    moveGhost(e);
+    document.querySelectorAll('.mix-drop.active').forEach(t => {
+        const r = t.getBoundingClientRect();
+        t.classList.toggle('over', e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom);
+    });
+}
+function mDragUp(e) {
+    if (!mDrag) return;
+    document.removeEventListener('pointermove', mDragMove);
+    document.removeEventListener('pointerup', mDragUp);
+    const dragged = mDrag;
+    dragged.ghost.remove();
+    dragged.el.classList.remove('dragging-src');
+    let hit = null;
+    document.querySelectorAll('.mix-drop.active').forEach(t => {
+        const r = t.getBoundingClientRect();
+        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) hit = t;
+        t.classList.remove('over');
+    });
+    mDrag = null;
+    if (hit) handleDrop(hit, dragged.payload, dragged.el);
+}
+
+function showCure(q) {
+    const h = horses[q.horseIdx];
+    const img = document.getElementById('mCureImg');
+    img.style.display = 'block'; img.src = h.image; img.alt = h.name;
+    img.onerror = function () { this.style.display = 'none'; };
+    document.getElementById('mCureText').textContent = q.cured;
+    const hc = document.getElementById('mCureHearts'); hc.innerHTML = '';
+    ['💚','✨','💖','🌟','💚','✨','🩷','⭐'].forEach((s, i) => {
+        const sp = document.createElement('span');
+        sp.className = 'cure-heart'; sp.textContent = s;
+        sp.style.left = (6 + i * 12) + '%';
+        sp.style.animationDelay = (i * 0.28) + 's';
+        hc.appendChild(sp);
+    });
+    document.getElementById('mCureOverlay').classList.add('active');
+}
+function nextAfterCure() {
+    document.getElementById('mCureOverlay').classList.remove('active');
+    mQ++;
+    showMathQuestion();
+}
+
+// ── Persistent vet rank: total points are saved by the browser so progress is remembered ──
+const VET_TIERS = [
+    { name: 'Apprentice',     emoji: '🌱', min: 0 },
+    { name: 'Junior Vet',     emoji: '🐴', min: 30 },
+    { name: 'Full Vet',       emoji: '🩺', min: 60 },
+    { name: 'Senior Vet',     emoji: '⭐', min: 90 },
+    { name: 'Super Vet',      emoji: '🌟', min: 120 },
+    { name: 'Super Hero Vet', emoji: '🦸', min: 150 }
+];
+function getVetPoints() { try { var v = parseInt(localStorage.getItem('ellaVetPoints'), 10); return isNaN(v) ? 0 : v; } catch (e) { return 0; } }
+function setVetPoints(p) { try { localStorage.setItem('ellaVetPoints', String(p)); } catch (e) {} }
+function vetTierIndex(points) { var idx = 0; for (var i = 0; i < VET_TIERS.length; i++) if (points >= VET_TIERS[i].min) idx = i; return idx; }
+function renderVetCard() {
+    var pts = getVetPoints(), ti = vetTierIndex(pts), tier = VET_TIERS[ti];
+    document.getElementById('vcEmoji').textContent = tier.emoji;
+    document.getElementById('vcTier').textContent = tier.name;
+    document.getElementById('vcPoints').textContent = pts + (pts === 1 ? ' vet point' : ' vet points');
+    var fill = document.getElementById('vcProgressFill'), next = document.getElementById('vcNext');
+    if (ti < VET_TIERS.length - 1) {
+        var span = VET_TIERS[ti + 1].min - tier.min, into = pts - tier.min;
+        var need = VET_TIERS[ti + 1].min - pts;
+        fill.style.width = Math.round(into / span * 100) + '%';
+        next.textContent = '🎯 Earn just ' + need + (need === 1 ? ' more point' : ' more points') + ' to become a ' + VET_TIERS[ti + 1].name + '! ' + VET_TIERS[ti + 1].emoji;
+    } else {
+        fill.style.width = '100%';
+        next.textContent = '🏆 Top rank reached — amazing!';
+    }
+}
+
+function showMathEnd() {
+    document.getElementById('mathGamePage').classList.add('hidden');
+    document.getElementById('mProgressFill').style.width = '100%';
+    document.getElementById('mathEndScreen').classList.remove('hidden');
+    const total = mPool.length, pct = mScore / total;
+    let emoji, msg;
+    if (pct === 1)       { emoji = '🏆'; msg = `Incredible! You treated every single patient perfectly. You are a true horse doctor, Ella!`; }
+    else if (pct >= 0.8) { emoji = '🩺'; msg = `Amazing work, Doctor! Almost every horse healed on the first try. The whole stable is proud of you!`; }
+    else if (pct >= 0.6) { emoji = '💉'; msg = `Great job! Lots of happy, healthy horses thanks to you. Keep practising your maths to become the top vet!`; }
+    else if (pct >= 0.4) { emoji = '🐴'; msg = `Good effort! Every horse got better in the end. Play again and your dosing will get even sharper!`; }
+    else                 { emoji = '🌈'; msg = `Every great vet starts somewhere! Play again — the more you practise, the more horses you'll heal, Ella!`; }
+    document.getElementById('mEndEmoji').textContent = emoji;
+    document.getElementById('mEndScore').textContent = `You healed ${mScore} of ${total} patients! 🎊`;
+    document.getElementById('mEndMsg').textContent = msg;
+
+    // ── award persistent vet points: all right = 10, one wrong = 5, more than one wrong = 0 ──
+    const wrong = total - mScore;
+    const earned = wrong === 0 ? 10 : (wrong === 1 ? 5 : 0);
+    const before = getVetPoints(), after = before + earned;
+    setVetPoints(after);
+    const beforeTier = vetTierIndex(before), afterTier = vetTierIndex(after), tier = VET_TIERS[afterTier];
+
+    // earning points also unlocks 2 plays of the just-for-fun Feed Kitchen
+    if (earned > 0) { setFeedTokens(getFeedTokens() + 2); renderFeedButton(); }
+
+    let html = earned > 0
+        ? `<div class="ev-earned">🎖️ +${earned} vet points!</div>`
+        : `<div class="ev-earned zero">More than one wrong this time — no points. You can do it next round! 💪</div>`;
+    if (earned > 0) html += `<div class="ev-feed">🥕 +2 Feed Kitchen plays unlocked!</div>`;
+    if (afterTier > beforeTier) html += `<div class="ev-levelup">🎉 LEVEL UP! You're now a ${tier.name}! ${tier.emoji}</div>`;
+    html += `<div class="ev-total">Total: ${after} vet points</div>`;
+    html += `<div class="ev-tier-badge">${tier.emoji} ${tier.name}</div>`;
+    if (afterTier < VET_TIERS.length - 1) {
+        const span = VET_TIERS[afterTier + 1].min - tier.min, into = after - tier.min;
+        const need = VET_TIERS[afterTier + 1].min - after;
+        html += `<div class="ev-progress"><div class="ev-progress-fill" style="width:${Math.round(into / span * 100)}%"></div></div>`;
+        html += `<div class="ev-next">🎯 Earn just ${need} more ${need === 1 ? 'point' : 'points'} to become a ${VET_TIERS[afterTier + 1].name}! ${VET_TIERS[afterTier + 1].emoji}</div>`;
+    } else {
+        html += `<div class="ev-progress"><div class="ev-progress-fill" style="width:100%"></div></div>`;
+        html += `<div class="ev-next">🏆 Highest rank — you're a hero!</div>`;
+    }
+    document.getElementById('mEndVet').innerHTML = html;
+    renderVetCard();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FEED KITCHEN — just-for-fun sandbox, unlocked by earning points
+//  (2 plays granted each time Ella earns vet points)
+// ═══════════════════════════════════════════════════════════
+const FEED_ITEMS = [
+  { emoji: '🌾', name: 'Heu' },        { emoji: '🥕', name: 'Karotten' },
+  { emoji: '🍎', name: 'Äpfel' },      { emoji: '🌿', name: 'Gras' },
+  { emoji: '🥣', name: 'Hafer' },      { emoji: '🍯', name: 'Melasse' },
+  { emoji: '🧂', name: 'Mineralsalz' }, { emoji: '💊', name: 'Vitamine' }
+];
+let feedHorses = [], feedMixCount = 0, feedFilled = 0;
+
+function getFeedTokens() { try { var v = parseInt(localStorage.getItem('ellaFeedTokens'), 10); return isNaN(v) ? 0 : v; } catch (e) { return 0; } }
+function setFeedTokens(v) { try { localStorage.setItem('ellaFeedTokens', String(Math.max(0, v))); } catch (e) {} }
+
+function renderFeedButton() {
+    var t = getFeedTokens();
+    var btn = document.getElementById('feedBtn'), hint = document.getElementById('feedHint');
+    if (!btn) return;
+    if (t > 0) {
+        btn.disabled = false; btn.classList.remove('locked');
+        btn.textContent = `🥕 Mix the Feed! (${t} ${t === 1 ? 'play' : 'plays'} left)`;
+        hint.textContent = 'A fun treat — mix special feed and fill the troughs! 🐴';
+    } else {
+        btn.disabled = true; btn.classList.add('locked');
+        btn.textContent = '🥕 Mix the Feed! (locked)';
+        hint.textContent = '🔒 Earn points in the Vet Maths Game to unlock Feed Kitchen plays!';
+    }
+}
+
+function showFeedGame() {
+    if (getFeedTokens() <= 0) return;
+    setFeedTokens(getFeedTokens() - 1);
+    renderFeedButton();
+    document.getElementById('mainPage').classList.add('hidden');
+    document.getElementById('feedGamePage').classList.remove('hidden');
+    startFeedGame();
+}
+
+function startFeedGame() {
+    feedMixCount = 0; feedFilled = 0;
+    document.getElementById('feedTokenLabel').textContent = `🎟️ ${getFeedTokens()} left`;
+    document.getElementById('feedHeadline').textContent = 'Drag food and supplements into the big bowl to mix special feed! 🥣';
+
+    feedHorses = shuffle(horses.map((_, i) => i)).slice(0, 4);   // 4 different horses every time
+    const row = document.getElementById('troughRow');
+    row.innerHTML = '';
+    feedHorses.forEach((idx, pos) => {
+        const h = horses[idx];
+        const item = document.createElement('div');
+        item.className = 'trough-item';
+        item.innerHTML =
+            `<img class="trough-horse" src="${h.image}" alt="${h.name}" onerror="this.style.visibility='hidden'">` +
+            `<div class="trough mix-drop" data-drop="trough" data-idx="${pos}"><span class="trough-feed">🌾🥕🍎</span></div>` +
+            `<div class="trough-name">${h.name}</div>`;
+        row.appendChild(item);
+    });
+
+    const bowl = document.getElementById('feedBowl');
+    bowl.classList.add('active'); bowl.classList.remove('ready');
+    document.getElementById('feedBowlFill').style.height = '0%';
+    document.getElementById('feedBowlLabel').textContent = 'Drop food here';
+    document.getElementById('scoopTray').innerHTML = '';
+
+    const shelf = document.getElementById('feedShelf');
+    shelf.innerHTML = '';
+    FEED_ITEMS.forEach(it => {
+        const el = document.createElement('div');
+        el.className = 'ingredient';
+        el.innerHTML = `<span class="ing-emoji">${it.emoji}</span><span class="ing-name">${it.name}</span>`;
+        makeDraggable(el, { type: 'food' });   // food cards are reusable — mix as much as you like
+        shelf.appendChild(el);
+    });
+}
+
+function addFood() {
+    feedMixCount++;
+    const bowl = document.getElementById('feedBowl');
+    bowl.classList.remove('plop'); void bowl.offsetWidth; bowl.classList.add('plop');
+    document.getElementById('feedBowlFill').style.height = Math.min(82, 12 + feedMixCount * 14) + '%';
+    if (feedMixCount >= 3 && document.getElementById('scoopTray').children.length === 0) {
+        makeFeedReady();
+    } else if (feedMixCount < 3) {
+        document.getElementById('feedBowlLabel').textContent = 'Keep mixing! 🥄';
+    }
+}
+
+function makeFeedReady() {
+    document.getElementById('feedHeadline').textContent = 'Yummy mix! Now scoop the feed into each trough! 🥄';
+    document.getElementById('feedBowlLabel').textContent = 'Spezialfutter fertig! ✨';
+    document.getElementById('feedBowl').classList.add('ready');
+    document.querySelectorAll('#troughRow .trough').forEach(t => t.classList.add('active'));
+    const tray = document.getElementById('scoopTray');
+    tray.innerHTML = '';
+    const scoop = document.createElement('div');
+    scoop.className = 'medicine';
+    scoop.innerHTML = `<span class="med-emoji">🥄</span><span class="med-name">Spezialfutter</span>`;
+    makeDraggable(scoop, { type: 'scoop' });   // reusable — drag it to each trough
+    tray.appendChild(scoop);
+}
+
+function fillTrough(target) {
+    if (target.classList.contains('filled')) return;
+    target.classList.add('filled');
+    target.classList.remove('active', 'over');
+    const item = target.closest('.trough-item');
+    if (item) item.classList.add('fed');
+    feedFilled++;
+    if (feedFilled >= feedHorses.length) feedDone();
+}
+
+function feedDone() {
+    document.getElementById('feedHeadline').innerHTML = '😋 Yum! All four horses are happily munching their special feed! 💛';
+    playHealSound();   // a happy horse sound to celebrate
+    const tray = document.getElementById('scoopTray');
+    const t = getFeedTokens();
+    if (t > 0) {
+        tray.innerHTML = `<button class="mix-btn" onclick="feedAgain()">🥕 Mix again! (${t} left)</button>`;
+    } else {
+        tray.innerHTML = `<button class="mix-btn" onclick="showMain()">🐴 Back to Horses</button>`;
+    }
+}
+
+function feedAgain() {
+    setFeedTokens(getFeedTokens() - 1);
+    renderFeedButton();
+    startFeedGame();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GROWN-UPS RESET PANEL  (light password gate, set score + feed plays)
+// ═══════════════════════════════════════════════════════════
+function openAdmin() {
+    document.getElementById('adminStep1').classList.remove('hidden');
+    document.getElementById('adminStep2').classList.add('hidden');
+    document.getElementById('adminPw').value = '';
+    document.getElementById('adminPwMsg').textContent = '';
+    document.getElementById('adminMsg').textContent = '';
+    document.getElementById('adminOverlay').classList.add('active');
+    setTimeout(() => document.getElementById('adminPw').focus(), 60);
+}
+function closeAdmin() { document.getElementById('adminOverlay').classList.remove('active'); }
+function adminCheckPw() {
+    if (document.getElementById('adminPw').value === '0101') {
+        document.getElementById('adminStep1').classList.add('hidden');
+        document.getElementById('adminStep2').classList.remove('hidden');
+        document.getElementById('adminPts').value = getVetPoints();
+        document.getElementById('adminFeed').value = getFeedTokens();
+    } else {
+        const m = document.getElementById('adminPwMsg'); m.style.color = '#e74c3c'; m.textContent = 'Wrong password.';
+    }
+}
+function adminApply() {
+    const p = parseInt(document.getElementById('adminPts').value, 10);
+    const f = parseInt(document.getElementById('adminFeed').value, 10);
+    if (!isNaN(p)) setVetPoints(Math.max(0, p));
+    if (!isNaN(f)) setFeedTokens(Math.max(0, f));
+    renderVetCard(); renderFeedButton();
+    const m = document.getElementById('adminMsg'); m.style.color = '#27ae60';
+    m.textContent = `Saved! ${getVetPoints()} points, ${getFeedTokens()} feed plays.`;
+}
+function adminReset0() {
+    setVetPoints(0); setFeedTokens(0);
+    document.getElementById('adminPts').value = 0;
+    document.getElementById('adminFeed').value = 0;
+    renderVetCard(); renderFeedButton();
+    const m = document.getElementById('adminMsg'); m.style.color = '#27ae60'; m.textContent = 'Reset to zero. ✅';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SPARKLE STARS IN HEADER
+// ═══════════════════════════════════════════════════════════
+const starsEl = document.getElementById('stars');
+['⭐','✨','🌟','💫','⭐','✨'].forEach(sym => {
+    for (let j = 0; j < 3; j++) {
+        const s = document.createElement('span');
+        s.className = 'star'; s.textContent = sym;
+        s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;font-size:${0.8+Math.random()*1.4}rem;animation-delay:${Math.random()*2.5}s;`;
+        starsEl.appendChild(s);
+    }
+});
+
+// show Ella's saved vet rank as soon as the page opens
+renderVetCard();
+// give a small starter allowance for the Feed Kitchen the very first time
+try { if (localStorage.getItem('ellaFeedTokens') === null) setFeedTokens(2); } catch (e) {}
+renderFeedButton();
+</script>
+</body>
+</html>
