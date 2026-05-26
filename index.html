@@ -1177,16 +1177,19 @@ function attachMathInputs() {
 }
 
 function renderProblem(q) {
-    document.getElementById('mProblem').style.display = 'none';   // no equation shown: she sets it up from the story
+    const prob = document.getElementById('mProblem');
     const inputs = document.getElementById('mInputs');
     const label = document.getElementById('mCalcLabel');
+    prob.style.display = '';                          // show the equation
     mDivPhase = null;
     if (q.op === 'mult') {
-        label.textContent = '🧮 Work out the total — set up the maths yourself:';
+        prob.textContent = `${q.n.a} × ${q.n.b} = ?`;
+        label.textContent = '🧮 Work it out:';
         inputs.innerHTML = calcField('mAns', 'Answer');
     } else {
+        prob.textContent = `${q.n.a} ÷ ${q.n.b} = ?`;
         mDivPhase = 'estimate';
-        label.textContent = '🤔 Step 1 — Estimate: round the number, then roughly how much is it each?';
+        label.textContent = '🤔 Step 1 — Estimate: round the number, then roughly how much is it?';
         inputs.innerHTML = calcField('mEst', 'About how much?');
     }
     attachMathInputs();
@@ -1216,6 +1219,7 @@ function checkMathAnswer() {
             fbEl.className = 'calc-feedback ok';
             fbEl.textContent = `👍 Good estimate! It's about ${quo}. Now work out the exact answer.`;
             mDivPhase = 'exact';
+            document.getElementById('mProblem').textContent = `${q.n.a} ÷ ${q.n.b} = ?  Rest ?`;
             document.getElementById('mCalcLabel').textContent = '✏️ Step 2 — Now the exact answer, with the remainder:';
             document.getElementById('mInputs').innerHTML = calcField('mAns', 'Answer') + calcField('mRem', 'Remainder (Rest)');
             attachMathInputs();
