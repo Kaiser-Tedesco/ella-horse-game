@@ -154,6 +154,18 @@
         .calc-feedback.ok { color: #27ae60; }
         .calc-feedback.no { color: #e74c3c; animation: shake 0.45s ease; }
 
+        /* long-multiplication column display */
+        .lm-stack { display: inline-block; text-align: right; min-width: 150px; line-height: 1.12; }
+        .lm-stack > div { padding: 1px 10px; }
+        .lm-bar { border-top: 5px solid #2c3e50; height: 0; margin: 5px 0; padding: 0 !important; }
+        .carry-hint { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.82rem; color: #e67e22; background: rgba(230,126,34,0.12); border-radius: 10px; padding: 6px 12px; display: inline-block; margin: -4px auto 12px; }
+        /* two-bundle "which is dearer" display + choice buttons */
+        .bundle-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; font-size: 1.15rem; margin-bottom: 6px; }
+        .bundle { background: #f2f7ff; border: 3px solid #cfe0ff; border-radius: 16px; padding: 12px 18px; font-family: 'Fredoka One', cursive; color: #2c3e50; }
+        .cmp-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+        .cmp-btn { font-family: 'Fredoka One', cursive; font-size: 1.1rem; padding: 14px 24px; border: 3px solid #4d96ff; border-radius: 16px; background: #eaf2ff; color: #2c3e50; cursor: pointer; transition: transform 0.15s, background 0.15s; }
+        .cmp-btn:hover { background: #d6e6ff; transform: translateY(-2px); }
+
         /* medicine lab */
         .vet-lab { display: flex; justify-content: center; align-items: flex-end; gap: 22px; height: 168px; margin: 26px auto 0; }
         .dropper { font-size: 3rem; transform-origin: bottom center; }
@@ -392,14 +404,14 @@
                 <div class="case-photo-fb" id="mCaseImgFb"></div>
                 <div>
                     <div class="case-title" id="mCaseTitle"></div>
-                    <div class="case-sub">🚑 Tierärztlicher Notfall</div>
+                    <div class="case-sub">🚑 Veterinary Emergency</div>
                 </div>
             </div>
             <div class="case-story" id="mCaseStory"></div>
         </div>
 
         <div class="calc-card">
-            <div class="calc-label" id="mCalcLabel">🧮 Deine Berechnung:</div>
+            <div class="calc-label" id="mCalcLabel">🧮 Your calculation:</div>
             <div class="calc-problem" id="mProblem"></div>
             <div class="calc-inputs" id="mInputs"></div>
             <button class="mix-btn" id="mMixBtn" onclick="checkMathAnswer()">🧪 Mix the medicine!</button>
@@ -968,7 +980,12 @@ function showEndScreen() {
 //  Numbers are randomised every game.
 // ═══════════════════════════════════════════════════════════
 function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function genMult() { return { a: rnd(21, 99), b: rnd(12, 49) }; }                 // 62 × 31 style
+
+// ── number formatting & parsing (German style: comma decimal, € after the number) ──
+function fmtDec(n) { return (Math.round(n * 1000) / 1000).toString().replace('.', ','); }   // 3.5 -> "3,5"
+function fmtMoney(n) { return (Math.round(n * 100) / 100).toFixed(2).replace('.', ',') + ' €'; } // 5.6 -> "5,60 €"
+function parseNum(v) { if (v == null) return NaN; return parseFloat(String(v).replace('€', '').replace(/\s/g, '').replace(',', '.')); }
+function near(a, b) { return Math.abs(a - b) < 0.0005; }                           // decimal compare
 // Division: dividend sits just above an easily-divided round number, so the result
 // is a round number (e.g. 720÷6 = 120) plus a small remainder (723÷6 = 120 R3).
 // Good for "estimate first, then solve exactly".
@@ -982,111 +999,130 @@ function genDiv() {
     return { a: base + r, b: b };                         // dividend = base + r
 }
 
-// 50 horse-vet learning cases. Each = one horse + a real vet concept (told in German, with a
-// sound-out aid in brackets for the big science word) + a loosely-linked maths task.
-// A session randomly picks 2 multiplication + 2 division cases from different horses.
-const mathCases = [
-  { horseIdx: 0, title: "Stella schläft im Stehen", intro: "Stella döst auf der Weide und steht dabei fest auf allen vier Beinen. Pferde haben einen Stehapparat (Steh-ap-pa-rat), der sie ohne Muskelkraft hält – so können sie im Schlaf sofort weglaufen.", cured: "Stella wacht frisch ausgeruht auf und schüttelt ihre silberne Mähne. Tolle Beobachtung, Tierärztin! ⭐",
-    steps: [ { op: 'mult', story: n => `Stella döst <b>${n.a} Minuten</b> pro Schläfchen, <b>${n.b} Schläfchen</b> am Tag. Wie viele Minuten Schlaf insgesamt?` } ] },
-  { horseIdx: 6, title: "Patches' Bauch wird abgehört", intro: "Mit dem Stethoskop (Ste-tos-kop) hörst du an Patches' Bauch. Ein gesunder Darm gluckert und rumpelt – ein ganz stiller Bauch wäre ein Warnzeichen.", cured: "Patches' Darm gluckert gesund weiter und sie schnuppert an deiner Tasche. Gut gemacht! 🌈",
-    steps: [ { op: 'div', story: n => `Du hörst <b>${n.a} Sekunden</b> lang in <b>${n.b} Bauchbereiche</b> hinein. Wie viele Sekunden pro Bereich – und wie viele Sekunden bleiben übrig?` } ] },
-  { horseIdx: 1, title: "Biscuit hat einen Hufabszess", intro: "Biscuit hält sein Bein hoch und mag nicht auftreten. Mit der Hufzange findest du einen Hufabszess (Huf-aps-tsess) – eine kleine, schmerzhafte Eiterstelle tief in der Hufwand.", cured: "Biscuits Huf ist offen, der Druck ist weg und er stapft wieder fröhlich los. Stark, Doktor! 🧦",
-    steps: [ { op: 'mult', story: n => `Mit der Hufzange drückst du <b>${n.a} Sekunden</b> auf jede Stelle und prüfst <b>${n.b} Stellen</b> rund um den Huf. Wie viele Sekunden suchst du insgesamt?` } ] },
-  { horseIdx: 8, title: "Brios Huf-Umschlag", intro: "Du wickelst Brios Huf über Nacht in einen warmen Breiumschlag (Brei-um-schlag) mit Zugsalbe. Er zieht den Abszess sanft aus der Sohle heraus.", cured: "Am Morgen läuft Brio wieder ohne zu lahmen über die Almwiese. Geheilt! 🏔️",
-    steps: [ { op: 'div', story: n => `Du verteilst <b>${n.a} g</b> Zugsalbe gleichmäßig auf <b>${n.b} Umschläge</b>. Wie viel pro Umschlag – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 7, title: "Cupcakes scharfe Zähne", intro: "Cupcake lässt beim Fressen halb gekaute Heubällchen fallen – das nennt man Quidding (Kwid-ding). Scharfe Zahnhaken (Tsaan-haa-ken) an den Backenzähnen schneiden in ihre Backe.", cured: "Die Zahnhaken sind glatt gefeilt und Cupcake mampft wieder vergnügt. Gut gemacht! 🦷",
-    steps: [ { op: 'mult', story: n => `Du feilst <b>${n.a} Sekunden</b> pro Zahn, an <b>${n.b} Zähnen</b>. Wie viele Sekunden insgesamt?` } ] },
-  { horseIdx: 9, title: "Lunas Zähne wachsen immer", intro: "Pferdezähne wachsen das ganze Leben lang nach! Lunas Backenzähne (Ba-ken-tse-ne) nutzen sich beim Kauen ab und müssen jedes Jahr kontrolliert werden.", cured: "Lunas Zähne sind geprüft und gleichmäßig – sie tänzelt zufrieden davon. Wunderbar! ✨",
-    steps: [ { op: 'div', story: n => `Lunas Backenzähne sind in einem Jahr <b>${n.a} mm</b> nachgewachsen. Du teilst das Abschleifen auf <b>${n.b} kleine Schritte</b> auf. Wie viele mm pro Schritt – und wie viele mm bleiben übrig?` } ] },
-  { horseIdx: 4, title: "Wie alt ist Midnight?", intro: "An den Kauflächen (Kau-fle-chen) der Zähne kann man das Alter eines Pferdes schätzen. Bei Midnight liest du ab: ungefähr zwölf Jahre alt!", cured: "Midnights Zähne sind gesund und du kennst nun ihr Alter. Elegant gelöst! 🖤",
-    steps: [ { op: 'mult', story: n => `Du prüfst die Kauflächen <b>${n.a} Sekunden</b> pro Zahn, an <b>${n.b} Zähnen</b>, um Midnights Alter zu schätzen. Wie viele Sekunden insgesamt?` } ] },
-  { horseIdx: 2, title: "Thunders Wolfszähne", intro: "Thunder wirft beim Reiten den Kopf hoch. Du findest Wolfszähne (Wolfs-tse-ne) – kleine Extrazähne genau dort, wo das Gebiss liegt und drückt.", cured: "Die Wolfszähne sind entfernt und Thunder läuft entspannt. Frei und stark! 💨",
-    steps: [ { op: 'div', story: n => `Nach dem Eingriff teilst du <b>${n.a} ml</b> Mundspülung gleichmäßig auf <b>${n.b} Anwendungen</b> auf. Wie viel pro Anwendung – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 3, title: "Dottys toter Winkel", intro: "Dotty erschrickt, wenn man von hinten kommt. Pferde haben direkt hinter sich und direkt vor der Nase einen toten Winkel (to-ter Win-kel) – man kommt am besten von der Seite.", cured: "Dotty bleibt ruhig, weil du sie richtig ansprichst. Clever gemacht! 🎉",
-    steps: [ { op: 'mult', story: n => `Du übst das seitliche Annähern <b>${n.a} Sekunden</b> pro Runde, <b>${n.b} Runden</b> lang. Wie viele Sekunden insgesamt?` } ] },
-  { horseIdx: 5, title: "Sunnys Ohren verraten viel", intro: "Sunnys Ohren liegen flach an – ein Zeichen für Ärger! Pferde zeigen mit ihrer Körpersprache (Kör-per-sprah-che) genau, wie sie sich fühlen.", cured: "Sunnys Ohren stehen wieder fröhlich nach vorn und sie tanzt zur Musik. Bravo! ☀️",
-    steps: [ { op: 'div', story: n => `Du beobachtest Sunnys Ohren und Körpersprache insgesamt <b>${n.a} Minuten</b>, aufgeteilt auf <b>${n.b} Beobachtungen</b>. Wie viele Minuten pro Beobachtung – und wie viele bleiben übrig?` } ] },
-  { horseIdx: 7, title: "Cupcakes warme Hufe", intro: "Cupcakes Hufe fühlen sich warm an und sie tritt vorsichtig auf. Zu viel Blut staut sich in der harten Hufkapsel (Huf-kap-sel) und drückt schmerzhaft.", cured: "Cupcakes Hufe sind wieder schön kühl und sie flitzt frech umher. Toll gemacht! 🍞",
-    steps: [ { op: 'mult', story: n => `Du kühlst jeden Huf <b>${n.a} Minuten</b>, in <b>${n.b} Kühl-Runden</b>. Wie viele Minuten insgesamt?` } ] },
-  { horseIdx: 7, title: "Zu viel Frühlingsgras", intro: "Zu viel süßes Frühlingsgras kann bei Ponys eine schmerzhafte Hufrehe (Huf-reh-e), auch Laminitis (La-mi-nii-tis) genannt, auslösen. Cupcake darf jetzt nur wenig Gras.", cured: "Cupcakes Hufrehe ist abgeklungen und sie darf wieder auf die kleine Weide. Geschafft! 🍞",
-    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} g</b> Heu gleichmäßig auf <b>${n.b} kleine Portionen</b> auf. Wie viel pro Portion – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 2, title: "Thunders versteckte Lahmheit", intro: "Thunder lahmt, aber man sieht nichts. Mit einem Nervenblock (Ner-fen-block) betäubst du einen Nerv im Bein – läuft er dann gesund, weißt du, woher der Schmerz kommt.", cured: "Du hast die Stelle gefunden und Thunder läuft wieder klar. Detektivarbeit gelungen! 💪",
-    steps: [ { op: 'mult', story: n => `Die Betäubung wirkt <b>${n.a} Minuten</b> pro Stelle, du testest <b>${n.b} Stellen</b>. Wie viele Minuten insgesamt?` } ] },
-  { horseIdx: 5, title: "Sunnys Beugeprobe", intro: "Du hältst Sunnys Bein kurz gebeugt und lässt sie antraben – das ist die Beugeprobe (Boy-ge-pro-be). Steife erste Schritte zeigen dir das wehe Gelenk.", cured: "Das Gelenk ist behandelt und Sunny trabt wieder rund. Klasse, Doktor! ☀️",
-    steps: [ { op: 'div', story: n => `Du hältst die Beuge <b>${n.a} Sekunden</b> und teilst sie auf <b>${n.b} Tests</b> auf. Wie viele Sekunden pro Test – und wie viele bleiben übrig?` } ] },
-  { horseIdx: 6, title: "Stille in Patches' Bauch", intro: "Patches scharrt und schaut zum Bauch – das sieht nach Kolik (Ko-lik) aus. An zwei Stellen ist der Bauch ganz still, dort hat der Darm aufgehört zu arbeiten.", cured: "Patches' Darm arbeitet wieder und die Bauchschmerzen sind weg. Gerettet! 🌈",
-    steps: [ { op: 'mult', story: n => `Patches bekommt <b>${n.a} ml</b> Bauchmedizin pro Gabe, <b>${n.b} Gaben</b>. Wie viele ml insgesamt?` } ] },
-  { horseIdx: 0, title: "Spazieren hilft bei Kolik", intro: "Bei einer Kolik führst du Stella langsam im Kreis. Bewegung bringt die Darmbewegung (Darm-be-veh-gung) wieder in Gang – Stillstehen macht die Schmerzen schlimmer.", cured: "Nach dem Spaziergang gluckert Stellas Bauch wieder gesund. Gut gemacht! ⭐",
-    steps: [ { op: 'div', story: n => `Du führst Stella <b>${n.a} Minuten</b> und teilst sie in <b>${n.b} Runden</b> auf. Wie viele Minuten pro Runde – und wie viele bleiben übrig?` } ] },
-  { horseIdx: 1, title: "Biscuits Magensonde", intro: "Bei einer Verstopfung schiebst du Biscuit eine weiche Nasenschlundsonde (Naa-zen-schlund-zon-de) durch die Nase bis in den Magen, um Öl direkt zum Darm zu bringen.", cured: "Das Öl wirkt, die Verstopfung löst sich und Biscuit frisst wieder. Stark! 🧡",
-    steps: [ { op: 'mult', story: n => `Du gibst <b>${n.a} ml</b> Öl pro Gabe durch die Sonde, <b>${n.b} Gaben</b> lang. Wie viele ml insgesamt?` } ] },
-  { horseIdx: 3, title: "Dotty kann nicht spucken", intro: "Pferde können nicht erbrechen! Der Muskel an Dottys Speiseröhre (Spei-ze-rö-re) lässt das Futter nur in eine Richtung – darum ist eine Verstopfung so ernst.", cured: "Dottys Verdauung läuft wieder rund und sie hüpft über den Zaun. Geschafft! 🎉",
-    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} ml</b> Gleitmittel gleichmäßig auf <b>${n.b} Gaben</b> auf. Wie viel pro Gabe – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 8, title: "Brio hat nasse Fesseln", intro: "Nach dem nassen Winter hat Brio krustige Stellen an den Fesseln. Bleibt Haut lange nass, weicht sie auf und es entsteht Mauke (Mau-ke), eine Hautentzündung.", cured: "Brios Beine sind trocken und sauber verheilt – er tobt wieder bergauf. Geheilt! 🏔️",
-    steps: [ { op: 'mult', story: n => `Du cremst die Mauke-Stellen mit <b>${n.a} g</b> Salbe pro Behandlung ein, <b>${n.b} Behandlungen</b> lang. Wie viel Salbe insgesamt?` } ] },
-  { horseIdx: 3, title: "Dottys Sommerjucken", intro: "Dotty scheuert sich im Sommer Mähne und Schweif wund. Sie hat ein Sommerekzem (Som-mer-ek-tsem) – eine Allergie gegen den Speichel winziger Gnitzen (Gnit-zen).", cured: "Mit der richtigen Decke hört das Jucken auf und Dotty ist glücklich. Toll! 🎉",
-    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} ml</b> Juckreiz-Lotion gleichmäßig auf <b>${n.b} Hautstellen</b> auf. Wie viel pro Stelle – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 4, title: "Midnight hustet im Stall", intro: "Midnight hustet im Stall, draußen aber nicht. Staub und Schimmelsporen im Heu lösen Equines Asthma (E-kvii-nes Ast-ma) aus – das reizt ihre Atemwege.", cured: "Mit staubfreiem Heu hustet Midnight nicht mehr und atmet frei. Elegant gelöst! 🖤",
-    steps: [ { op: 'mult', story: n => `Midnight inhaliert <b>${n.a} Minuten</b> pro Sitzung, <b>${n.b} Sitzungen</b> lang. Wie viele Minuten insgesamt?` } ] },
-  { horseIdx: 4, title: "Heu einweichen", intro: "Du weichst Midnights Heu vor dem Füttern in Wasser ein. Nasses Heu lässt viel weniger Staubsporen (Staub-spo-ren) in die Luft – so atmet sie leichter.", cured: "Midnight frisst eingeweichtes Heu und hustet nicht mehr. Gut mitgedacht! 🖤",
-    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} Liter</b> Einweichwasser gleichmäßig auf <b>${n.b} Heunetze</b> auf. Wie viele Liter pro Netz – und wie viele bleiben übrig?` } ] },
-  { horseIdx: 8, title: "Brios lockiges Fell", intro: "Brio trägt mitten im Sommer noch sein dickes, lockiges Winterfell. Schuld ist eine kleine Drüse im Gehirn, die Hypophyse (Hü-po-fü-ze), die falsche Signale sendet.", cured: "Brio bekommt die richtige Medizin und fühlt sich viel wohler. Gut erkannt! 🏔️",
-    steps: [ { op: 'mult', story: n => `Weil sein dickes Lockenfell nicht ausfällt, scherst du Brio <b>${n.a} Minuten</b> pro Körperstelle, an <b>${n.b} Stellen</b>. Wie viele Minuten insgesamt?` } ] },
-  { horseIdx: 5, title: "Sunnys Muskeln verkrampfen", intro: "Nach einem schnellen Galopp bleibt Sunny mit steinharten Muskeln stehen. Den Muskeln ist die Energie ausgegangen – das nennt man Kreuzverschlag (Kreuz-fer-schlaag).", cured: "Mit Ruhe und viel Flüssigkeit werden Sunnys Muskeln wieder weich. Bravo! ☀️",
-    steps: [ { op: 'div', story: n => `Gegen den Kreuzverschlag braucht Sunny viel Flüssigkeit: Du teilst <b>${n.a} ml</b> Elektrolyt-Lösung gleichmäßig auf <b>${n.b} Gaben</b> auf. Wie viel pro Gabe – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 5, title: "Kaltes Wasser gegen Schwellung", intro: "Sunnys Sehne ist heiß und geschwollen. Kaltes Wasser lässt die Blutgefäße (Bluut-ge-fe-se) enger werden – das nimmt die Schwellung und kühlt die Hitze.", cured: "Die Schwellung ist weg und Sunny läuft wieder locker. Klasse gekühlt! ☀️",
-    steps: [ { op: 'mult', story: n => `Du kühlst die Sehne <b>${n.a} Minuten</b> pro Runde, <b>${n.b} Runden</b> lang. Wie viele Minuten insgesamt?` } ] },
-  { horseIdx: 1, title: "Biscuits Sehne braucht Halt", intro: "Nach einer Zerrung legst du Biscuit einen festen Stützverband an. Ohne Halt dehnt sich die entzündete Beugesehne (Boy-ge-zeh-ne) bei jedem Schritt weiter.", cured: "Biscuits Sehne ist gestützt und heilt schön ruhig. Gut gemacht! 🧡",
-    steps: [ { op: 'div', story: n => `Du schneidest <b>${n.a} cm</b> Verband in <b>${n.b} gleiche Stücke</b>. Wie viele cm pro Stück – und wie viele cm bleiben übrig?` } ] },
-  { horseIdx: 2, title: "Ultraschall zeigt die Sehne", intro: "Du fährst mit dem Ultraschall (Ul-tra-schall) über Thunders Bein. Auf dem Bildschirm zeigt sich eine dunkle Lücke in der Sehne – dort sind Fasern gerissen.", cured: "Thunders Sehne wird geschont und heilt langsam zu. Stark erkannt! 💪",
-    steps: [ { op: 'mult', story: n => `Du machst <b>${n.a} Sekunden</b> Ultraschall pro Bein, bei <b>${n.b} Untersuchungen</b>. Wie viele Sekunden insgesamt?` } ] },
-  { horseIdx: 1, title: "Hufe wachsen wie Nägel", intro: "Biscuits Hufe wachsen etwa einen Zentimeter im Monat – wie deine Fingernägel! Ohne Ausschneiden gerät das Hufwachstum (Huf-vaks-tum) aus dem Gleichgewicht.", cured: "Der Hufschmied hat Biscuits Hufe schön ausgeschnitten. Er steht wieder gerade! 🧡",
-    steps: [ { op: 'div', story: n => `Der Huf ist <b>${n.a} mm</b> zu lang. Du teilst das Kürzen auf <b>${n.b} Schritte</b> auf. Wie viele mm pro Schritt – und wie viele mm bleiben übrig?` } ] },
-  { horseIdx: 6, title: "Patches' weiße Linie", intro: "Beim Auskratzen findest du an Patches' Huf die weiße Linie (wei-se Li-nie) weich und dunkel statt fest und hell. Dort haben sich Bakterien eingenistet.", cured: "Die kranke Stelle ist versorgt und der Huf wird wieder fest. Gut aufgepasst! 🌈",
-    steps: [ { op: 'mult', story: n => `Du pinselst <b>${n.a} Tropfen</b> Huf-Tinktur pro Tag auf, <b>${n.b} Tage</b> lang. Wie viele Tropfen insgesamt?` } ] },
-  { horseIdx: 6, title: "Es riecht aus dem Huf", intro: "Aus Patches' Huf riecht es streng. Der weiche, dunkle Strahl ist mit Strahlfäule (Strahl-foy-le) infiziert – das passiert in nassen, schmutzigen Boxen.", cured: "Patches' Huf ist sauber, trocken und riecht wieder gut. Toll gemacht! 🌈",
-    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} ml</b> Huf-Desinfektion gleichmäßig auf <b>${n.b} Behandlungen</b> auf. Wie viel pro Behandlung – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 2, title: "Ein neues Pferd ist krank", intro: "Ein neues Pferd hat Fieber und dicke Beulen unter dem Kiefer. Das ist Druse (Druu-ze) – die Bakterien stecken über Wassereimer leicht andere an, darum bleibt Thunder getrennt.", cured: "Thunder ist gesund geblieben, weil du alles getrennt hast. Klug gehandelt! 💨",
-    steps: [ { op: 'mult', story: n => `Du desinfizierst <b>${n.a} Sekunden</b> pro Eimer, bei <b>${n.b} Eimern</b>. Wie viele Sekunden insgesamt?` } ] },
-  { horseIdx: 5, title: "Sunny schwitzt stark", intro: "Sunny schwitzt nach dem heißen Tag noch stark. Mit dem Schweiß verliert sie nicht nur Wasser, sondern auch Elektrolyte (E-lek-tro-lü-te) – wichtige Salze für Muskeln und Nerven.", cured: "Sunny hat ihre Salze zurück und fühlt sich wieder fit. Bravo! ☀️",
-    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} g</b> Elektrolyt-Pulver gleichmäßig auf <b>${n.b} Eimer</b> Wasser auf. Wie viel pro Eimer – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 0, title: "Stellas Hautfaltentest", intro: "Du kneifst eine Hautfalte an Stellas Hals und lässt los – das ist der Hautfaltentest (Haut-fal-ten-test). Bleibt die Falte stehen, hat das Pferd zu wenig getrunken.", cured: "Stella trinkt wieder genug und ihre Haut schnippt sofort zurück. Gut geprüft! ⭐",
-    steps: [ { op: 'mult', story: n => `Du machst den Test <b>${n.a} Sekunden</b> pro Durchgang, <b>${n.b} Durchgänge</b> lang. Wie viele Sekunden insgesamt?` } ] },
-  { horseIdx: 7, title: "Cupcakes Salzleckstein", intro: "In Cupcakes Box hängt ein Salzleckstein. Pferde spüren selbst, wann ihr Körper mehr Mineralstoffe (Mi-ne-raal-schtof-fe) braucht, und lecken dann daran.", cured: "Cupcake leckt zufrieden am Salzstein und ist bestens versorgt. Toll! 🍞",
-    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} g</b> Mineralsalz gleichmäßig auf <b>${n.b} Lecksteine</b> auf. Wie viel pro Stein – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 1, title: "Biscuits Rippen fühlen", intro: "Du streichst flach über Biscuits Rippen. Du fühlst sie, siehst sie aber nicht – das ist genau die richtige Körperkondition (Kör-per-kon-di-tsion).", cured: "Biscuit hat ein gesundes Gewicht und glänzt vor Gesundheit. Gut beurteilt! 🧡",
-    steps: [ { op: 'mult', story: n => `Du tastest <b>${n.a} Sekunden</b> pro Stelle ab, an <b>${n.b} Stellen</b>. Wie viele Sekunden insgesamt?` } ] },
-  { horseIdx: 8, title: "Brio frisst gern lange", intro: "Brio ist ein Dauerfresser (Dau-er-fres-ser): In der Natur frisst ein Pferd bis zu sechzehn Stunden am Tag kleine Mengen. Ein leerer Magen kann sonst wehtun.", cured: "Brio bekommt öfter kleine Portionen und sein Magen ist glücklich. Gut geplant! 🏔️",
-    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} g</b> Heu gleichmäßig auf <b>${n.b} Fütterungen</b> auf. Wie viel pro Fütterung – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 4, title: "Midnights Magen brennt", intro: "Midnight nimmt ab und ist nach dem Fressen unruhig. Ohne ständig Heu brennt die Magensäure die Magenwand – so entsteht ein Magengeschwür (Maa-gen-ge-schwür).", cured: "Midnight bekommt öfter Heu und ihr Magen heilt. Elegant gelöst! 🖤",
-    steps: [ { op: 'mult', story: n => `Midnight bekommt <b>${n.a} ml</b> Magenschutz pro Gabe, <b>${n.b} Gaben</b>. Wie viele ml insgesamt?` } ] },
-  { horseIdx: 0, title: "Stella trinkt zu wenig", intro: "Im Stallbuch siehst du: Stella hat nur halb so viel getrunken wie sonst. Ein plötzlicher Rückgang der Flüssigkeit (Flüs-sig-keit) ist oft das erste Zeichen für eine Krankheit.", cured: "Stella trinkt wieder normal und ist putzmunter. Gut aufgepasst! ⭐",
-    steps: [ { op: 'div', story: n => `Du füllst <b>${n.a} ml</b> frisches Wasser gleichmäßig in <b>${n.b} Eimer</b>. Wie viele ml pro Eimer – und wie viele bleiben übrig?` } ] },
-  { horseIdx: 2, title: "Thunder vermisst die Herde", intro: "Thunder ist im neuen Stall unruhig und wippt hin und her. Pferde sind Herdentiere (Her-den-tier) – ganz allein zu sein macht ihnen echte Angst.", cured: "Thunder hat neue Stallfreunde und ist wieder entspannt. Schön gemacht! 💨",
-    steps: [ { op: 'mult', story: n => `Thunder darf <b>${n.a} Minuten</b> pro Treffen zu seinen Freunden, <b>${n.b} Treffen</b> am Tag. Wie viele Minuten insgesamt?` } ] },
-  { horseIdx: 4, title: "Midnight wird betäubt", intro: "Midnight braucht Nähte, hält aber vor Angst nicht still. Du gibst eine Sedierung (Se-die-rung) – sie macht schläfrig, sodass sie im Stehen sicher behandelt wird.", cured: "Die Wunde ist genäht und Midnight wacht ruhig wieder auf. Gut gemacht! 🖤",
-    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} ml</b> Beruhigungsmittel gleichmäßig auf <b>${n.b} Spritzen</b> auf. Wie viel pro Spritze – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 6, title: "Die Tierärztin kommt zum Hof", intro: "Patches ist zu lahm für den Anhänger. Darum kommt die Tierärztin mit ihrer Fahrpraxis (Faar-prak-sis) zum Hof – Pferde behandelt man oft direkt im Stall.", cured: "Patches ist im eigenen Stall versorgt und ruht zufrieden. Praktisch gelöst! 🌈",
-    steps: [ { op: 'mult', story: n => `Die Fahrt dauert <b>${n.a} Minuten</b> pro Hof, du besuchst <b>${n.b} Höfe</b>. Wie viele Minuten insgesamt?` } ] },
-  { horseIdx: 3, title: "Dottys Tetanus-Impfung", intro: "Dotty bekommt ihre Impfung gegen Wundstarrkrampf (Wund-schtarr-krampf), auch Tetanus (Te-ta-nus) genannt. Die Bakterien stecken im Boden, schon ein kleiner Schnitt reicht.", cured: "Dotty ist geimpft und gut geschützt – sie hüpft fröhlich davon. Super! 🎉",
-    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} ml</b> Impfstoff gleichmäßig auf <b>${n.b} Spritzen</b> auf. Wie viel pro Spritze – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 6, title: "An vier Stellen horchen", intro: "Du hörst nicht nur an einer Stelle: An vier Darmquadranten (Darm-kva-dran-ten) lauschst du in Patches' Bauch. So findest du genau, wo der Darm still ist.", cured: "Alle vier Bereiche gluckern wieder – Patches ist gesund. Gründlich gemacht! 🌈",
-    steps: [ { op: 'mult', story: n => `Du hörst <b>${n.a} Sekunden</b> pro Quadrant, in <b>${n.b} Durchgängen</b>. Wie viele Sekunden insgesamt?` } ] },
-  { horseIdx: 8, title: "Brios Wurmkur wechselt", intro: "Brio bekommt mehrmals im Jahr eine Entwurmung (Ent-wur-mung) – aber jedes Mal ein anderes Mittel. Sonst gewöhnen sich die Würmer daran.", cured: "Brio ist wurmfrei und voller Energie. Klug gewechselt! 🏔️",
-    steps: [ { op: 'div', story: n => `Du teilst <b>${n.a} ml</b> Wurmpaste gleichmäßig auf <b>${n.b} Pferde</b> auf. Wie viel pro Pferd – und wie viel bleibt übrig?` } ] },
-  { horseIdx: 3, title: "Gnitzen bei Dämmerung", intro: "Bei Sonnenauf- und -untergang sind die Gnitzen (Gnit-zen) am aktivsten. In dieser Zeit bleibt Dotty mit Decke im Stall, damit die Mücken sie nicht stechen.", cured: "Dotty wird kaum noch gestochen und kratzt sich nicht mehr. Gut getimt! 🎉",
-    steps: [ { op: 'mult', story: n => `Dotty trägt die Decke <b>${n.a} Minuten</b> pro Phase, <b>${n.b} Phasen</b> am Tag. Wie viele Minuten insgesamt?` } ] },
-  { horseIdx: 2, title: "Thunders Nasenbremse", intro: "Thunder hält für die Spritze nicht still. Du legst eine Nasenbremse (Naa-zen-brem-ze) an die Oberlippe – sie setzt im Gehirn beruhigende Stoffe frei, sodass er ruhig wird.", cured: "Thunder steht ruhig, die Spritze ist gesetzt. Sicher gearbeitet! 💪",
-    steps: [ { op: 'div', story: n => `Mit der Nasenbremse bleibt Thunder <b>${n.a} Sekunden</b> ruhig. Du teilst die Zeit auf <b>${n.b} Behandlungsschritte</b> auf. Wie viele Sekunden pro Schritt – und wie viele bleiben übrig?` } ] },
-  { horseIdx: 9, title: "Luna röhrt beim Galopp", intro: "Luna macht beim schnellen Galopp ein lautes Röhren. Mit einer kleinen Kamera durch die Nase siehst du den Kehlkopf (Keel-kopf) – eine Seite ist gelähmt und blockiert die Luft.", cured: "Lunas Atmung ist behandelt und sie galoppiert wieder leise. Wunderbar! ✨",
-    steps: [ { op: 'mult', story: n => `Die Kamera filmt <b>${n.a} Sekunden</b> pro Untersuchung, bei <b>${n.b} Untersuchungen</b>. Wie viele Sekunden insgesamt?` } ] },
-  { horseIdx: 0, title: "Blutprobe am Hals", intro: "Du nimmst Stella Blut aus der großen Drosselvene (Dros-sel-veh-ne) am Hals. Sie liegt dicht unter der Haut und ist die sicherste Stelle für eine Blutprobe.", cured: "Die Blutprobe ist genommen und Stella war ganz tapfer. Gut gemacht! ⭐",
-    steps: [ { op: 'div', story: n => `Du füllst <b>${n.a} ml</b> Blut gleichmäßig in <b>${n.b} Röhrchen</b>. Wie viele ml pro Röhrchen – und wie viele bleiben übrig?` } ] },
-  { horseIdx: 9, title: "Spritze ins Gelenk", intro: "Lunas Sprunggelenk tut weh, auch nach Ruhe. Du gibst eine Gelenkspritze (Ge-lenk-spri-tse) mit entzündungshemmender Medizin direkt ins Gelenk – das wirkt am besten.", cured: "Lunas Gelenk ist beweglich und sie springt eine perfekte Kapriole. Wunderbar! ✨",
-    steps: [ { op: 'mult', story: n => `Die Gelenkspritze wirkt <b>${n.a} Minuten</b> und du wiederholst die Behandlung an <b>${n.b} Tagen</b>. Wie viele Minuten Wirkung insgesamt?` } ] },
-  { horseIdx: 1, title: "Röntgen zeigt den Huf", intro: "Du machst ein Röntgenbild (Rönt-gen-bild) von Biscuits Huf. Darauf siehst du das Hufbein (Huf-bein) – bei schwerer Rehe kann es sich nach unten drehen.", cured: "Biscuits Hufbein steht gut und der Huf heilt prima. Stark erkannt! 🧡",
-    steps: [ { op: 'div', story: n => `Für das Röntgen brauchst du <b>${n.a} Sekunden</b> Belichtungszeit, verteilt auf <b>${n.b} Aufnahmen</b> vom Huf. Wie viele Sekunden pro Aufnahme – und wie viele bleiben übrig?` } ] }
+// 50 horse-vet learning concepts (English, with a sound-out aid in brackets for the technical term).
+// The maths task is generated separately by question type (see GEN below), so the concept just
+// teaches the vet idea; a session picks 4 different horses and a question type for each.
+const vetConcepts = [
+  { horseIdx: 0, title: "Stella Sleeps Standing Up", intro: "Stella is dozing in the paddock, still standing on all four legs. Horses have a leg-locking system called the stay apparatus (STAY ap-uh-RAT-us) that holds them up without any effort, so they can sleep ready to run.", cured: "Stella wakes up well rested and shakes her silvery mane. Great spotting, vet! ⭐" },
+  { horseIdx: 6, title: "Listening to Patches' Gut", intro: "You press a stethoscope (STETH-uh-skope) to Patches' belly. A healthy gut gurgles and rumbles, so a completely silent belly would be a warning sign.", cured: "Patches' gut is gurgling healthily and she sniffs your pocket. Well done! 🌈" },
+  { horseIdx: 1, title: "Biscuit's Hoof Abscess", intro: "Biscuit holds his leg up and won't put weight on it. With the hoof testers you find a hoof abscess (AB-sess), a small, painful pocket of pus deep in the hoof wall.", cured: "Biscuit's hoof is drained, the pressure is gone and he stomps off happily. Strong work! 🧦" },
+  { horseIdx: 8, title: "Brio's Hoof Poultice", intro: "You wrap Brio's hoof overnight in a warm poultice (POLE-tiss) with drawing paste. It gently pulls the abscess out through the sole.", cured: "By morning Brio trots over the mountain meadow without limping. Healed! 🏔️" },
+  { horseIdx: 7, title: "Cupcake's Sharp Teeth", intro: "Cupcake drops half-chewed balls of hay while eating, which is called quidding (KWID-ing). Sharp points on her back teeth are cutting her cheek.", cured: "The sharp points are filed smooth and Cupcake munches happily again. Nice! 🦷" },
+  { horseIdx: 9, title: "Luna's Teeth Keep Growing", intro: "A horse's teeth keep growing all its life! Luna's molars (MOH-lars), her big back teeth, wear down as she chews and must be checked every year.", cured: "Luna's teeth are checked and even, and she dances off happily. Wonderful! ✨" },
+  { horseIdx: 4, title: "How Old Is Midnight?", intro: "You can guess a horse's age from the wear on its teeth. Looking at Midnight's incisors (in-SY-zors), the front teeth, you read off about twelve years old!", cured: "Midnight's teeth are healthy and now you know her age. Elegantly done! 🖤" },
+  { horseIdx: 2, title: "Thunder's Wolf Teeth", intro: "Thunder tosses his head when he is ridden. You find wolf teeth, tiny extra teeth right where the bit sits and presses.", cured: "The wolf teeth are removed and Thunder goes calmly. Free and strong! 💨" },
+  { horseIdx: 3, title: "Dotty's Blind Spot", intro: "Dotty startles when you come from behind. Horses have a blind spot right behind them and right in front of the nose, so always approach from the side.", cured: "Dotty stays calm because you approach her the right way. Clever! 🎉" },
+  { horseIdx: 5, title: "Sunny's Ears Tell All", intro: "Sunny's ears are pinned flat, a sign of being cross! Horses show exactly how they feel with their body language.", cured: "Sunny's ears point happily forward again and she dances to the music. Bravo! ☀️" },
+  { horseIdx: 7, title: "Cupcake's Warm Hooves", intro: "Cupcake's hooves feel warm and she steps carefully. Too much blood is building up inside the stiff hoof capsule (KAP-sool), the hard outer hoof, and pressing painfully.", cured: "Cupcake's hooves are nice and cool again and she zips about. Well done! 🍞" },
+  { horseIdx: 7, title: "Too Much Spring Grass", intro: "Too much sweet spring grass can give ponies a painful hoof illness called laminitis (lam-uh-NY-tis). Cupcake may only have a little grass now.", cured: "Cupcake's laminitis has eased and she may go on the small paddock again. Done! 🍞" },
+  { horseIdx: 2, title: "Thunder's Hidden Lameness", intro: "Thunder is lame but nothing shows. With a nerve block you numb a nerve in the leg, and if he then trots sound you know where the pain is.", cured: "You found the spot and Thunder runs clear again. Great detective work! 💪" },
+  { horseIdx: 5, title: "Sunny's Flexion Test", intro: "You hold Sunny's leg bent for a moment, then trot her off, which is the flexion test (FLEK-shun test). Stiff first steps reveal the sore joint.", cured: "The joint is treated and Sunny trots smoothly again. Top work, vet! ☀️" },
+  { horseIdx: 6, title: "Silence in Patches' Belly", intro: "Patches paws and looks at her belly, which looks like colic (KOL-ik). In two places the belly is silent, where the gut has stopped working.", cured: "Patches' gut is working again and the tummy pain is gone. Rescued! 🌈" },
+  { horseIdx: 0, title: "Walking Helps Colic", intro: "With colic you walk Stella slowly in circles. Movement gets the gut moving again, while standing still makes the pain worse.", cured: "After the walk Stella's belly gurgles healthily again. Well done! ⭐" },
+  { horseIdx: 1, title: "Biscuit's Stomach Tube", intro: "For a blockage you pass Biscuit a soft stomach tube up the nose and down to the stomach, to send oil straight to the gut.", cured: "The oil works, the blockage clears and Biscuit eats again. Strong! 🧡" },
+  { horseIdx: 3, title: "Dotty Cannot Be Sick", intro: "Horses cannot be sick! The muscle at Dotty's gullet (GUL-it), her food pipe, only lets food go one way, which is why a blockage is so serious.", cured: "Dotty's digestion runs smoothly again and she hops over the fence. Done! 🎉" },
+  { horseIdx: 8, title: "Brio's Wet Legs", intro: "After the wet winter Brio has crusty patches on his lower legs. Skin that stays wet softens and gets infected, which is mud fever.", cured: "Brio's legs are dry and healed, and he romps uphill again. Healed! 🏔️" },
+  { horseIdx: 3, title: "Dotty's Summer Itch", intro: "Dotty rubs her mane and tail raw in summer. She has sweet itch, an allergy to the spit of tiny biting midges (MIJ-iz).", cured: "With the right rug the itching stops and Dotty is happy. Great! 🎉" },
+  { horseIdx: 4, title: "Midnight Coughs Indoors", intro: "Midnight coughs in the stable but not outside. Dust and mould in the hay trigger equine asthma (EE-kwine AZ-muh), which irritates her airways.", cured: "With dust-free hay Midnight stops coughing and breathes freely. Elegant! 🖤" },
+  { horseIdx: 4, title: "Soaking the Hay", intro: "You soak Midnight's hay before feeding it. Wet hay lets far fewer dust spores (sporz), like tiny mould seeds, into the air, so she breathes more easily.", cured: "Midnight eats the soaked hay and stops coughing. Good thinking! 🖤" },
+  { horseIdx: 8, title: "Brio's Curly Coat", intro: "Brio still wears his thick curly winter coat in summer. A little gland in the brain, the pituitary (pit-TOO-it-uh-ree), is sending the wrong signals.", cured: "Brio gets the right medicine and feels much better. Well spotted! 🏔️" },
+  { horseIdx: 5, title: "Sunny's Stiff Muscles", intro: "After a fast gallop Sunny stops with rock-hard muscles. The muscles have run out of energy, which is called tying up.", cured: "With rest and fluids Sunny's muscles go soft again. Bravo! ☀️" },
+  { horseIdx: 5, title: "Cold Water for Swelling", intro: "Sunny's tendon is hot and swollen. Cold water makes the blood vessels narrow, taking down the swelling and the heat.", cured: "The swelling is gone and Sunny moves freely again. Nicely cooled! ☀️" },
+  { horseIdx: 1, title: "Biscuit's Tendon Needs Support", intro: "After a strain you put a firm support bandage on Biscuit. Without support the sore flexor tendon (FLEK-sor TEN-dun) stretches further with each step.", cured: "Biscuit's tendon is supported and heals quietly. Well done! 🧡" },
+  { horseIdx: 2, title: "Ultrasound Shows the Tendon", intro: "You run the ultrasound (UL-truh-sound) over Thunder's leg. On the screen a dark gap shows in the tendon, where fibres have torn.", cured: "Thunder's tendon is rested and slowly heals. Strong work! 💪" },
+  { horseIdx: 1, title: "Hooves Grow Like Nails", intro: "Biscuit's hooves grow about a centimetre a month, like your fingernails! Without trimming, the hoof growth gets out of balance.", cured: "The farrier has trimmed Biscuit's hooves nicely. He stands straight again! 🧡" },
+  { horseIdx: 6, title: "Patches' White Line", intro: "Cleaning out Patches' hoof you find the white line soft and dark instead of firm and pale. Bacteria have moved in there.", cured: "The bad spot is treated and the hoof grows firm again. Good catch! 🌈" },
+  { horseIdx: 6, title: "A Smell from the Hoof", intro: "Patches' hoof smells strong. The soft, dark frog (the V-shaped pad under the hoof) is infected with thrush, which happens in wet, dirty stalls.", cured: "Patches' hoof is clean, dry and smells fine again. Well done! 🌈" },
+  { horseIdx: 2, title: "A New Horse Is Sick", intro: "A new horse has a fever and lumps under the jaw. That is strangles (STRANG-gulz), and the bacteria spread easily by water buckets, so Thunder stays apart.", cured: "Thunder stayed healthy because you kept everything separate. Wise! 💨" },
+  { horseIdx: 5, title: "Sunny Sweats a Lot", intro: "Sunny still sweats after a hot day. With sweat she loses not just water but electrolytes (ee-LEK-tro-lites), important salts for muscles and nerves.", cured: "Sunny has her salts back and feels fit again. Bravo! ☀️" },
+  { horseIdx: 0, title: "Stella's Skin Pinch Test", intro: "You pinch a fold of skin on Stella's neck and let go, the skin pinch test. If the fold stays up, the horse has drunk too little.", cured: "Stella drinks enough again and her skin snaps right back. Well checked! ⭐" },
+  { horseIdx: 7, title: "Cupcake's Salt Lick", intro: "A salt lick hangs in Cupcake's stall. Horses sense for themselves when their body needs more minerals and lick it.", cured: "Cupcake licks the salt happily and is well supplied. Great! 🍞" },
+  { horseIdx: 1, title: "Feeling for Ribs", intro: "You stroke flat over Biscuit's ribs. You can feel them but not see them, which is just the right body condition.", cured: "Biscuit is a healthy weight and glows with health. Well judged! 🧡" },
+  { horseIdx: 8, title: "Brio Likes to Eat Often", intro: "Brio is a trickle feeder: in the wild a horse grazes small amounts up to sixteen hours a day. An empty stomach can hurt.", cured: "Brio gets small portions more often and his stomach is happy. Well planned! 🏔️" },
+  { horseIdx: 4, title: "Midnight's Stomach Burns", intro: "Midnight loses weight and is uneasy after eating. Without constant hay, stomach acid burns the lining, making a stomach ulcer (UL-ser), a sore inside the tummy.", cured: "Midnight gets hay more often and her stomach heals. Elegant! 🖤" },
+  { horseIdx: 0, title: "Stella Drinks Too Little", intro: "The stable book shows Stella drank only half as much as usual. A sudden drop in how much she drinks is often the first sign of illness.", cured: "Stella drinks normally again and is bright as a button. Good catch! ⭐" },
+  { horseIdx: 2, title: "Thunder Misses the Herd", intro: "Thunder is restless in the new stable, rocking side to side. Horses are herd animals, and being all alone really scares them.", cured: "Thunder has new stable friends and is relaxed again. Lovely! 💨" },
+  { horseIdx: 4, title: "Midnight Is Sedated", intro: "Midnight needs stitches but won't stand still from fear. You give a sedation (si-DAY-shun), which makes her sleepy so she is treated safely standing.", cured: "The wound is stitched and Midnight wakes up calmly. Well done! 🖤" },
+  { horseIdx: 6, title: "The Vet Comes to the Yard", intro: "Patches is too lame for the trailer. So the vet comes with her mobile practice (a van full of vet kit) to the yard, since horses are often treated right in the stable.", cured: "Patches is treated in her own stall and rests happily. Practical! 🌈" },
+  { horseIdx: 3, title: "Dotty's Tetanus Jab", intro: "Dotty gets her jab against tetanus (TET-nus). The bacteria live in the soil everywhere, and even a small cut is enough to let them in.", cured: "Dotty is vaccinated and well protected, and she hops off happily. Super! 🎉" },
+  { horseIdx: 6, title: "Listening in Four Places", intro: "You don't just listen in one place: you listen at four gut quadrants (KWOD-rants) of Patches' belly to find exactly where the gut is silent.", cured: "All four areas gurgle again, so Patches is healthy. Thorough! 🌈" },
+  { horseIdx: 8, title: "Brio's Changing Wormer", intro: "Brio gets a wormer several times a year, but a different one each time. Otherwise the worms get used to it.", cured: "Brio is worm-free and full of energy. Wisely rotated! 🏔️" },
+  { horseIdx: 3, title: "Midges at Dusk", intro: "At sunrise and sunset the midges (MIJ-iz) are busiest. At those times Dotty stays rugged in the stable so they can't bite her.", cured: "Dotty is barely bitten and stops scratching. Well timed! 🎉" },
+  { horseIdx: 2, title: "Thunder's Twitch", intro: "Thunder won't stand still for the injection. You put a twitch (a soft loop on his top lip) on, which lets his brain make its own calming chemicals so he relaxes.", cured: "Thunder stands still and the injection is done. Safely managed! 💪" },
+  { horseIdx: 9, title: "Luna Roars at a Gallop", intro: "Luna makes a loud roaring noise at a fast gallop. With a tiny camera up the nose you see her larynx (LA-rinks), her voice box, and one side is floppy and blocks the air.", cured: "Luna's breathing is treated and she gallops quietly again. Wonderful! ✨" },
+  { horseIdx: 0, title: "A Blood Sample", intro: "You take blood from the big jugular vein (JUG-yoo-lar vane) in Stella's neck. It sits just under the skin and is the safest place for a sample.", cured: "The blood sample is taken and Stella was very brave. Well done! ⭐" },
+  { horseIdx: 9, title: "Medicine into the Joint", intro: "Luna's hock hurts even after rest. You give a joint injection (in-JEK-shun) of anti-swelling medicine right into the joint, which works best.", cured: "Luna's joint moves freely and she leaps a perfect capriole. Wonderful! ✨" },
+  { horseIdx: 1, title: "An X-Ray of the Hoof", intro: "You take an x-ray of Biscuit's hoof. On it you see the coffin bone (KOF-in bone), which in bad laminitis can tip downward.", cured: "Biscuit's coffin bone sits well and the hoof heals nicely. Strong work! 🧡" }
 ];
+
+// ── Question-type generators. Each returns the maths for one question (German number format:
+//    comma decimal, € after the number). A session draws 4 different horses + a type for each. ──
+const SHOP_ITEMS = ['apples', 'carrots', 'hoof brushes', 'lead ropes', 'salt licks', 'feed scoops', 'grooming brushes'];
+
+const GEN = {
+  // 3-digit × 2-digit shown in column format, with a carrying reminder
+  longmult(name) {
+    const a = rnd(2, 3) * 100 + rnd(3, 9) * 10 + rnd(3, 9);
+    const b = rnd(2, 4) * 10 + rnd(3, 9);
+    return { kind: 'longmult', a, b,
+      label: '🧮 Long multiplication — remember to carry the tens!',
+      problemHTML: `<div class="lm-stack"><div>${a}</div><div>× ${b}</div><div class="lm-bar"></div><div>?</div></div><div class="carry-hint">⚠️ Carry the tens carefully!</div>`,
+      story: `The big stable has <b>${b}</b> horses, including <b>${name}</b>. Each one eats <b>${a} g</b> of feed today. How many grams of feed are needed in total?` };
+  },
+  // 2-decimal euro amount × single digit (decimal-point placement)
+  money(name) {
+    const cents = rnd(105, 985), d = rnd(3, 8);
+    return { kind: 'money', cents, d,
+      label: '💶 Money times — watch where the comma goes!',
+      problemHTML: `${fmtMoney(cents / 100)} × ${d} = ?`,
+      story: `One bag of treats for <b>${name}</b> costs <b>${fmtMoney(cents / 100)}</b>. You buy <b>${d}</b> bags. How much do they cost altogether?` };
+  },
+  // unit conversion: km↔m, m↔cm, kg↔g, h↔min
+  convert(name) {
+    const U = [ {big:'km',small:'m',f:1000,t:'dist'}, {big:'m',small:'cm',f:100,t:'len'},
+                {big:'kg',small:'g',f:1000,t:'wt'},  {big:'h',small:'min',f:60,t:'time'} ];
+    const u = U[rnd(0, U.length - 1)], form = rnd(1, 3);
+    let disp, answer, ansUnit;
+    if (u.f === 60) {
+      const hrs = rnd(2, 8);                       // whole hours only, hours -> minutes (no fractions yet)
+      disp = `${hrs} h`; answer = hrs * 60; ansUnit = 'min';
+    } else if (form === 1) {
+      const bp = rnd(1, 4), sp = (u.f === 1000 ? rnd(1,19)*50 : rnd(1,19)*5);
+      disp = `${bp} ${u.big} ${sp} ${u.small}`; answer = bp + sp/u.f; ansUnit = u.big;
+    } else if (form === 2) {
+      const z = (u.f === 1000 ? rnd(10, 990) : rnd(10, 95));
+      disp = `${z} ${u.small}`; answer = z/u.f; ansUnit = u.big;
+    } else {
+      const cents = (u.f === 1000 ? rnd(105, 485) : rnd(110, 480)), dq = cents/100;
+      disp = `${fmtDec(dq)} ${u.big}`; answer = Math.round(dq*u.f); ansUnit = u.small;
+    }
+    const ctx = u.t === 'wt'   ? `The feed sack for <b>${name}</b> weighs <b>${disp}</b>. How much is that in <b>${ansUnit}</b>?`
+              : u.t === 'time' ? `<b>${name}</b> was groomed for <b>${disp}</b>. How long is that in <b>${ansUnit}</b>?`
+              : u.t === 'len'  ? `<b>${name}</b>'s bandage is <b>${disp}</b> long. How long is that in <b>${ansUnit}</b>?`
+              :                  `<b>${name}</b> trotted <b>${disp}</b> on the trail. How far is that in <b>${ansUnit}</b>?`;
+    return { kind: 'convert', answer, ansUnit,
+      label: `📏 Convert units — remember 1 ${u.big} = ${u.f} ${u.small}!`,
+      problemHTML: `${disp} = ? ${ansUnit}`, story: ctx };
+  },
+  // which shop is dearer per item: work out two unit prices, then choose
+  compare(name) {
+    const item = SHOP_ITEMS[rnd(0, SHOP_ITEMS.length - 1)];
+    let ua = rnd(60, 140), ub; do { ub = rnd(60, 140); } while (Math.abs(ub - ua) < 6);
+    const qa = rnd(3, 8), qb = rnd(3, 8), ta = ua * qa, tb = ub * qb;
+    return { kind: 'compare', item, ua, ub, qa, qb, ta, tb,
+      label: '💶 Work out the price for ONE in each shop:',
+      problemHTML: `<div class="bundle-row"><div class="bundle">Shop A<br>${qa} for ${fmtMoney(ta/100)}</div><div class="bundle">Shop B<br>${qb} for ${fmtMoney(tb/100)}</div></div>`,
+      story: `<b>${name}</b>'s stable needs ${item}. Shop A sells <b>${qa}</b> for <b>${fmtMoney(ta/100)}</b>; Shop B sells <b>${qb}</b> for <b>${fmtMoney(tb/100)}</b>. Work out the price for one in each shop, then say which shop is dearer.` };
+  },
+  // division with an estimate-first step (rounding practice), kept but used occasionally
+  div(name) {
+    const n = genDiv();
+    return { kind: 'div', a: n.a, b: n.b,
+      label: '🤔 Step 1 — Estimate: round the number, then roughly how much is it?',
+      problemHTML: `${n.a} ÷ ${n.b} = ?`,
+      story: `You share <b>${n.a} ml</b> of medicine evenly into <b>${n.b}</b> doses for <b>${name}</b>. Estimate first, then work out the exact amount per dose with the remainder.` };
+  }
+};
 
 let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false;
 let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null;
@@ -1099,24 +1135,21 @@ const mIngredientPool = [
   { emoji: '🧊', name: 'Kühlgel' }
 ];
 
-// A session is 4 fresh questions: 2 multiplication + 2 division,
-// each from a different horse's story, reshuffled every game.
+// A session is 4 fresh questions, weighted to the new skills (long ×, money ×, unit price,
+// unit conversion). Plain division with rounding shows up only occasionally. Each question
+// uses a different horse and a random vet concept, reshuffled every game.
 function buildMathPool() {
-    const all = [];
-    mathCases.forEach((c, ci) => c.steps.forEach(st => {
-        const n = st.op === 'mult' ? genMult() : genDiv();
-        all.push({ caseIndex: ci, horseIdx: c.horseIdx, title: c.title, intro: c.intro, cured: c.cured, op: st.op, n, story: st.story(n) });
-    }));
-    const used = new Set(), chosen = [];
-    const pick = (arr, count) => {
-        for (const q of shuffle(arr)) {
-            if (count === 0) break;
-            if (!used.has(q.horseIdx)) { chosen.push(q); used.add(q.horseIdx); count--; }
-        }
-    };
-    pick(all.filter(q => q.op === 'mult'), 2);
-    pick(all.filter(q => q.op === 'div'), 2);
-    return shuffle(chosen);
+    let types = shuffle(['longmult', 'money', 'compare', 'convert']);
+    if (Math.random() < 0.4) types[rnd(0, 3)] = 'div';   // division appears occasionally, at most once
+    types = shuffle(types);
+    const concepts = shuffle(vetConcepts.slice());
+    const usedHorse = new Set(), pick = [];
+    for (const c of concepts) { if (pick.length >= 4) break; if (!usedHorse.has(c.horseIdx)) { usedHorse.add(c.horseIdx); pick.push(c); } }
+    return types.map((t, i) => {
+        const c = pick[i];
+        const g = GEN[t](horses[c.horseIdx].name);
+        return Object.assign({ horseIdx: c.horseIdx, title: c.title, intro: c.intro, cured: c.cured }, g);
+    });
 }
 
 function showMathGame() {
@@ -1166,8 +1199,9 @@ function showMathQuestion() {
     btn.classList.remove('hidden'); btn.disabled = false; btn.textContent = '✅ Check the dose!';
 }
 
-function calcField(id, label) {
-    return `<div class="calc-field"><label>${label}</label><input id="${id}" type="number" inputmode="numeric" autocomplete="off"></div>`;
+function calcField(id, label, mode) {
+    const im = mode === 'dec' ? 'decimal' : 'numeric';   // text inputs so a comma decimal is accepted
+    return `<div class="calc-field"><label>${label}</label><input id="${id}" type="text" inputmode="${im}" autocomplete="off"></div>`;
 }
 function attachMathInputs() {
     const inputs = document.getElementById('mInputs');
@@ -1177,66 +1211,97 @@ function attachMathInputs() {
 }
 
 function renderProblem(q) {
-    const prob = document.getElementById('mProblem');
     const inputs = document.getElementById('mInputs');
-    const label = document.getElementById('mCalcLabel');
-    prob.style.display = '';                          // show the equation
+    const prob = document.getElementById('mProblem');
+    prob.style.display = '';
+    prob.innerHTML = q.problemHTML;
+    document.getElementById('mCalcLabel').textContent = q.label;
     mDivPhase = null;
-    if (q.op === 'mult') {
-        prob.textContent = `${q.n.a} × ${q.n.b} = ?`;
-        label.textContent = '🧮 Work it out:';
-        inputs.innerHTML = calcField('mAns', 'Answer');
-    } else {
-        prob.textContent = `${q.n.a} ÷ ${q.n.b} = ?`;
-        mDivPhase = 'estimate';
-        label.textContent = '🤔 Step 1 — Estimate: round the number, then roughly how much is it?';
-        inputs.innerHTML = calcField('mEst', 'About how much?');
-    }
+    if (q.kind === 'div') { mDivPhase = 'estimate'; inputs.innerHTML = calcField('mEst', 'About how much?', 'int'); }
+    else if (q.kind === 'convert') { inputs.innerHTML = calcField('mAns', 'Answer (' + q.ansUnit + ')', 'dec'); }
+    else if (q.kind === 'money') { inputs.innerHTML = calcField('mAns', 'Answer (€)', 'dec'); }
+    else if (q.kind === 'compare') { mDivPhase = 'prices'; inputs.innerHTML = calcField('mPa', 'Shop A: one =', 'dec') + calcField('mPb', 'Shop B: one =', 'dec'); }
+    else { inputs.innerHTML = calcField('mAns', 'Answer', 'int'); }   // longmult
     attachMathInputs();
 }
+
+function needInput(fbEl, msg) { fbEl.className = 'calc-feedback no'; fbEl.textContent = msg; }
 
 function checkMathAnswer() {
     if (mBusy) return;
     const q = mPool[mQ];
     const fbEl = document.getElementById('mFeedback');
-
-    // ── MULTIPLICATION: no estimate, just solve exactly ──
-    if (q.op === 'mult') {
-        const ans = parseInt(document.getElementById('mAns').value, 10);
-        if (isNaN(ans)) { fbEl.className = 'calc-feedback no'; fbEl.textContent = '✏️ Type your answer first!'; return; }
-        if (ans === q.n.a * q.n.b) mathCorrect(q, fbEl); else mathWrong(fbEl);
-        return;
+    switch (q.kind) {
+        case 'longmult': return checkExactNum(q, fbEl, q.a * q.b, false);
+        case 'money':    return checkExactNum(q, fbEl, q.cents * q.d / 100, true);
+        case 'convert':  return checkExactNum(q, fbEl, q.answer, true);
+        case 'div':      return checkDivision(q, fbEl);
+        case 'compare':  return checkCompare(q, fbEl);
     }
+}
 
-    // ── DIVISION: estimate first, then exact ──
-    const quo = Math.floor(q.n.a / q.n.b), rem = q.n.a % q.n.b;   // quo is the round number by design
+// single-answer types: long multiplication, money multiplication, unit conversion
+function checkExactNum(q, fbEl, expect, isDec) {
+    const v = parseNum(document.getElementById('mAns').value);
+    if (isNaN(v)) return needInput(fbEl, '✏️ Type your answer first!');
+    const ok = isDec ? near(v, expect) : (v === expect);
+    if (ok) mathCorrect(q, fbEl); else mathWrong(fbEl);
+}
 
+// division: estimate (rounding) first, then the exact answer with a remainder
+function checkDivision(q, fbEl) {
+    const quo = Math.floor(q.a / q.b), rem = q.a % q.b;
     if (mDivPhase === 'estimate') {
-        const est = parseInt(document.getElementById('mEst').value, 10);
-        if (isNaN(est)) { fbEl.className = 'calc-feedback no'; fbEl.textContent = '✏️ Type your estimate first!'; return; }
-        const tol = Math.max(10, Math.round(quo * 0.2));         // "close enough" band
+        const est = parseNum(document.getElementById('mEst').value);
+        if (isNaN(est)) return needInput(fbEl, '✏️ Type your estimate first!');
+        const tol = Math.max(10, Math.round(quo * 0.2));
         if (Math.abs(est - quo) <= tol) {
             fbEl.className = 'calc-feedback ok';
             fbEl.textContent = `👍 Good estimate! It's about ${quo}. Now work out the exact answer.`;
             mDivPhase = 'exact';
-            document.getElementById('mProblem').textContent = `${q.n.a} ÷ ${q.n.b} = ?  Rest ?`;
+            document.getElementById('mProblem').innerHTML = `${q.a} ÷ ${q.b} = ?  Rest ?`;
             document.getElementById('mCalcLabel').textContent = '✏️ Step 2 — Now the exact answer, with the remainder:';
-            document.getElementById('mInputs').innerHTML = calcField('mAns', 'Answer') + calcField('mRem', 'Remainder (Rest)');
+            document.getElementById('mInputs').innerHTML = calcField('mAns', 'Answer', 'int') + calcField('mRem', 'Remainder (Rest)', 'int');
             attachMathInputs();
         } else {
             fbEl.className = 'calc-feedback no';
             fbEl.textContent = '🤔 Not close yet — round the number to an easy one, then divide. Try again!';
             const e = document.getElementById('mEst'); e.value = ''; e.focus();
-            // the estimate does not change her points, so mFirstTry is left alone
         }
         return;
     }
-
-    // exact phase
-    const ans = parseInt(document.getElementById('mAns').value, 10);
-    const r2 = parseInt(document.getElementById('mRem').value, 10);
-    if (isNaN(ans) || isNaN(r2)) { fbEl.className = 'calc-feedback no'; fbEl.textContent = '✏️ Fill in both the answer and the Rest!'; return; }
+    const ans = parseNum(document.getElementById('mAns').value), r2 = parseNum(document.getElementById('mRem').value);
+    if (isNaN(ans) || isNaN(r2)) return needInput(fbEl, '✏️ Fill in both the answer and the Rest!');
     if (ans === quo && r2 === rem) mathCorrect(q, fbEl); else mathWrong(fbEl);
+}
+
+// compare two shops: work out both unit prices, then pick the dearer one
+function checkCompare(q, fbEl) {
+    if (mDivPhase !== 'prices') return;
+    const pa = parseNum(document.getElementById('mPa').value), pb = parseNum(document.getElementById('mPb').value);
+    if (isNaN(pa) || isNaN(pb)) return needInput(fbEl, '✏️ Work out the price for one in BOTH shops!');
+    if (near(pa, q.ua / 100) && near(pb, q.ub / 100)) {
+        fbEl.className = 'calc-feedback ok';
+        fbEl.textContent = '👍 Right prices! Now: which shop is dearer for one?';
+        mDivPhase = 'pick';
+        document.getElementById('mCalcLabel').textContent = '🤔 Which shop costs MORE for one?';
+        document.getElementById('mInputs').innerHTML =
+            `<div class="cmp-btns"><button class="cmp-btn" onclick="answerCompare('A')">Shop A</button><button class="cmp-btn" onclick="answerCompare('B')">Shop B</button></div>`;
+        document.getElementById('mMixBtn').classList.add('hidden');
+    } else {
+        mFirstTry = false;
+        fbEl.className = 'calc-feedback no';
+        fbEl.textContent = '❌ Check the two prices again — cost ÷ how many.';
+        document.getElementById('mPa').value = ''; document.getElementById('mPb').value = '';
+        document.getElementById('mPa').focus();
+    }
+}
+function answerCompare(pick) {
+    if (mBusy) return;
+    const q = mPool[mQ], fbEl = document.getElementById('mFeedback');
+    const dearer = q.ua > q.ub ? 'A' : 'B';
+    if (pick === dearer) mathCorrect(q, fbEl);
+    else { mFirstTry = false; fbEl.className = 'calc-feedback no'; fbEl.textContent = '❌ Not that one — compare the two prices for ONE. Try again!'; }
 }
 
 function mathCorrect(q, fbEl) {
