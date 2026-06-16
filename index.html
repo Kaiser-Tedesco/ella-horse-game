@@ -207,9 +207,19 @@
         .cauldron-label { position: relative; z-index: 2; font-family: 'Fredoka One', cursive; font-size: 0.78rem; color: rgba(255,255,255,0.78); padding: 10px 6px; text-align: center; }
         .cauldron .bubble { position: absolute; bottom: 14%; width: 11px; height: 11px; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; }
         .cauldron.fizz .bubble { animation: rise 1.1s ease-in-out; }
+        /* solid construction vessel (e.g. building up a bandage) — a flat tray, layers stack instead of liquid */
+        .cauldron.solid { border-radius: 14px; border-top-width: 6px; background: rgba(255,255,255,0.10); }
+        .cauldron.solid .cauldron-liquid, .cauldron.solid .bubble { display: none; }
+        .cauldron.solid .cauldron-label { position: absolute; top: 4px; left: 0; right: 0; }
+        .cauldron-stack { position: absolute; left: 0; right: 0; bottom: 0; display: none; flex-direction: column-reverse; align-items: center; gap: 1px; padding-bottom: 6px; }
+        .cauldron.solid .cauldron-stack { display: flex; }
+        .stack-layer { font-size: 1.5rem; line-height: 1; animation: stackDrop 0.35s ease; }
+        @keyframes stackDrop { 0% { transform: translateY(-26px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
 
         .patient-zone { text-align: center; }
-        .patient-ring { width: 138px; height: 138px; border-radius: 50%; border: 5px dashed rgba(255,255,255,0.4); padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-sizing: border-box; }
+        .patient-ring { position: relative; width: 138px; height: 138px; border-radius: 50%; border: 5px dashed rgba(255,255,255,0.4); padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-sizing: border-box; }
+        .apply-splash { position: absolute; left: 50%; top: 50%; font-size: 3.6rem; pointer-events: none; transform: translate(-50%,-50%); animation: splashBurst 0.85s ease forwards; }
+        @keyframes splashBurst { 0% { opacity: 0; transform: translate(-50%,-50%) scale(0.4); } 30% { opacity: 1; transform: translate(-50%,-50%) scale(1.35); } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1.7); } }
         .patient-ring.over { border-color: #6bcb77; background: rgba(107,203,119,0.16); transform: scale(1.06); }
         .patient-ring.healed { animation: correctPulse 0.5s ease; border-color: #38ef7d; border-style: solid; }
         .patient-horse { width: 118px; height: 118px; border-radius: 50%; object-fit: cover; display: block; }
@@ -404,21 +414,21 @@
                 <div class="case-photo-fb" id="mCaseImgFb"></div>
                 <div>
                     <div class="case-title" id="mCaseTitle"></div>
-                    <div class="case-sub">🚑 Veterinary Emergency</div>
+                    <div class="case-sub">🚑 Tierärztlicher Notfall</div>
                 </div>
             </div>
             <div class="case-story" id="mCaseStory"></div>
         </div>
 
         <div class="calc-card">
-            <div class="calc-label" id="mCalcLabel">🧮 Your calculation:</div>
+            <div class="calc-label" id="mCalcLabel">🧮 Deine Rechnung:</div>
             <div class="calc-problem" id="mProblem"></div>
             <div class="calc-inputs" id="mInputs"></div>
-            <button class="mix-btn" id="mMixBtn" onclick="checkMathAnswer()">🧪 Mix the medicine!</button>
+            <button class="mix-btn" id="mMixBtn" onclick="checkMathAnswer()">✅ Dosis prüfen!</button>
             <div class="calc-feedback" id="mFeedback"></div>
         </div>
 
-        <div class="mix-locked" id="mMixLocked">🔒 Solve the calculation above to unlock the medicine lab! 🧪</div>
+        <div class="mix-locked" id="mMixLocked">🔒 Löse zuerst die Rechnung oben, dann darfst du die Medizin machen! 🧪</div>
 
         <div class="mix-station hidden" id="mMixStation">
             <div class="mix-headline" id="mMixHeadline"></div>
@@ -427,6 +437,7 @@
                 <div class="mix-col">
                     <div class="cauldron mix-drop" id="mCauldron" data-drop="cauldron">
                         <div class="cauldron-liquid" id="mCauldronLiquid"></div>
+                        <div class="cauldron-stack" id="mCauldronStack"></div>
                         <span class="bubble" style="left:25%;animation-delay:.05s"></span>
                         <span class="bubble" style="left:50%;animation-delay:.35s"></span>
                         <span class="bubble" style="left:70%;animation-delay:.20s"></span>
@@ -438,7 +449,7 @@
                     <div class="patient-ring mix-drop" id="mPatientDrop" data-drop="horse">
                         <img class="patient-horse" id="mPatientHorse" alt="">
                     </div>
-                    <div class="patient-label">Bring the medicine here! 💉</div>
+                    <div class="patient-label">Bring die Medizin hierher! 💉</div>
                 </div>
             </div>
         </div>
@@ -457,7 +468,7 @@
         <img id="mCureImg" class="cure-photo" alt="">
         <div class="cure-title">💚 Geheilt! 💚</div>
         <div class="cure-text" id="mCureText"></div>
-        <button class="end-btn end-btn-again" onclick="nextAfterCure()">Next patient →</button>
+        <button class="end-btn end-btn-again" onclick="nextAfterCure()">Nächstes Pferd →</button>
     </div>
 </div>
 
@@ -999,141 +1010,102 @@ function genDiv() {
     return { a: base + r, b: b };                         // dividend = base + r
 }
 
-// 50 horse-vet learning concepts (English, with a sound-out aid in brackets for the technical term).
-// The maths task is generated separately by question type (see GEN below), so the concept just
-// teaches the vet idea; a session picks 4 different horses and a question type for each.
-const vetConcepts = [
-  { horseIdx: 0, title: "Stella Sleeps Standing Up", intro: "Stella is dozing in the paddock, still standing on all four legs. Horses have a leg-locking system called the stay apparatus (STAY ap-uh-RAT-us) that holds them up without any effort, so they can sleep ready to run.", cured: "Stella wakes up well rested and shakes her silvery mane. Great spotting, vet! ⭐" },
-  { horseIdx: 6, title: "Listening to Patches' Gut", intro: "You press a stethoscope (STETH-uh-skope) to Patches' belly. A healthy gut gurgles and rumbles, so a completely silent belly would be a warning sign.", cured: "Patches' gut is gurgling healthily and she sniffs your pocket. Well done! 🌈" },
-  { horseIdx: 1, title: "Biscuit's Hoof Abscess", intro: "Biscuit holds his leg up and won't put weight on it. With the hoof testers you find a hoof abscess (AB-sess), a small, painful pocket of pus deep in the hoof wall.", cured: "Biscuit's hoof is drained, the pressure is gone and he stomps off happily. Strong work! 🧦" },
-  { horseIdx: 8, title: "Brio's Hoof Poultice", intro: "You wrap Brio's hoof overnight in a warm poultice (POLE-tiss) with drawing paste. It gently pulls the abscess out through the sole.", cured: "By morning Brio trots over the mountain meadow without limping. Healed! 🏔️" },
-  { horseIdx: 7, title: "Cupcake's Sharp Teeth", intro: "Cupcake drops half-chewed balls of hay while eating, which is called quidding (KWID-ing). Sharp points on her back teeth are cutting her cheek.", cured: "The sharp points are filed smooth and Cupcake munches happily again. Nice! 🦷" },
-  { horseIdx: 9, title: "Luna's Teeth Keep Growing", intro: "A horse's teeth keep growing all its life! Luna's molars (MOH-lars), her big back teeth, wear down as she chews and must be checked every year.", cured: "Luna's teeth are checked and even, and she dances off happily. Wonderful! ✨" },
-  { horseIdx: 4, title: "How Old Is Midnight?", intro: "You can guess a horse's age from the wear on its teeth. Looking at Midnight's incisors (in-SY-zors), the front teeth, you read off about twelve years old!", cured: "Midnight's teeth are healthy and now you know her age. Elegantly done! 🖤" },
-  { horseIdx: 2, title: "Thunder's Wolf Teeth", intro: "Thunder tosses his head when he is ridden. You find wolf teeth, tiny extra teeth right where the bit sits and presses.", cured: "The wolf teeth are removed and Thunder goes calmly. Free and strong! 💨" },
-  { horseIdx: 3, title: "Dotty's Blind Spot", intro: "Dotty startles when you come from behind. Horses have a blind spot right behind them and right in front of the nose, so always approach from the side.", cured: "Dotty stays calm because you approach her the right way. Clever! 🎉" },
-  { horseIdx: 5, title: "Sunny's Ears Tell All", intro: "Sunny's ears are pinned flat, a sign of being cross! Horses show exactly how they feel with their body language.", cured: "Sunny's ears point happily forward again and she dances to the music. Bravo! ☀️" },
-  { horseIdx: 7, title: "Cupcake's Warm Hooves", intro: "Cupcake's hooves feel warm and she steps carefully. Too much blood is building up inside the stiff hoof capsule (KAP-sool), the hard outer hoof, and pressing painfully.", cured: "Cupcake's hooves are nice and cool again and she zips about. Well done! 🍞" },
-  { horseIdx: 7, title: "Too Much Spring Grass", intro: "Too much sweet spring grass can give ponies a painful hoof illness called laminitis (lam-uh-NY-tis). Cupcake may only have a little grass now.", cured: "Cupcake's laminitis has eased and she may go on the small paddock again. Done! 🍞" },
-  { horseIdx: 2, title: "Thunder's Hidden Lameness", intro: "Thunder is lame but nothing shows. With a nerve block you numb a nerve in the leg, and if he then trots sound you know where the pain is.", cured: "You found the spot and Thunder runs clear again. Great detective work! 💪" },
-  { horseIdx: 5, title: "Sunny's Flexion Test", intro: "You hold Sunny's leg bent for a moment, then trot her off, which is the flexion test (FLEK-shun test). Stiff first steps reveal the sore joint.", cured: "The joint is treated and Sunny trots smoothly again. Top work, vet! ☀️" },
-  { horseIdx: 6, title: "Silence in Patches' Belly", intro: "Patches paws and looks at her belly, which looks like colic (KOL-ik). In two places the belly is silent, where the gut has stopped working.", cured: "Patches' gut is working again and the tummy pain is gone. Rescued! 🌈" },
-  { horseIdx: 0, title: "Walking Helps Colic", intro: "With colic you walk Stella slowly in circles. Movement gets the gut moving again, while standing still makes the pain worse.", cured: "After the walk Stella's belly gurgles healthily again. Well done! ⭐" },
-  { horseIdx: 1, title: "Biscuit's Stomach Tube", intro: "For a blockage you pass Biscuit a soft stomach tube up the nose and down to the stomach, to send oil straight to the gut.", cured: "The oil works, the blockage clears and Biscuit eats again. Strong! 🧡" },
-  { horseIdx: 3, title: "Dotty Cannot Be Sick", intro: "Horses cannot be sick! The muscle at Dotty's gullet (GUL-it), her food pipe, only lets food go one way, which is why a blockage is so serious.", cured: "Dotty's digestion runs smoothly again and she hops over the fence. Done! 🎉" },
-  { horseIdx: 8, title: "Brio's Wet Legs", intro: "After the wet winter Brio has crusty patches on his lower legs. Skin that stays wet softens and gets infected, which is mud fever.", cured: "Brio's legs are dry and healed, and he romps uphill again. Healed! 🏔️" },
-  { horseIdx: 3, title: "Dotty's Summer Itch", intro: "Dotty rubs her mane and tail raw in summer. She has sweet itch, an allergy to the spit of tiny biting midges (MIJ-iz).", cured: "With the right rug the itching stops and Dotty is happy. Great! 🎉" },
-  { horseIdx: 4, title: "Midnight Coughs Indoors", intro: "Midnight coughs in the stable but not outside. Dust and mould in the hay trigger equine asthma (EE-kwine AZ-muh), which irritates her airways.", cured: "With dust-free hay Midnight stops coughing and breathes freely. Elegant! 🖤" },
-  { horseIdx: 4, title: "Soaking the Hay", intro: "You soak Midnight's hay before feeding it. Wet hay lets far fewer dust spores (sporz), like tiny mould seeds, into the air, so she breathes more easily.", cured: "Midnight eats the soaked hay and stops coughing. Good thinking! 🖤" },
-  { horseIdx: 8, title: "Brio's Curly Coat", intro: "Brio still wears his thick curly winter coat in summer. A little gland in the brain, the pituitary (pit-TOO-it-uh-ree), is sending the wrong signals.", cured: "Brio gets the right medicine and feels much better. Well spotted! 🏔️" },
-  { horseIdx: 5, title: "Sunny's Stiff Muscles", intro: "After a fast gallop Sunny stops with rock-hard muscles. The muscles have run out of energy, which is called tying up.", cured: "With rest and fluids Sunny's muscles go soft again. Bravo! ☀️" },
-  { horseIdx: 5, title: "Cold Water for Swelling", intro: "Sunny's tendon is hot and swollen. Cold water makes the blood vessels narrow, taking down the swelling and the heat.", cured: "The swelling is gone and Sunny moves freely again. Nicely cooled! ☀️" },
-  { horseIdx: 1, title: "Biscuit's Tendon Needs Support", intro: "After a strain you put a firm support bandage on Biscuit. Without support the sore flexor tendon (FLEK-sor TEN-dun) stretches further with each step.", cured: "Biscuit's tendon is supported and heals quietly. Well done! 🧡" },
-  { horseIdx: 2, title: "Ultrasound Shows the Tendon", intro: "You run the ultrasound (UL-truh-sound) over Thunder's leg. On the screen a dark gap shows in the tendon, where fibres have torn.", cured: "Thunder's tendon is rested and slowly heals. Strong work! 💪" },
-  { horseIdx: 1, title: "Hooves Grow Like Nails", intro: "Biscuit's hooves grow about a centimetre a month, like your fingernails! Without trimming, the hoof growth gets out of balance.", cured: "The farrier has trimmed Biscuit's hooves nicely. He stands straight again! 🧡" },
-  { horseIdx: 6, title: "Patches' White Line", intro: "Cleaning out Patches' hoof you find the white line soft and dark instead of firm and pale. Bacteria have moved in there.", cured: "The bad spot is treated and the hoof grows firm again. Good catch! 🌈" },
-  { horseIdx: 6, title: "A Smell from the Hoof", intro: "Patches' hoof smells strong. The soft, dark frog (the V-shaped pad under the hoof) is infected with thrush, which happens in wet, dirty stalls.", cured: "Patches' hoof is clean, dry and smells fine again. Well done! 🌈" },
-  { horseIdx: 2, title: "A New Horse Is Sick", intro: "A new horse has a fever and lumps under the jaw. That is strangles (STRANG-gulz), and the bacteria spread easily by water buckets, so Thunder stays apart.", cured: "Thunder stayed healthy because you kept everything separate. Wise! 💨" },
-  { horseIdx: 5, title: "Sunny Sweats a Lot", intro: "Sunny still sweats after a hot day. With sweat she loses not just water but electrolytes (ee-LEK-tro-lites), important salts for muscles and nerves.", cured: "Sunny has her salts back and feels fit again. Bravo! ☀️" },
-  { horseIdx: 0, title: "Stella's Skin Pinch Test", intro: "You pinch a fold of skin on Stella's neck and let go, the skin pinch test. If the fold stays up, the horse has drunk too little.", cured: "Stella drinks enough again and her skin snaps right back. Well checked! ⭐" },
-  { horseIdx: 7, title: "Cupcake's Salt Lick", intro: "A salt lick hangs in Cupcake's stall. Horses sense for themselves when their body needs more minerals and lick it.", cured: "Cupcake licks the salt happily and is well supplied. Great! 🍞" },
-  { horseIdx: 1, title: "Feeling for Ribs", intro: "You stroke flat over Biscuit's ribs. You can feel them but not see them, which is just the right body condition.", cured: "Biscuit is a healthy weight and glows with health. Well judged! 🧡" },
-  { horseIdx: 8, title: "Brio Likes to Eat Often", intro: "Brio is a trickle feeder: in the wild a horse grazes small amounts up to sixteen hours a day. An empty stomach can hurt.", cured: "Brio gets small portions more often and his stomach is happy. Well planned! 🏔️" },
-  { horseIdx: 4, title: "Midnight's Stomach Burns", intro: "Midnight loses weight and is uneasy after eating. Without constant hay, stomach acid burns the lining, making a stomach ulcer (UL-ser), a sore inside the tummy.", cured: "Midnight gets hay more often and her stomach heals. Elegant! 🖤" },
-  { horseIdx: 0, title: "Stella Drinks Too Little", intro: "The stable book shows Stella drank only half as much as usual. A sudden drop in how much she drinks is often the first sign of illness.", cured: "Stella drinks normally again and is bright as a button. Good catch! ⭐" },
-  { horseIdx: 2, title: "Thunder Misses the Herd", intro: "Thunder is restless in the new stable, rocking side to side. Horses are herd animals, and being all alone really scares them.", cured: "Thunder has new stable friends and is relaxed again. Lovely! 💨" },
-  { horseIdx: 4, title: "Midnight Is Sedated", intro: "Midnight needs stitches but won't stand still from fear. You give a sedation (si-DAY-shun), which makes her sleepy so she is treated safely standing.", cured: "The wound is stitched and Midnight wakes up calmly. Well done! 🖤" },
-  { horseIdx: 6, title: "The Vet Comes to the Yard", intro: "Patches is too lame for the trailer. So the vet comes with her mobile practice (a van full of vet kit) to the yard, since horses are often treated right in the stable.", cured: "Patches is treated in her own stall and rests happily. Practical! 🌈" },
-  { horseIdx: 3, title: "Dotty's Tetanus Jab", intro: "Dotty gets her jab against tetanus (TET-nus). The bacteria live in the soil everywhere, and even a small cut is enough to let them in.", cured: "Dotty is vaccinated and well protected, and she hops off happily. Super! 🎉" },
-  { horseIdx: 6, title: "Listening in Four Places", intro: "You don't just listen in one place: you listen at four gut quadrants (KWOD-rants) of Patches' belly to find exactly where the gut is silent.", cured: "All four areas gurgle again, so Patches is healthy. Thorough! 🌈" },
-  { horseIdx: 8, title: "Brio's Changing Wormer", intro: "Brio gets a wormer several times a year, but a different one each time. Otherwise the worms get used to it.", cured: "Brio is worm-free and full of energy. Wisely rotated! 🏔️" },
-  { horseIdx: 3, title: "Midges at Dusk", intro: "At sunrise and sunset the midges (MIJ-iz) are busiest. At those times Dotty stays rugged in the stable so they can't bite her.", cured: "Dotty is barely bitten and stops scratching. Well timed! 🎉" },
-  { horseIdx: 2, title: "Thunder's Twitch", intro: "Thunder won't stand still for the injection. You put a twitch (a soft loop on his top lip) on, which lets his brain make its own calming chemicals so he relaxes.", cured: "Thunder stands still and the injection is done. Safely managed! 💪" },
-  { horseIdx: 9, title: "Luna Roars at a Gallop", intro: "Luna makes a loud roaring noise at a fast gallop. With a tiny camera up the nose you see her larynx (LA-rinks), her voice box, and one side is floppy and blocks the air.", cured: "Luna's breathing is treated and she gallops quietly again. Wonderful! ✨" },
-  { horseIdx: 0, title: "A Blood Sample", intro: "You take blood from the big jugular vein (JUG-yoo-lar vane) in Stella's neck. It sits just under the skin and is the safest place for a sample.", cured: "The blood sample is taken and Stella was very brave. Well done! ⭐" },
-  { horseIdx: 9, title: "Medicine into the Joint", intro: "Luna's hock hurts even after rest. You give a joint injection (in-JEK-shun) of anti-swelling medicine right into the joint, which works best.", cured: "Luna's joint moves freely and she leaps a perfect capriole. Wonderful! ✨" },
-  { horseIdx: 1, title: "An X-Ray of the Hoof", intro: "You take an x-ray of Biscuit's hoof. On it you see the coffin bone (KOF-in bone), which in bad laminitis can tip downward.", cured: "Biscuit's coffin bone sits well and the hoof heals nicely. Strong work! 🧡" }
-];
-
-// ── Question-type generators. Each returns the maths for one question (German number format:
-//    comma decimal, € after the number). A session draws 4 different horses + a type for each. ──
-const SHOP_ITEMS = ['apples', 'carrots', 'hoof brushes', 'lead ropes', 'salt licks', 'feed scoops', 'grooming brushes'];
-
-const GEN = {
-  // 3-digit × 2-digit shown in column format, with a carrying reminder
-  longmult(name) {
-    const a = rnd(2, 3) * 100 + rnd(3, 9) * 10 + rnd(3, 9);
-    const b = rnd(2, 4) * 10 + rnd(3, 9);
-    return { kind: 'longmult', a, b,
-      label: '🧮 Long multiplication — remember to carry the tens!',
-      problemHTML: `<div class="lm-stack"><div>${a}</div><div>× ${b}</div><div class="lm-bar"></div><div>?</div></div><div class="carry-hint">⚠️ Carry the tens carefully!</div>`,
-      story: `The big stable has <b>${b}</b> horses, including <b>${name}</b>. Each one eats <b>${a} g</b> of feed today. How many grams of feed are needed in total?` };
-  },
-  // 2-decimal euro amount × single digit (decimal-point placement)
-  money(name) {
-    const cents = rnd(105, 985), d = rnd(3, 8);
-    return { kind: 'money', cents, d,
-      label: '💶 Money times — watch where the comma goes!',
-      problemHTML: `${fmtMoney(cents / 100)} × ${d} = ?`,
-      story: `One bag of treats for <b>${name}</b> costs <b>${fmtMoney(cents / 100)}</b>. You buy <b>${d}</b> bags. How much do they cost altogether?` };
-  },
-  // unit conversion: km↔m, m↔cm, kg↔g, h↔min
-  convert(name) {
-    const U = [ {big:'km',small:'m',f:1000,t:'dist'}, {big:'m',small:'cm',f:100,t:'len'},
-                {big:'kg',small:'g',f:1000,t:'wt'},  {big:'h',small:'min',f:60,t:'time'} ];
-    const u = U[rnd(0, U.length - 1)], form = rnd(1, 3);
-    let disp, answer, ansUnit;
-    if (u.f === 60) {
-      const hrs = rnd(2, 8);                       // whole hours only, hours -> minutes (no fractions yet)
-      disp = `${hrs} h`; answer = hrs * 60; ansUnit = 'min';
-    } else if (form === 1) {
-      const bp = rnd(1, 4), sp = (u.f === 1000 ? rnd(1,19)*50 : rnd(1,19)*5);
-      disp = `${bp} ${u.big} ${sp} ${u.small}`; answer = bp + sp/u.f; ansUnit = u.big;
-    } else if (form === 2) {
-      const z = (u.f === 1000 ? rnd(10, 990) : rnd(10, 95));
-      disp = `${z} ${u.small}`; answer = z/u.f; ansUnit = u.big;
-    } else {
-      const cents = (u.f === 1000 ? rnd(105, 485) : rnd(110, 480)), dq = cents/100;
-      disp = `${fmtDec(dq)} ${u.big}`; answer = Math.round(dq*u.f); ansUnit = u.small;
-    }
-    const ctx = u.t === 'wt'   ? `The feed sack for <b>${name}</b> weighs <b>${disp}</b>. How much is that in <b>${ansUnit}</b>?`
-              : u.t === 'time' ? `<b>${name}</b> was groomed for <b>${disp}</b>. How long is that in <b>${ansUnit}</b>?`
-              : u.t === 'len'  ? `<b>${name}</b>'s bandage is <b>${disp}</b> long. How long is that in <b>${ansUnit}</b>?`
-              :                  `<b>${name}</b> trotted <b>${disp}</b> on the trail. How far is that in <b>${ansUnit}</b>?`;
-    return { kind: 'convert', answer, ansUnit,
-      label: `📏 Convert units — remember 1 ${u.big} = ${u.f} ${u.small}!`,
-      problemHTML: `${disp} = ? ${ansUnit}`, story: ctx };
-  },
-  // which shop is dearer per item: work out two unit prices, then choose
-  compare(name) {
-    const item = SHOP_ITEMS[rnd(0, SHOP_ITEMS.length - 1)];
-    let ua = rnd(60, 140), ub; do { ub = rnd(60, 140); } while (Math.abs(ub - ua) < 6);
-    const qa = rnd(3, 8), qb = rnd(3, 8), ta = ua * qa, tb = ub * qb;
-    return { kind: 'compare', item, ua, ub, qa, qb, ta, tb,
-      label: '💶 Work out the price for ONE in each shop:',
-      problemHTML: `<div class="bundle-row"><div class="bundle">Shop A<br>${qa} for ${fmtMoney(ta/100)}</div><div class="bundle">Shop B<br>${qb} for ${fmtMoney(tb/100)}</div></div>`,
-      story: `<b>${name}</b>'s stable needs ${item}. Shop A sells <b>${qa}</b> for <b>${fmtMoney(ta/100)}</b>; Shop B sells <b>${qb}</b> for <b>${fmtMoney(tb/100)}</b>. Work out the price for one in each shop, then say which shop is dearer.` };
-  },
-  // division with an estimate-first step (rounding practice), kept but used occasionally
-  div(name) {
+// ── Number generators + question builders (German number format: comma decimal, € after). ──
+function genConvert(fam) {
+    if (fam === 'time') { const hrs = rnd(2, 8); return { big:'h', small:'min', f:60, disp:`${hrs} h`, answer:hrs*60, ansUnit:'min', problemHTML:`${hrs} h = ? min` }; }
+    const M = { len:{big:'m',small:'cm',f:100}, wt:{big:'kg',small:'g',f:1000}, dist:{big:'km',small:'m',f:1000} };
+    const u = M[fam], form = rnd(1, 3); let disp, answer, ansUnit;
+    if (form === 1) { const bp = rnd(1,4), sp = (u.f===1000 ? rnd(1,19)*50 : rnd(1,19)*5); disp = `${bp} ${u.big} ${sp} ${u.small}`; answer = bp + sp/u.f; ansUnit = u.big; }
+    else if (form === 2) { const z = (u.f===1000 ? rnd(10,990) : rnd(10,95)); disp = `${z} ${u.small}`; answer = z/u.f; ansUnit = u.big; }
+    else { const cents = (u.f===1000 ? rnd(105,485) : rnd(110,480)), dq = cents/100; disp = `${fmtDec(dq)} ${u.big}`; answer = Math.round(dq*u.f); ansUnit = u.small; }
+    return { big:u.big, small:u.small, f:u.f, disp, answer, ansUnit, problemHTML:`${disp} = ? ${ansUnit}` };
+}
+// each builder takes a German story-function and returns a ready question object
+function Qlongmult(story) {
+    const a = rnd(2,3)*100 + rnd(3,9)*10 + rnd(3,9), b = rnd(2,4)*10 + rnd(3,9);
+    return { kind:'longmult', a, b, label:'🧮 Schriftlich malnehmen – denk an den Übertrag der Zehner! ⚠️',
+        problemHTML:`<div class="lm-stack"><div>${a}</div><div>× ${b}</div><div class="lm-bar"></div><div>?</div></div><div class="carry-hint">⚠️ Übertrag der Zehner nicht vergessen!</div>`,
+        story: story(a, b) };
+}
+function Qmoney(story) {
+    const cents = rnd(105,985), d = rnd(3,8);
+    return { kind:'money', cents, d, label:'💶 Mit Geld malnehmen – achte aufs Komma!',
+        problemHTML:`${fmtMoney(cents/100)} × ${d} = ?`, story: story(cents, d) };
+}
+function Qdiv(story) {
     const n = genDiv();
-    return { kind: 'div', a: n.a, b: n.b,
-      label: '🤔 Step 1 — Estimate: round the number, then roughly how much is it?',
-      problemHTML: `${n.a} ÷ ${n.b} = ?`,
-      story: `You share <b>${n.a} ml</b> of medicine evenly into <b>${n.b}</b> doses for <b>${name}</b>. Estimate first, then work out the exact amount per dose with the remainder.` };
-  }
-};
+    return { kind:'div', a:n.a, b:n.b, label:'🤔 Schritt 1 – Schätzen: runde die Zahl, ungefähr wie viel ist es?',
+        problemHTML:`${n.a} ÷ ${n.b} = ?`, story: story(n.a, n.b) };
+}
+function Qconvert(fam, story) {
+    const c = genConvert(fam);
+    return { kind:'convert', answer:c.answer, ansUnit:c.ansUnit, label:`📏 Einheiten umrechnen – denk dran: 1 ${c.big} = ${c.f} ${c.small}!`,
+        problemHTML:c.problemHTML, story: story(c.disp, c.ansUnit) };
+}
+function Qcompare(story) {
+    let ua = rnd(60,140), ub; do { ub = rnd(60,140); } while (Math.abs(ub-ua) < 6);
+    const qa = rnd(3,8), qb = rnd(3,8), ta = ua*qa, tb = ub*qb;
+    return { kind:'compare', ua, ub, qa, qb, ta, tb, label:'💶 Rechne den Preis für EINS in jedem Laden aus:',
+        problemHTML:`<div class="bundle-row"><div class="bundle">Laden A<br>${qa} für ${fmtMoney(ta/100)}</div><div class="bundle">Laden B<br>${qb} für ${fmtMoney(tb/100)}</div></div>`,
+        story: story(qa, ta, qb, tb) };
+}
 
-let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false;
-let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null;
+// ── 40 horse-vet concepts (German). Each = a vet idea (with sound-out term for the big word),
+//    a coherent maths task of a fixed skill type, and a matching treatment for the cure step. ──
+const vetConcepts = [
+  // ===== LONG MULTIPLICATION =====
+  { horseIdx:0, type:'longmult', treatment:'injection', title:"Stella hat hohes Fieber", intro:"Stella ist in der Nacht krank geworden und hat hohes Fieber. Sie braucht schnell ein Fiebermittel als Spritze.", cured:"Stellas Fieber ist gesunken und sie knabbert wieder an einem Apfel. Geheilt! 🍎", make:()=>Qlongmult((a,b)=>`Stella bekommt <b>${a} mg</b> Fiebermittel pro Tag, <b>${b} Tage</b> lang. Wie viele mg sind das insgesamt?`) },
+  { horseIdx:2, type:'longmult', treatment:'injection', title:"Ein neues Pferd ist krank", intro:"Ein neues Pferd hat Fieber und dicke Beulen unter dem Kiefer – das ist Druse (Druu-ze). Sie ist ansteckend, darum bekommt Thunder vorsorglich ein Antibiotikum.", cured:"Thunder ist gesund geblieben, weil du gut aufgepasst hast. Klug gehandelt! 💨", make:()=>Qlongmult((a,b)=>`Thunder bekommt <b>${a} mg</b> Antibiotikum pro Tag, <b>${b} Tage</b> lang. Wie viele mg insgesamt?`) },
+  { horseIdx:4, type:'longmult', treatment:'bucket', title:"Midnights Magen brennt", intro:"Midnight nimmt ab und ist nach dem Fressen unruhig. Ohne ständig Heu brennt die Magensäure die Wand – ein Magengeschwür (Maa-gen-ge-schwür) entsteht.", cured:"Midnight bekommt öfter Heu und ihr Magen heilt. Elegant gelöst! 🖤", make:()=>Qlongmult((a,b)=>`Du rührst <b>${a} mg</b> Magenschutz pro Tag ins Futter, <b>${b} Tage</b> lang. Wie viele mg insgesamt?`) },
+  { horseIdx:8, type:'longmult', treatment:'bucket', title:"Brio frisst gern lange", intro:"Brio ist ein Dauerfresser (Dau-er-fres-ser): In der Natur frisst ein Pferd bis zu sechzehn Stunden am Tag kleine Mengen, sonst tut der Magen weh.", cured:"Brio bekommt öfter kleine Portionen und ist glücklich. Gut geplant! 🏔️", make:()=>Qlongmult((a,b)=>`Brio bekommt <b>${a} g</b> Heu pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) },
+  { horseIdx:6, type:'longmult', treatment:'bucket', title:"Stille in Patches' Bauch", intro:"Patches scharrt und schaut zum Bauch – das sieht nach Kolik (Ko-lik) aus. Sie bekommt warmes Öl ins Futter, damit der Darm wieder arbeitet.", cured:"Patches' Darm arbeitet wieder und die Schmerzen sind weg. Gerettet! 🌈", make:()=>Qlongmult((a,b)=>`Patches bekommt <b>${a} ml</b> Öl pro Gabe, <b>${b} Gaben</b>. Wie viele ml insgesamt?`) },
+  { horseIdx:5, type:'longmult', treatment:'bandage', title:"Kaltes Wasser gegen Schwellung", intro:"Sunnys Sehne ist heiß und geschwollen. Ein kühler Verband lässt die Blutgefäße enger werden und nimmt die Schwellung.", cured:"Die Schwellung ist weg und Sunny läuft wieder locker. Klasse! ☀️", make:()=>Qlongmult((a,b)=>`Du kühlst die Sehne <b>${a} Sekunden</b> pro Runde, <b>${b} Runden</b> lang. Wie viele Sekunden insgesamt?`) },
+  { horseIdx:9, type:'longmult', treatment:'injection', title:"Spritze ins Gelenk", intro:"Lunas Sprunggelenk tut weh, auch nach Ruhe. Du gibst eine Gelenkspritze (Ge-lenk-spri-tse) mit entzündungshemmender Medizin direkt ins Gelenk.", cured:"Lunas Gelenk ist beweglich und sie springt eine perfekte Kapriole. Wunderbar! ✨", make:()=>Qlongmult((a,b)=>`Die Klinik behandelt <b>${b} Pferde</b> mit je <b>${a} mg</b> Gelenk-Medizin. Wie viele mg insgesamt?`) },
+  { horseIdx:1, type:'longmult', treatment:'bucket', title:"Biscuits Magensonde", intro:"Bei einer Verstopfung schiebst du Biscuit eine weiche Nasenschlundsonde (Naa-zen-schlund-zon-de) durch die Nase, um Öl direkt zum Darm zu bringen.", cured:"Das Öl wirkt, die Verstopfung löst sich und Biscuit frisst wieder. Stark! 🧡", make:()=>Qlongmult((a,b)=>`Du gibst <b>${a} ml</b> Öl pro Gabe durch die Sonde, <b>${b} Gaben</b> lang. Wie viele ml insgesamt?`) },
 
-// Ingredients Ella drags into the cauldron to brew each medicine.
-const mIngredientPool = [
-  { emoji: '🌿', name: 'Kräuter' },  { emoji: '💧', name: 'Tinktur' },
-  { emoji: '🧂', name: 'Heilsalz' }, { emoji: '🍯', name: 'Honig' },
-  { emoji: '🫧', name: 'Heilschaum' }, { emoji: '🌸', name: 'Blüten' },
-  { emoji: '🧊', name: 'Kühlgel' }
+  // ===== DIVISION (estimate first, then exact + remainder) =====
+  { horseIdx:0, type:'div', treatment:'injection', title:"Blutprobe am Hals", intro:"Du nimmst Stella Blut aus der großen Drosselvene (Dros-sel-veh-ne) am Hals. Sie liegt dicht unter der Haut und ist die sicherste Stelle.", cured:"Die Blutprobe ist genommen und Stella war ganz tapfer. Gut gemacht! ⭐", make:()=>Qdiv((a,b)=>`Du füllst <b>${a} ml</b> Blut gleichmäßig in <b>${b} Röhrchen</b>. Schätze zuerst, dann rechne genau: wie viele ml pro Röhrchen – und wie viele ml bleiben übrig?`) },
+  { horseIdx:3, type:'div', treatment:'injection', title:"Dottys Tetanus-Impfung", intro:"Dotty bekommt ihre Impfung gegen Wundstarrkrampf, auch Tetanus (Te-ta-nus) genannt. Die Bakterien stecken im Boden, schon ein kleiner Schnitt reicht.", cured:"Dotty ist geimpft und gut geschützt – sie hüpft fröhlich davon. Super! 🎉", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} ml</b> Impfstoff gleichmäßig auf <b>${b} Spritzen</b> auf. Schätze zuerst, dann genau: wie viele ml pro Spritze – und wie viele ml bleiben übrig?`) },
+  { horseIdx:4, type:'div', treatment:'injection', title:"Midnight wird betäubt", intro:"Midnight braucht Nähte, hält aber vor Angst nicht still. Du gibst eine Sedierung (Se-die-rung) – sie macht schläfrig, sodass sie im Stehen sicher behandelt wird.", cured:"Die Wunde ist genäht und Midnight wacht ruhig wieder auf. Gut gemacht! 🖤", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} ml</b> Beruhigungsmittel gleichmäßig auf <b>${b} Spritzen</b> auf. Schätze zuerst, dann genau: wie viel pro Spritze – und wie viel bleibt übrig?`) },
+  { horseIdx:1, type:'div', treatment:'bandage', title:"Biscuits Sehne braucht Halt", intro:"Nach einer Zerrung legst du Biscuit einen festen Stützverband an. Ohne Halt dehnt sich die entzündete Beugesehne (Boy-ge-zeh-ne) bei jedem Schritt weiter.", cured:"Biscuits Sehne ist gestützt und heilt schön ruhig. Gut gemacht! 🧡", make:()=>Qdiv((a,b)=>`Du schneidest einen <b>${a} cm</b> langen Verband in <b>${b} gleiche Streifen</b>. Schätze zuerst, dann genau: wie viele cm pro Streifen – und wie viele cm bleiben übrig?`) },
+  { horseIdx:2, type:'div', treatment:'bandage', title:"Ultraschall zeigt die Sehne", intro:"Du fährst mit dem Ultraschall (Ul-tra-schall) über Thunders Bein. Eine dunkle Lücke zeigt gerissene Fasern – du legst einen Stützverband an.", cured:"Thunders Sehne wird geschont und heilt langsam zu. Stark erkannt! 💪", make:()=>Qdiv((a,b)=>`Du schneidest <b>${a} cm</b> Verband in <b>${b} gleiche Stücke</b>. Schätze zuerst, dann genau: wie viele cm pro Stück – und wie viele cm bleiben übrig?`) },
+  { horseIdx:8, type:'div', treatment:'bucket', title:"Brios Wurmkur wechselt", intro:"Brio bekommt mehrmals im Jahr eine Entwurmung (Ent-wur-mung) – jedes Mal ein anderes Mittel, sonst gewöhnen sich die Würmer daran.", cured:"Brio ist wurmfrei und voller Energie. Klug gewechselt! 🏔️", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} ml</b> Wurmpaste gleichmäßig auf <b>${b} Pferde</b> auf. Schätze zuerst, dann genau: wie viel pro Pferd – und wie viel bleibt übrig?`) },
+  { horseIdx:5, type:'div', treatment:'bucket', title:"Sunnys Muskeln verkrampfen", intro:"Nach schnellem Galopp bleibt Sunny mit steinharten Muskeln stehen – ein Kreuzverschlag (Kreuz-fer-schlaag). Sie braucht Ruhe und viel Flüssigkeit.", cured:"Sunnys Muskeln werden wieder weich. Bravo! ☀️", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} ml</b> Aufbau-Trank gleichmäßig auf <b>${b} Eimer</b> auf. Schätze zuerst, dann genau: wie viel pro Eimer – und wie viel bleibt übrig?`) },
+  { horseIdx:6, type:'div', treatment:'salve', title:"Es riecht aus dem Huf", intro:"Aus Patches' Huf riecht es streng. Der weiche, dunkle Strahl ist mit Strahlfäule (Strahl-foy-le) infiziert – du trägst eine Salbe auf.", cured:"Patches' Huf ist sauber und riecht wieder gut. Toll gemacht! 🌈", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} g</b> Huf-Salbe gleichmäßig auf <b>${b} Behandlungen</b> auf. Schätze zuerst, dann genau: wie viel pro Behandlung – und wie viel bleibt übrig?`) },
+  { horseIdx:3, type:'div', treatment:'salve', title:"Dottys Sommerjucken", intro:"Dotty scheuert sich im Sommer wund. Sie hat ein Sommerekzem (Som-mer-ek-tsem) – eine Allergie gegen den Speichel winziger Gnitzen (Gnit-zen).", cured:"Das Jucken hört auf und Dotty ist glücklich. Toll! 🎉", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} ml</b> Juckreiz-Lotion gleichmäßig auf <b>${b} Hautstellen</b> auf. Schätze zuerst, dann genau: wie viel pro Stelle – und wie viel bleibt übrig?`) },
+  { horseIdx:7, type:'div', treatment:'bucket', title:"Cupcake hat Bauchweh", intro:"Cupcake hat heimlich zu viel gefuttert und jetzt Bauchweh. Beruhigende Heilkräuter im Futter helfen ihrer Verdauung (Fer-dau-ung).", cured:"Cupcakes Bauchweh ist weg und sie flitzt frech davon. Geschafft! 🍞", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} g</b> Heilkräuter gleichmäßig auf <b>${b} Portionen</b> auf. Schätze zuerst, dann genau: wie viel pro Portion – und wie viel bleibt übrig?`) },
+  { horseIdx:6, type:'div', treatment:'salve', title:"Patches' weiße Linie", intro:"An Patches' Huf ist die weiße Linie weich und dunkel. Dort sitzen Bakterien – du pinselst eine Huf-Tinktur auf.", cured:"Die kranke Stelle ist versorgt und der Huf wird wieder fest. Gut aufgepasst! 🌈", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} ml</b> Huf-Tinktur gleichmäßig auf <b>${b} Behandlungen</b> auf. Schätze zuerst, dann genau: wie viel pro Behandlung – und wie viel bleibt übrig?`) },
+
+  // ===== UNIT CONVERSION =====
+  { horseIdx:1, type:'convert', treatment:'bandage', title:"Biscuits Hufabszess", intro:"Biscuit hält sein Bein hoch. Mit der Hufzange findest du einen Hufabszess (Huf-aps-tsess) – eine Eiterstelle in der Hufwand, die du verbindest.", cured:"Der Druck ist weg und Biscuit stapft wieder fröhlich los. Stark! 🧦", make:()=>Qconvert('len',(disp,unit)=>`Der Hufverband für Biscuit ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
+  { horseIdx:8, type:'convert', treatment:'bandage', title:"Brios Huf-Umschlag", intro:"Du wickelst Brios Huf über Nacht in einen warmen Breiumschlag (Brei-um-schlag) mit Zugsalbe, der den Abszess sanft herauszieht.", cured:"Am Morgen läuft Brio wieder ohne zu lahmen. Geheilt! 🏔️", make:()=>Qconvert('len',(disp,unit)=>`Die Verbandrolle für den Umschlag ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
+  { horseIdx:4, type:'convert', treatment:'bucket', title:"Heu einweichen", intro:"Du weichst Midnights Heu vor dem Füttern ein. Nasses Heu lässt viel weniger Staubsporen (Staub-spo-ren) in die Luft, so atmet sie leichter.", cured:"Midnight frisst eingeweichtes Heu und hustet nicht mehr. Gut mitgedacht! 🖤", make:()=>Qconvert('time',(disp,unit)=>`Das Heu weicht <b>${disp}</b> lang im Wasser ein. Wie viele <b>${unit}</b> sind das?`) },
+  { horseIdx:9, type:'convert', treatment:'injection', title:"Lunas Erholung", intro:"Nach der Gelenkspritze muss Luna eine Weile ruhen, damit die Medizin (Me-di-tsin) gut wirken kann.", cured:"Luna ist ausgeruht und tänzelt wieder elegant durch die Reithalle. ✨", make:()=>Qconvert('time',(disp,unit)=>`Luna ruht nach der Spritze <b>${disp}</b> lang. Wie viele <b>${unit}</b> sind das?`) },
+  { horseIdx:7, type:'convert', treatment:'bucket', title:"Cupcakes Salzleckstein", intro:"In Cupcakes Box hängt ein Salzleckstein. Pferde spüren selbst, wann ihr Körper mehr Mineralstoffe (Mi-ne-raal-schtof-fe) braucht.", cured:"Cupcake leckt zufrieden am Salzstein und ist bestens versorgt. Toll! 🍞", make:()=>Qconvert('wt',(disp,unit)=>`Der Salzleckstein wiegt <b>${disp}</b>. Wie viel ist das in <b>${unit}</b>?`) },
+  { horseIdx:6, type:'convert', treatment:'bucket', title:"Patches' Futtermenge", intro:"Du wiegst Patches' Futter genau ab. Die richtige Menge hält ihre Körperkondition (Kör-per-kon-di-tsion) gesund.", cured:"Patches hat ein gesundes Gewicht und glänzt vor Gesundheit. Gut beurteilt! 🌈", make:()=>Qconvert('wt',(disp,unit)=>`Patches' Futtersack wiegt <b>${disp}</b>. Wie viel ist das in <b>${unit}</b>?`) },
+  { horseIdx:0, type:'convert', treatment:'bucket', title:"Stellas Ausdauertraining", intro:"Stella ist eine Araberstute und liebt lange Strecken – ihre Ausdauer (Aus-dau-er) ist riesig. Danach bekommt sie frisches Wasser.", cured:"Stella ist fit und zufrieden und trinkt einen ganzen Eimer leer. ⭐", make:()=>Qconvert('dist',(disp,unit)=>`Stella ist heute <b>${disp}</b> getrabt. Wie weit ist das in <b>${unit}</b>?`) },
+  { horseIdx:3, type:'convert', treatment:'bucket', title:"Dottys langer Ausritt", intro:"Dotty war auf einem langen Ausritt. Danach muss sie langsam abgekühlt werden, das nennt man Trockenreiten (Tro-cken-rei-ten).", cured:"Dotty ist schön abgekühlt und frisst zufrieden. Gut gemacht! 🎉", make:()=>Qconvert('dist',(disp,unit)=>`Dotty ist <b>${disp}</b> weit geritten worden. Wie weit ist das in <b>${unit}</b>?`) },
+  { horseIdx:2, type:'convert', treatment:'bandage', title:"Thunders Beinwickel", intro:"Thunder hat sich am Bein geschrammt. Du legst einen schützenden Beinwickel (Bein-vi-kel) an, damit die Wunde sauber bleibt.", cured:"Thunders Bein ist sauber verbunden und er prescht wieder los. Stark! 💨", make:()=>Qconvert('len',(disp,unit)=>`Der Beinwickel für Thunder ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
+
+  // ===== MONEY (buy a supply, then use it) =====
+  { horseIdx:0, type:'money', treatment:'salve', title:"Stellas Augenentzündung", intro:"Stella reibt sich das Auge – es ist rot und tränt, eine Bindehautentzündung (Bin-de-haut-ent-zün-dung). Du brauchst Augensalbe.", cured:"Stellas Auge ist klar und glänzt wieder. Sie zwinkert dir dankbar zu! ⭐", make:()=>Qmoney((cents,d)=>`Eine Tube Augensalbe kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Tuben</b> für den Stall. Wie viel kostet das zusammen?`) },
+  { horseIdx:1, type:'money', treatment:'bandage', title:"Biscuit braucht Verband", intro:"Biscuits Bein muss verbunden werden. Du kaufst frische Verbandrollen (Fer-band-rol-len) im Reitsport-Laden.", cured:"Biscuits Bein ist frisch verbunden. Gut gemacht! 🧡", make:()=>Qmoney((cents,d)=>`Eine Verbandrolle kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Rollen</b>. Wie viel kostet das zusammen?`) },
+  { horseIdx:5, type:'money', treatment:'bucket', title:"Sunny braucht Elektrolyte", intro:"Nach dem Schwitzen braucht Sunny ihre Salze zurück. Du kaufst Beutel mit Elektrolyten (E-lek-tro-lü-te) fürs Trinkwasser.", cured:"Sunny hat ihre Salze zurück und fühlt sich fit. Bravo! ☀️", make:()=>Qmoney((cents,d)=>`Ein Beutel Elektrolyte kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Beutel</b>. Wie viel kostet das zusammen?`) },
+  { horseIdx:3, type:'money', treatment:'salve', title:"Dottys Mückenschutz", intro:"Damit die Gnitzen (Gnit-zen) Dotty nicht stechen, kaufst du eine schützende Lotion zum Auftragen.", cured:"Dotty wird kaum noch gestochen und ist glücklich. Toll! 🎉", make:()=>Qmoney((cents,d)=>`Eine Flasche Mücken-Lotion kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Flaschen</b>. Wie viel kostet das zusammen?`) },
+  { horseIdx:6, type:'money', treatment:'salve', title:"Patches' Hufpflege", intro:"Patches' Hufe brauchen Pflege gegen Strahlfäule (Strahl-foy-le). Du kaufst pflegende Huf-Salbe.", cured:"Patches' Hufe sind gesund und gepflegt. Gut gemacht! 🌈", make:()=>Qmoney((cents,d)=>`Eine Dose Huf-Salbe kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Dosen</b>. Wie viel kostet das zusammen?`) },
+  { horseIdx:9, type:'money', treatment:'injection', title:"Lunas Impfung", intro:"Luna und ihre Stallfreunde brauchen ihre jährliche Impfung (Imp-fung). Du kaufst die Impfdosen beim Tierarzt.", cured:"Luna ist geimpft und gut geschützt. Wunderbar! ✨", make:()=>Qmoney((cents,d)=>`Eine Impfdosis kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Dosen</b>. Wie viel kostet das zusammen?`) },
+  { horseIdx:8, type:'money', treatment:'bucket', title:"Brios Kraftfutter", intro:"Brio arbeitet viel in den Bergen und braucht Kraftfutter (Kraft-fut-ter) mit vielen Nährstoffen.", cured:"Brio ist stark und voller Energie. Gut geplant! 🏔️", make:()=>Qmoney((cents,d)=>`Ein Sack Kraftfutter kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Säcke</b>. Wie viel kostet das zusammen?`) },
+
+  // ===== COMPARE (which shop is dearer per item, then use it) =====
+  { horseIdx:2, type:'compare', treatment:'bucket', title:"Thunders Futter-Einkauf", intro:"Thunder braucht gutes Futter. Zwei Läden bieten Karotten an – welcher ist teurer pro Stück?", cured:"Thunder bekommt sein Lieblingsfutter zum besten Preis. Schlau! 💨", make:()=>Qcompare((qa,ta,qb,tb)=>`Thunders Stall braucht Karotten. Laden A verkauft <b>${qa}</b> für <b>${fmtMoney(ta/100)}</b>, Laden B <b>${qb}</b> für <b>${fmtMoney(tb/100)}</b>. Rechne den Preis für EIN Stück in jedem Laden aus, dann sag, welcher Laden teurer ist.`) },
+  { horseIdx:4, type:'compare', treatment:'bandage', title:"Midnights Verband-Einkauf", intro:"Midnight braucht viele Verbände. Zwei Läden verkaufen Verbandrollen – wo ist eine Rolle teurer?", cured:"Midnight ist gut versorgt und du hast clever eingekauft. Elegant! 🖤", make:()=>Qcompare((qa,ta,qb,tb)=>`Laden A verkauft <b>${qa}</b> Verbandrollen für <b>${fmtMoney(ta/100)}</b>, Laden B <b>${qb}</b> für <b>${fmtMoney(tb/100)}</b>. Rechne den Preis für EINE Rolle in jedem Laden aus, dann sag, welcher Laden teurer ist.`) },
+  { horseIdx:7, type:'compare', treatment:'bucket', title:"Cupcakes Leckerli-Einkauf", intro:"Cupcake liebt Leckerlis. Zwei Läden verkaufen sie – aber wo kostet ein Leckerli mehr?", cured:"Cupcake bekommt ihre Leckerlis günstig. Toll gerechnet! 🍞", make:()=>Qcompare((qa,ta,qb,tb)=>`Laden A verkauft <b>${qa}</b> Leckerlis für <b>${fmtMoney(ta/100)}</b>, Laden B <b>${qb}</b> für <b>${fmtMoney(tb/100)}</b>. Rechne den Preis für EIN Leckerli in jedem Laden aus, dann sag, welcher Laden teurer ist.`) },
+  { horseIdx:1, type:'compare', treatment:'salve', title:"Biscuits Salben-Einkauf", intro:"Biscuit braucht Wundsalbe. Zwei Läden bieten Salbentuben an – welche ist teurer pro Tube?", cured:"Biscuits Wunde wird gut versorgt. Schlau eingekauft! 🧡", make:()=>Qcompare((qa,ta,qb,tb)=>`Laden A verkauft <b>${qa}</b> Salbentuben für <b>${fmtMoney(ta/100)}</b>, Laden B <b>${qb}</b> für <b>${fmtMoney(tb/100)}</b>. Rechne den Preis für EINE Tube in jedem Laden aus, dann sag, welcher Laden teurer ist.`) },
+  { horseIdx:5, type:'compare', treatment:'injection', title:"Sunnys Spritzen-Einkauf", intro:"Für Sunnys Behandlung brauchst du Einweg-Spritzen (Ein-weg-spri-tsen). Zwei Läden verkaufen sie.", cured:"Sunny ist behandelt und du hast clever gespart. Bravo! ☀️", make:()=>Qcompare((qa,ta,qb,tb)=>`Laden A verkauft <b>${qa}</b> Spritzen für <b>${fmtMoney(ta/100)}</b>, Laden B <b>${qb}</b> für <b>${fmtMoney(tb/100)}</b>. Rechne den Preis für EINE Spritze in jedem Laden aus, dann sag, welcher Laden teurer ist.`) },
+  { horseIdx:0, type:'compare', treatment:'bucket', title:"Stellas Hafer-Einkauf", intro:"Stella bekommt Hafer (Haa-fer) für ihre Energie. Zwei Läden verkaufen Hafer-Tüten – welche ist teurer?", cured:"Stella bekommt ihren Hafer zum besten Preis. Schlau! ⭐", make:()=>Qcompare((qa,ta,qb,tb)=>`Laden A verkauft <b>${qa}</b> Hafer-Tüten für <b>${fmtMoney(ta/100)}</b>, Laden B <b>${qb}</b> für <b>${fmtMoney(tb/100)}</b>. Rechne den Preis für EINE Tüte in jedem Laden aus, dann sag, welcher Laden teurer ist.`) }
 ];
+let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false;
+let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mTreat = null;
 
 // A session is 4 fresh questions, weighted to the new skills (long ×, money ×, unit price,
 // unit conversion). Plain division with rounding shows up only occasionally. Each question
@@ -1142,14 +1114,15 @@ function buildMathPool() {
     let types = shuffle(['longmult', 'money', 'compare', 'convert']);
     if (Math.random() < 0.4) types[rnd(0, 3)] = 'div';   // division appears occasionally, at most once
     types = shuffle(types);
-    const concepts = shuffle(vetConcepts.slice());
-    const usedHorse = new Set(), pick = [];
-    for (const c of concepts) { if (pick.length >= 4) break; if (!usedHorse.has(c.horseIdx)) { usedHorse.add(c.horseIdx); pick.push(c); } }
-    return types.map((t, i) => {
-        const c = pick[i];
-        const g = GEN[t](horses[c.horseIdx].name);
-        return Object.assign({ horseIdx: c.horseIdx, title: c.title, intro: c.intro, cured: c.cured }, g);
-    });
+    const usedHorse = new Set(), out = [];
+    for (const t of types) {
+        // a concept of this skill type on a horse not used yet this game; fall back to any free horse
+        let opts = shuffle(vetConcepts.filter(c => c.type === t && !usedHorse.has(c.horseIdx)));
+        let c = opts[0] || shuffle(vetConcepts.filter(c => !usedHorse.has(c.horseIdx)))[0];
+        usedHorse.add(c.horseIdx);
+        out.push(Object.assign({ horseIdx: c.horseIdx, title: c.title, intro: c.intro, cured: c.cured, treatment: c.treatment }, c.make()));
+    }
+    return out;
 }
 
 function showMathGame() {
@@ -1196,7 +1169,7 @@ function showMathQuestion() {
     const fbEl = document.getElementById('mFeedback');
     fbEl.textContent = ''; fbEl.className = 'calc-feedback';
     const btn = document.getElementById('mMixBtn');
-    btn.classList.remove('hidden'); btn.disabled = false; btn.textContent = '✅ Check the dose!';
+    btn.classList.remove('hidden'); btn.disabled = false; btn.textContent = '✅ Dosis prüfen!';
 }
 
 function calcField(id, label, mode) {
@@ -1217,11 +1190,11 @@ function renderProblem(q) {
     prob.innerHTML = q.problemHTML;
     document.getElementById('mCalcLabel').textContent = q.label;
     mDivPhase = null;
-    if (q.kind === 'div') { mDivPhase = 'estimate'; inputs.innerHTML = calcField('mEst', 'About how much?', 'int'); }
-    else if (q.kind === 'convert') { inputs.innerHTML = calcField('mAns', 'Answer (' + q.ansUnit + ')', 'dec'); }
-    else if (q.kind === 'money') { inputs.innerHTML = calcField('mAns', 'Answer (€)', 'dec'); }
-    else if (q.kind === 'compare') { mDivPhase = 'prices'; inputs.innerHTML = calcField('mPa', 'Shop A: one =', 'dec') + calcField('mPb', 'Shop B: one =', 'dec'); }
-    else { inputs.innerHTML = calcField('mAns', 'Answer', 'int'); }   // longmult
+    if (q.kind === 'div') { mDivPhase = 'estimate'; inputs.innerHTML = calcField('mEst', 'Ungefähr wie viel?', 'int'); }
+    else if (q.kind === 'convert') { inputs.innerHTML = calcField('mAns', 'Antwort (' + q.ansUnit + ')', 'dec'); }
+    else if (q.kind === 'money') { inputs.innerHTML = calcField('mAns', 'Antwort (€)', 'dec'); }
+    else if (q.kind === 'compare') { mDivPhase = 'prices'; inputs.innerHTML = calcField('mPa', 'Laden A: eins =', 'dec') + calcField('mPb', 'Laden B: eins =', 'dec'); }
+    else { inputs.innerHTML = calcField('mAns', 'Antwort', 'int'); }   // longmult
     attachMathInputs();
 }
 
@@ -1243,7 +1216,7 @@ function checkMathAnswer() {
 // single-answer types: long multiplication, money multiplication, unit conversion
 function checkExactNum(q, fbEl, expect, isDec) {
     const v = parseNum(document.getElementById('mAns').value);
-    if (isNaN(v)) return needInput(fbEl, '✏️ Type your answer first!');
+    if (isNaN(v)) return needInput(fbEl, '✏️ Tippe zuerst deine Antwort ein!');
     const ok = isDec ? near(v, expect) : (v === expect);
     if (ok) mathCorrect(q, fbEl); else mathWrong(fbEl);
 }
@@ -1253,25 +1226,25 @@ function checkDivision(q, fbEl) {
     const quo = Math.floor(q.a / q.b), rem = q.a % q.b;
     if (mDivPhase === 'estimate') {
         const est = parseNum(document.getElementById('mEst').value);
-        if (isNaN(est)) return needInput(fbEl, '✏️ Type your estimate first!');
+        if (isNaN(est)) return needInput(fbEl, '✏️ Tippe zuerst deine Schätzung ein!');
         const tol = Math.max(10, Math.round(quo * 0.2));
         if (Math.abs(est - quo) <= tol) {
             fbEl.className = 'calc-feedback ok';
-            fbEl.textContent = `👍 Good estimate! It's about ${quo}. Now work out the exact answer.`;
+            fbEl.textContent = `👍 Gut geschätzt! Es sind ungefähr ${quo}. Jetzt rechne genau.`;
             mDivPhase = 'exact';
             document.getElementById('mProblem').innerHTML = `${q.a} ÷ ${q.b} = ?  Rest ?`;
-            document.getElementById('mCalcLabel').textContent = '✏️ Step 2 — Now the exact answer, with the remainder:';
-            document.getElementById('mInputs').innerHTML = calcField('mAns', 'Answer', 'int') + calcField('mRem', 'Remainder (Rest)', 'int');
+            document.getElementById('mCalcLabel').textContent = '✏️ Schritt 2 – jetzt genau rechnen, mit Rest:';
+            document.getElementById('mInputs').innerHTML = calcField('mAns', 'Antwort', 'int') + calcField('mRem', 'Rest', 'int');
             attachMathInputs();
         } else {
             fbEl.className = 'calc-feedback no';
-            fbEl.textContent = '🤔 Not close yet — round the number to an easy one, then divide. Try again!';
+            fbEl.textContent = '🤔 Noch nicht nah dran – runde die Zahl auf eine leichte, dann teile. Versuch es nochmal!';
             const e = document.getElementById('mEst'); e.value = ''; e.focus();
         }
         return;
     }
     const ans = parseNum(document.getElementById('mAns').value), r2 = parseNum(document.getElementById('mRem').value);
-    if (isNaN(ans) || isNaN(r2)) return needInput(fbEl, '✏️ Fill in both the answer and the Rest!');
+    if (isNaN(ans) || isNaN(r2)) return needInput(fbEl, '✏️ Fülle die Antwort UND den Rest aus!');
     if (ans === quo && r2 === rem) mathCorrect(q, fbEl); else mathWrong(fbEl);
 }
 
@@ -1279,19 +1252,19 @@ function checkDivision(q, fbEl) {
 function checkCompare(q, fbEl) {
     if (mDivPhase !== 'prices') return;
     const pa = parseNum(document.getElementById('mPa').value), pb = parseNum(document.getElementById('mPb').value);
-    if (isNaN(pa) || isNaN(pb)) return needInput(fbEl, '✏️ Work out the price for one in BOTH shops!');
+    if (isNaN(pa) || isNaN(pb)) return needInput(fbEl, '✏️ Rechne den Preis für eins in BEIDEN Läden aus!');
     if (near(pa, q.ua / 100) && near(pb, q.ub / 100)) {
         fbEl.className = 'calc-feedback ok';
-        fbEl.textContent = '👍 Right prices! Now: which shop is dearer for one?';
+        fbEl.textContent = '👍 Preise stimmen! Welcher Laden ist teurer pro Stück?';
         mDivPhase = 'pick';
-        document.getElementById('mCalcLabel').textContent = '🤔 Which shop costs MORE for one?';
+        document.getElementById('mCalcLabel').textContent = '🤔 Welcher Laden ist TEURER pro Stück?';
         document.getElementById('mInputs').innerHTML =
-            `<div class="cmp-btns"><button class="cmp-btn" onclick="answerCompare('A')">Shop A</button><button class="cmp-btn" onclick="answerCompare('B')">Shop B</button></div>`;
+            `<div class="cmp-btns"><button class="cmp-btn" onclick="answerCompare('A')">Laden A</button><button class="cmp-btn" onclick="answerCompare('B')">Laden B</button></div>`;
         document.getElementById('mMixBtn').classList.add('hidden');
     } else {
         mFirstTry = false;
         fbEl.className = 'calc-feedback no';
-        fbEl.textContent = '❌ Check the two prices again — cost ÷ how many.';
+        fbEl.textContent = '❌ Prüf die zwei Preise nochmal – Preis ÷ Anzahl.';
         document.getElementById('mPa').value = ''; document.getElementById('mPb').value = '';
         document.getElementById('mPa').focus();
     }
@@ -1301,48 +1274,73 @@ function answerCompare(pick) {
     const q = mPool[mQ], fbEl = document.getElementById('mFeedback');
     const dearer = q.ua > q.ub ? 'A' : 'B';
     if (pick === dearer) mathCorrect(q, fbEl);
-    else { mFirstTry = false; fbEl.className = 'calc-feedback no'; fbEl.textContent = '❌ Not that one — compare the two prices for ONE. Try again!'; }
+    else { mFirstTry = false; fbEl.className = 'calc-feedback no'; fbEl.textContent = '❌ Nicht der – vergleiche die zwei Preise für EINS. Versuch es nochmal!'; }
 }
 
 function mathCorrect(q, fbEl) {
     mBusy = true;
     if (mFirstTry) { mScore++; document.getElementById('mScoreVal').textContent = mScore; }
     fbEl.className = 'calc-feedback ok';
-    fbEl.textContent = '✅ Perfect dose! Now mix the medicine yourself! 🧪';
+    fbEl.textContent = '✅ Richtige Dosis! Jetzt mach die Medizin selbst! 🧪';
     startMixPhase(q);
 }
 function mathWrong(fbEl) {
     mFirstTry = false;
     fbEl.className = 'calc-feedback no';
-    fbEl.textContent = '❌ Not quite — check your maths and try again!';
+    fbEl.textContent = '❌ Nicht ganz – prüf deine Rechnung und versuch es nochmal!';
     const a = document.getElementById('mAns'); if (a) a.value = '';
     const r = document.getElementById('mRem'); if (r) r.value = '';
     if (a) a.focus();
 }
 
-// ── Interactive mixing: drag ingredients into the cauldron, then drag the medicine to the horse ──
+// ── Treatments: the medicine-making step matches the case (injection / bandage / feed bucket / salve).
+//    Each: supplies to drag in, the vessel + fill colours, the finished item, and a splash on the horse. ──
+const TREATMENTS = {
+  injection: { prep:'Zieh die Medizin in die Spritze auf! 💉', vessel:'💉', vesselLabel:'Spritze füllen', readyLabel:'Spritze fertig! ✨',
+    fillStart:'linear-gradient(180deg,#cfe9ff,#7fb7e8)', fillReady:'linear-gradient(180deg,#a8d8ff,#2c5364)',
+    items:[{emoji:'🧪',name:'Wirkstoff'},{emoji:'💧',name:'Lösung'},{emoji:'🧴',name:'Serum'}],
+    product:{emoji:'💉',name:'Spritze'}, apply:'Jetzt gib dem Pferd die Spritze! 💉', splash:'💉' },
+  bandage: { style:'stack', prep:'Mach den Verband fertig! 🩹', vessel:'🩹', vesselLabel:'Verband vorbereiten', readyLabel:'Verband fertig! ✨',
+    fillStart:'linear-gradient(180deg,#ffffff,#e3e9ef)', fillReady:'linear-gradient(180deg,#f7fbff,#cdd8e2)',
+    items:[{emoji:'🧻',name:'Mull'},{emoji:'🩹',name:'Pflaster'},{emoji:'🎀',name:'Binde'}],
+    product:{emoji:'🩹',name:'Verband'}, apply:'Jetzt wickel den Verband ums Bein! 🦵', splash:'🩹' },
+  bucket: { prep:'Rühr das Futter im Eimer an! 🪣', vessel:'🪣', vesselLabel:'Eimer füllen', readyLabel:'Futter fertig! ✨',
+    fillStart:'linear-gradient(180deg,#e8c990,#b07d3a)', fillReady:'linear-gradient(180deg,#d9a441,#7a4f1e)',
+    items:[{emoji:'🌾',name:'Heu'},{emoji:'🥕',name:'Karotte'},{emoji:'🧂',name:'Pulver'}],
+    product:{emoji:'🪣',name:'Futtereimer'}, apply:'Jetzt gib dem Pferd den Eimer! 😋', splash:'😋' },
+  salve: { prep:'Rühr die Heilsalbe an! 🧴', vessel:'🧴', vesselLabel:'Salbe anrühren', readyLabel:'Salbe fertig! ✨',
+    fillStart:'linear-gradient(180deg,#fff3c4,#f0d97a)', fillReady:'linear-gradient(180deg,#ffe680,#e0b000)',
+    items:[{emoji:'🌿',name:'Kräuter'},{emoji:'🍯',name:'Honig'},{emoji:'🧴',name:'Creme'}],
+    product:{emoji:'🧴',name:'Salbe'}, apply:'Jetzt streich die Salbe auf die Stelle! ✨', splash:'✨' }
+};
+
 function startMixPhase(q) {
     mPhase = 'mix';
+    const t = TREATMENTS[q.treatment] || TREATMENTS.injection; mTreat = t;
     document.getElementById('mInputs').classList.add('hidden');
     document.getElementById('mMixBtn').classList.add('hidden');
     document.getElementById('mMixLocked').classList.add('hidden');
     document.getElementById('mMixStation').classList.remove('hidden');
-    document.getElementById('mMixHeadline').textContent = 'Drag the ingredients into the cauldron! 🧪';
+    document.getElementById('mMixHeadline').textContent = t.prep;
 
+    const cauldron = document.getElementById('mCauldron');
+    cauldron.classList.toggle('solid', t.style === 'stack');   // solid tray for builds (bandage), bowl for liquids
+    document.getElementById('mCauldronStack').innerHTML = '';
     const liquid = document.getElementById('mCauldronLiquid');
     liquid.style.height = '14%';
-    liquid.style.background = 'linear-gradient(180deg, #6bb6ff, #2c5364)';
-    document.getElementById('mCauldronLabel').textContent = 'Drop ingredients here';
-    document.getElementById('mCauldron').classList.add('active');
+    liquid.style.background = t.fillStart;
+    document.getElementById('mCauldronLabel').textContent = `${t.vessel} ${t.vesselLabel}`;
+    cauldron.classList.add('active');
     document.getElementById('mMedicineTray').innerHTML = '';
     document.getElementById('mPatientZone').classList.add('hidden');
-    document.getElementById('mPatientDrop').classList.remove('active', 'over', 'healed');
+    const drop = document.getElementById('mPatientDrop');
+    drop.classList.remove('active', 'over', 'healed');
+    drop.querySelectorAll('.apply-splash').forEach(s => s.remove());
 
     const shelf = document.getElementById('mShelf');
     shelf.innerHTML = '';
-    const picks = shuffle(mIngredientPool).slice(0, 3);
-    mIngTotal = picks.length; mIngAdded = 0;
-    picks.forEach(ing => {
+    mIngTotal = t.items.length; mIngAdded = 0;
+    t.items.forEach(ing => {
         const el = document.createElement('div');
         el.className = 'ingredient';
         el.innerHTML = `<span class="ing-emoji">${ing.emoji}</span><span class="ing-name">${ing.name}</span>`;
@@ -1352,28 +1350,36 @@ function startMixPhase(q) {
 }
 
 function addIngredient(srcEl) {
+    const stack = mTreat && mTreat.style === 'stack';
+    const emoji = srcEl.querySelector('.ing-emoji') ? srcEl.querySelector('.ing-emoji').textContent : '🩹';
     srcEl.remove();
     mIngAdded++;
     const c = document.getElementById('mCauldron');
-    c.classList.remove('fizz'); void c.offsetWidth; c.classList.add('fizz');
-    const liquid = document.getElementById('mCauldronLiquid');
-    liquid.style.height = (14 + Math.round(mIngAdded / mIngTotal * 64)) + '%';
+    if (stack) {
+        const layer = document.createElement('span');
+        layer.className = 'stack-layer'; layer.textContent = emoji;
+        document.getElementById('mCauldronStack').appendChild(layer);   // build up, layer by layer
+    } else {
+        c.classList.remove('fizz'); void c.offsetWidth; c.classList.add('fizz');
+        document.getElementById('mCauldronLiquid').style.height = (14 + Math.round(mIngAdded / mIngTotal * 64)) + '%';
+    }
     if (mIngAdded >= mIngTotal) {
-        liquid.style.background = 'linear-gradient(180deg, #a8ff78, #38ef7d 55%, #11998e)';
-        document.getElementById('mCauldronLabel').textContent = 'Medicine ready! ✨';
+        if (!stack) document.getElementById('mCauldronLiquid').style.background = mTreat.fillReady;
+        document.getElementById('mCauldronLabel').textContent = mTreat.readyLabel;
         c.classList.remove('active');
         readyMedicine();
     } else {
-        document.getElementById('mCauldronLabel').textContent = 'Keep going!';
+        document.getElementById('mCauldronLabel').textContent = 'Weiter so!';
     }
 }
 
 function readyMedicine() {
     mPhase = 'treat';
-    document.getElementById('mMixHeadline').textContent = 'Now drag the medicine to the horse! 💉';
+    const t = mTreat;
+    document.getElementById('mMixHeadline').textContent = t.apply;
     const med = document.createElement('div');
     med.className = 'medicine';
-    med.innerHTML = `<span class="med-emoji">💉</span><span class="med-name">Medizin</span>`;
+    med.innerHTML = `<span class="med-emoji">${t.product.emoji}</span><span class="med-name">${t.product.name}</span>`;
     makeDraggable(med, { type: 'medicine' });
     document.getElementById('mMedicineTray').appendChild(med);
 
@@ -1390,9 +1396,13 @@ function treatHorse(srcEl) {
     const drop = document.getElementById('mPatientDrop');
     drop.classList.remove('active', 'over');
     drop.classList.add('healed');
+    const sp = document.createElement('span');               // themed splash matching the treatment
+    sp.className = 'apply-splash'; sp.textContent = (mTreat ? mTreat.splash : '✨');
+    drop.appendChild(sp);
+    setTimeout(() => sp.remove(), 850);
     playHealSound();
     const q = mPool[mQ];
-    setTimeout(() => showCure(q), 650);
+    setTimeout(() => showCure(q), 750);
 }
 
 // A random horse sound (whinny, snort, or a short hoof stamp) plays each time a horse is healed.
