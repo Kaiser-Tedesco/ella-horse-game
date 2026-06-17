@@ -762,6 +762,48 @@ const horses = [
       { label: "💝 Personality",      text: "I am intelligent and elegant, and I absolutely LOVE performing incredible moves in front of a crowd. I am practically a gymnast! Which horse am I? 🎭" },
       { label: "🌟 Fun Fact",         text: "During World War II, an American general helped rescue horses of my breed from danger — and it even became a famous Disney movie! Which horse am I? 🎬" }
     ]
+  },
+  {
+    name: "Aurora", breed: "Akhal-Teke", emoji: "🐎",
+    image: "horse-images/aurora-akhalteke.jpg",
+    cardGradient: "linear-gradient(135deg, #f6d365, #c98a1b)",
+    coat: "Shimmering metallic golden coat that gleams like real gold in the sunlight",
+    temperament: "Bold, loyal, and full of stamina — she bonds closely with one special person.",
+    story: "Aurora is an Akhal-Teke from the deserts of Turkmenistan, one of the oldest and rarest horse breeds on Earth. Her coat shimmers like polished gold because each hair is almost see-through and bounces the light. Her ancestors carried warriors across burning desert sand and could travel for days with very little water. Aurora loves cool evening gallops and follows her favourite groom around like a golden shadow.",
+    facts: [
+      "✨ Akhal-Tekes are called the 'Golden Horses' because their coats shine like metal!",
+      "🏜️ They come from the deserts of Turkmenistan and cope amazingly well with heat and thirst.",
+      "🏃 They have incredible stamina — they can travel huge distances across the desert.",
+      "💛 Only a few thousand are left, making them one of the rarest breeds in the world."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "My coat shimmers like real GOLD ✨ and my ancestors carried warriors across the hot desert sand! Which horse am I?" },
+      { label: "🐴 Breed Question",   text: "I am an Akhal-Teke from the deserts of Turkmenistan — one of the oldest and rarest breeds on Earth. Which horse am I? 🏜️" },
+      { label: "🎨 Coat Question",    text: "My coat has a shiny METALLIC golden shimmer, because each hair bounces the light like polished gold! Which horse am I? 🌟" },
+      { label: "💝 Personality",      text: "I am bold and full of stamina, and I bond with ONE special person whom I follow everywhere. Which horse am I? 💛" },
+      { label: "🌟 Fun Fact",         text: "My breed is so rare that only a few thousand of us are left in the whole world! Which horse am I? 🦄" }
+    ]
+  },
+  {
+    name: "Freya", breed: "Norwegian Fjord", emoji: "🐴",
+    image: "horse-images/freya-fjord.jpg",
+    cardGradient: "linear-gradient(135deg, #d9c2a3, #8a7853)",
+    coat: "Sandy dun coat with a dark stripe down her back and a chunky mane that stands straight up like a mohawk",
+    temperament: "Sturdy, calm, friendly, and very strong for her size — a gentle little powerhouse.",
+    story: "Freya is a Norwegian Fjord horse, one of the oldest breeds in the world — the Vikings rode horses just like her over a thousand years ago! Her thick mane is trimmed so the dark middle stripe stands tall between two creamy edges, like a little mohawk. Freya is small but mighty: she happily pulls carts, carries children up mountain trails, and never seems to get tired. She loves snow and will roll in it like a happy puppy.",
+    facts: [
+      "🛡️ Fjord horses are an ancient breed — the Vikings rode their ancestors over 1,000 years ago!",
+      "✂️ Their thick mane is trimmed to stand upright, showing the dark stripe in the middle.",
+      "💪 They are small but incredibly strong and very sure-footed on mountains.",
+      "🦓 Almost every Fjord is dun with a dark stripe down the back, just like their wild ancestors."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "The VIKINGS rode horses just like me over a thousand years ago 🛡️ — and I love rolling in the snow! Which horse am I?" },
+      { label: "🐴 Breed Question",   text: "I am a Norwegian Fjord, one of the oldest breeds in the world, small but super strong on mountains. Which horse am I? 🏔️" },
+      { label: "🎨 Coat Question",    text: "I have a sandy dun coat with a dark stripe down my back and a mane that stands UP like a mohawk! Which horse am I? 🦓" },
+      { label: "💝 Personality",      text: "I am calm, friendly and a gentle little powerhouse — strong enough to pull carts and carry children up mountains. Which horse am I? 💪" },
+      { label: "🌟 Fun Fact",         text: "My thick mane is trimmed so the DARK middle stripe stands tall between two creamy edges! Which horse am I? ✂️" }
+    ]
   }
 ];
 
@@ -1736,7 +1778,7 @@ function feedAgain() {
 //  Finish 12 to earn +5 vet points and 1 extra Feed Kitchen play.
 // ═══════════════════════════════════════════════════════════
 const FLASH_TOTAL = 12;
-let flashIdx = 0, flashRight = 0, flashBusy = false, flashA = 0, flashB = 0;
+let flashIdx = 0, flashRight = 0, flashBusy = false, flashA = 0, flashB = 0, flashDeck = [];
 
 function showFlashGame() {
     document.getElementById('mainPage').classList.add('hidden');
@@ -1745,13 +1787,17 @@ function showFlashGame() {
 }
 function startFlash() {
     flashIdx = 0; flashRight = 0; flashBusy = false;
+    // every round always includes her tricky ones (4×7 and 4×8); the rest are hard tables 2–9 (no ×1/×10)
+    flashDeck = [[4, 7], [4, 8]];
+    while (flashDeck.length < FLASH_TOTAL) flashDeck.push([rnd(2, 9), rnd(2, 9)]);
+    flashDeck = shuffle(flashDeck);
     document.getElementById('flashTotal').textContent = FLASH_TOTAL;
     showFlashCard();
 }
 function showFlashCard() {
     if (flashIdx >= FLASH_TOTAL) { flashDone(); return; }
     flashBusy = false;
-    flashA = rnd(2, 9); flashB = rnd(2, 9);          // hard tables only: 2–9 (skips ×1 and ×10)
+    flashA = flashDeck[flashIdx][0]; flashB = flashDeck[flashIdx][1];
     document.getElementById('flashRight').textContent = flashRight;
     document.getElementById('flashNum').textContent = flashIdx + 1;
     document.getElementById('flashProgress').style.width = (flashIdx / FLASH_TOTAL * 100) + '%';
