@@ -1187,7 +1187,7 @@ const vetConcepts = [
   { horseIdx:11, type:'compare', treatment:'bucket', title:"Freyas Winter-Heu", intro:"Im kalten Winter frisst Freya viel Heu, um warm zu bleiben. Zwei Läden verkaufen Heuballen – wo ist einer teurer?", cured:"Freya hat genug Heu für den ganzen Winter zum besten Preis. 🛡️", make:()=>Qcompare((qa,ta,qb,tb)=>`Laden A verkauft <b>${qa}</b> Heuballen für <b>${fmtMoney(ta/100)}</b>, Laden B <b>${qb}</b> für <b>${fmtMoney(tb/100)}</b>. Rechne den Preis für EINEN Ballen in jedem Laden aus, dann sag, welcher Laden teurer ist.`) },
   { horseIdx:11, type:'longmult', treatment:'bucket', title:"Freya zieht den Karren", intro:"Freya ist klein, aber unglaublich stark und zieht den ganzen Tag Karren. Dafür braucht sie viel Hafer (Haa-fer).", cured:"Freya ist satt und zieht fröhlich den Karren über den Hof. 💪", make:()=>Qlongmult((a,b)=>`Freya bekommt <b>${a} g</b> Hafer pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) }
 ];
-let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false;
+let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false, mPerfect = true;
 let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mTreat = null;
 
 // A session is 4 fresh questions, weighted to the new skills (long ×, money ×, unit price,
@@ -1214,7 +1214,7 @@ function showMathGame() {
     startMathGame();
 }
 function startMathGame() {
-    mScore = 0; mQ = 0; mBusy = false;
+    mScore = 0; mQ = 0; mBusy = false; mPerfect = true;
     mPool = buildMathPool();
     document.getElementById('mQTotal').textContent = mPool.length;
     showMathQuestion();
@@ -1362,13 +1362,13 @@ function answerCompare(pick) {
 
 function mathCorrect(q, fbEl) {
     mBusy = true;
-    if (mFirstTry) { mScore++; document.getElementById('mScoreVal').textContent = mScore; }
+    mScore++; document.getElementById('mScoreVal').textContent = mScore;   // healed once she gets it right (even after a retry)
     fbEl.className = 'calc-feedback ok';
     fbEl.textContent = '✅ Richtige Dosis! Jetzt mach die Medizin selbst! 🧪';
     startMixPhase(q);
 }
 function mathWrong(fbEl) {
-    mFirstTry = false;
+    mFirstTry = false; mPerfect = false;
     fbEl.className = 'calc-feedback no';
     fbEl.textContent = '❌ Nicht ganz – prüf deine Rechnung und versuch es nochmal!';
     const a = document.getElementById('mAns'); if (a) a.value = '';
@@ -1615,31 +1615,25 @@ function showMathEnd() {
     document.getElementById('mathGamePage').classList.add('hidden');
     document.getElementById('mProgressFill').style.width = '100%';
     document.getElementById('mathEndScreen').classList.remove('hidden');
-    const total = mPool.length, pct = mScore / total;
+    const total = mPool.length;
     let emoji, msg;
-    if (pct === 1)       { emoji = '🏆'; msg = `Incredible! You treated every single patient perfectly. You are a true horse doctor, Ella!`; }
-    else if (pct >= 0.8) { emoji = '🩺'; msg = `Amazing work, Doctor! Almost every horse healed on the first try. The whole stable is proud of you!`; }
-    else if (pct >= 0.6) { emoji = '💉'; msg = `Great job! Lots of happy, healthy horses thanks to you. Keep practising your maths to become the top vet!`; }
-    else if (pct >= 0.4) { emoji = '🐴'; msg = `Good effort! Every horse got better in the end. Play again and your dosing will get even sharper!`; }
-    else                 { emoji = '🌈'; msg = `Every great vet starts somewhere! Play again — the more you practise, the more horses you'll heal, Ella!`; }
+    if (mPerfect) { emoji = '🏆'; msg = `Perfect! You healed every horse on the very first try. You are a true horse doctor, Ella!`; }
+    else          { emoji = '🩺'; msg = `Great work, Doctor! Every single horse got better in the end — full points for you!`; }
     document.getElementById('mEndEmoji').textContent = emoji;
     document.getElementById('mEndScore').textContent = `You healed ${mScore} of ${total} patients! 🎊`;
     document.getElementById('mEndMsg').textContent = msg;
 
-    // ── award persistent vet points: all right = 10, one wrong = 5, more than one wrong = 0 ──
-    const wrong = total - mScore;
-    const earned = wrong === 0 ? 10 : (wrong === 1 ? 5 : 0);
+    // ── award persistent vet points: full points for healing them all, +5 bonus for a perfect (no-mistake) round ──
+    const earned = mPerfect ? 15 : 10;
     const before = getVetPoints(), after = before + earned;
     setVetPoints(after);
     const beforeTier = vetTierIndex(before), afterTier = vetTierIndex(after), tier = VET_TIERS[afterTier];
 
     // earning points also unlocks 2 plays of the just-for-fun Feed Kitchen
-    if (earned > 0) { setFeedTokens(getFeedTokens() + 2); renderFeedButton(); }
+    setFeedTokens(getFeedTokens() + 2); renderFeedButton();
 
-    let html = earned > 0
-        ? `<div class="ev-earned">🎖️ +${earned} vet points!</div>`
-        : `<div class="ev-earned zero">More than one wrong this time — no points. You can do it next round! 💪</div>`;
-    if (earned > 0) html += `<div class="ev-feed">🥕 +2 Feed Kitchen plays unlocked!</div>`;
+    let html = `<div class="ev-earned">🎖️ +${earned} vet points!${mPerfect ? ' (perfect bonus +5! ✨)' : ''}</div>`;
+    html += `<div class="ev-feed">🥕 +2 Feed Kitchen plays unlocked!</div>`;
     if (afterTier > beforeTier) html += `<div class="ev-levelup">🎉 LEVEL UP! You're now a ${tier.name}! ${tier.emoji}</div>`;
     html += `<div class="ev-total">Total: ${after} vet points</div>`;
     html += `<div class="ev-tier-badge">${tier.emoji} ${tier.name}</div>`;
