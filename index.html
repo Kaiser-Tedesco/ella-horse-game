@@ -52,6 +52,17 @@
         .play-btn { font-family: 'Fredoka One', cursive; font-size: 1.7rem; padding: 20px 54px; border: none; border-radius: 60px; cursor: pointer; color: white; text-shadow: 1px 2px 0 rgba(0,0,0,0.2); box-shadow: 0 8px 30px rgba(0,0,0,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease; animation: rainbowShift 4s ease infinite; background: linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcb77, #4d96ff, #c77dff); background-size: 300% 300%; }
         .play-btn:hover { transform: scale(1.07) translateY(-4px); box-shadow: 0 16px 44px rgba(0,0,0,0.28); }
 
+        /* ── MATHS INFO SECTION ── */
+        .maths-info { max-width: 1100px; margin: 6px auto 34px; padding: 0 24px; text-align: center; }
+        .maths-info h2 { font-family: 'Fredoka One', cursive; font-size: clamp(1.5rem, 4.5vw, 2.2rem); color: #6a3fb5; margin-bottom: 8px; }
+        .maths-info-sub { color: #666; font-weight: 700; font-size: 1rem; max-width: 640px; margin: 0 auto 26px; line-height: 1.6; }
+        .maths-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+        .maths-info-card { background: white; border-radius: 20px; padding: 22px 20px; box-shadow: 0 5px 18px rgba(0,0,0,0.10); text-align: center; }
+        .maths-info-card .mi-emoji { font-size: 2.6rem; line-height: 1; margin-bottom: 10px; }
+        .maths-info-card h3 { font-family: 'Fredoka One', cursive; font-size: 1.15rem; color: #2d2d2d; margin-bottom: 7px; }
+        .maths-info-card p { color: #555; font-size: 0.95rem; line-height: 1.55; font-weight: 600; }
+        .maths-info-note { margin-top: 22px; color: #6a3fb5; font-weight: 800; font-size: 1.02rem; line-height: 1.5; }
+
         /* ── FOOTER ── */
         footer { text-align: center; padding: 28px 20px; color: white; font-weight: 700; font-size: 1.05rem; text-shadow: 1px 1px 0 rgba(0,0,0,0.15); }
 
@@ -338,6 +349,19 @@
         <p style="margin-top:12px;color:#999;font-weight:700;font-size:0.95rem;">12 Karten richtig = +5 Punkte und 1 Extra-Fütterung! 🥕</p>
         <div style="margin-top:6px"><button class="admin-link" onclick="openAdmin()">🔒 Grown-ups</button></div>
     </div>
+    <!-- ════════════════ MATHS OPERATIONS EXPLAINER ════════════════ -->
+    <section class="maths-info">
+        <h2>🧮 Welche Rechen-Arten übst du im Tierarzt-Spiel?</h2>
+        <p class="maths-info-sub">Im 🩺 Tierarzt-Mathe-Spiel mischst du die Medizin, indem du Aufgaben löst. Das sind die Rechen-Arten, die vorkommen:</p>
+        <div class="maths-info-grid">
+            <div class="maths-info-card"><div class="mi-emoji">✖️</div><h3>Große Mal-Aufgaben</h3><p>Eine große Zahl mal eine kleinere, schriftlich untereinander gerechnet. Denk an den Übertrag!</p></div>
+            <div class="maths-info-card"><div class="mi-emoji">💶</div><h3>Rechnen mit Geld</h3><p>Ein Preis mit Komma mal einer Anzahl, zum Beispiel 4,50 € × 3. Pass gut auf das Komma auf!</p></div>
+            <div class="maths-info-card"><div class="mi-emoji">⚖️</div><h3>Preise vergleichen</h3><p>Zwei Läden, zwei Angebote. Rechne aus, was EIN Stück kostet, und vergleiche die Preise.</p></div>
+            <div class="maths-info-card"><div class="mi-emoji">📏</div><h3>Einheiten umrechnen</h3><p>Rechne um, zum Beispiel Kilometer in Meter, Kilo in Gramm oder Stunden in Minuten.</p></div>
+            <div class="maths-info-card"><div class="mi-emoji">➗</div><h3>Teilen mit Rest</h3><p>Teile gerecht auf. Erst schätzen, dann genau rechnen, und manchmal bleibt ein Rest übrig!</p></div>
+        </div>
+        <p class="maths-info-note">⚡ Und bei den Blitz-Karten übst du das kleine Einmaleins, schnelle Mal-Aufgaben wie 7 × 8!</p>
+    </section>
     <footer class="rainbow-bg">
         <p>Made with 💖 especially for Ella &nbsp;·&nbsp; Gallop &amp; Friends 🐴✨</p>
     </footer>
@@ -804,6 +828,48 @@ const horses = [
       { label: "💝 Personality",      text: "I am calm, friendly and a gentle little powerhouse — strong enough to pull carts and carry children up mountains. Which horse am I? 💪" },
       { label: "🌟 Fun Fact",         text: "My thick mane is trimmed so the DARK middle stripe stands tall between two creamy edges! Which horse am I? ✂️" }
     ]
+  },
+  {
+    name: "Chestnut", breed: "Suffolk Punch", emoji: "🐴",
+    image: "horse-images/chestnut-suffolk.jpg",
+    cardGradient: "linear-gradient(135deg, #8b3a1e, #cf6b35)",
+    coat: "Solid warm chestnut from nose to tail, with a paler flaxen mane and short, clean legs with no feathering",
+    temperament: "Gentle, hard-working, calm and kind — a powerful giant with a soft, willing heart.",
+    story: "Chestnut comes from the green farms of Suffolk in England, where his breed has pulled ploughs for hundreds of years. He got his name the easy way: EVERY Suffolk Punch is chestnut-coloured, so there was never any other choice! Chestnut is enormous and incredibly strong, but he is famous for being gentle and willing. He loves leaning his huge head on your shoulder for a cuddle, and his favourite job is pulling the hay cart while the farm children ride on top.",
+    facts: [
+      "🍂 Every single Suffolk Punch is chestnut — there has never been one of any other colour!",
+      "🚜 They are the oldest English breed of heavy farm horse, used for ploughing for over 250 years.",
+      "💪 'Punch' means strong and solid — they are powerful, with short clean legs and no fluffy feathers.",
+      "🌟 Suffolk Punches are one of the RAREST horse breeds in the world — only a few hundred are left!"
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "I got my name the EASY way 🍂 — every single horse of my breed is chestnut-coloured, so there was never another choice!" },
+      { label: "🐴 Breed Question",   text: "My breed is the Suffolk Punch from England — the oldest English heavy farm horse, strong enough to pull a plough all day long. Which horse am I? 🚜" },
+      { label: "🎨 Coat Question",    text: "I am solid warm chestnut from nose to tail, with a paler flaxen mane and short, clean legs. Which horse am I? 🍂" },
+      { label: "💝 Personality",      text: "I am enormous and super strong, but everyone says I am gentle and kind — I love leaning my big head on your shoulder! Which horse am I? 🧡" },
+      { label: "🌟 Fun Fact",         text: "I am one of the RAREST horse breeds in the world — there are only a few hundred of us left! Which horse am I? 🌟" }
+    ]
+  },
+  {
+    name: "Saga", breed: "Icelandic Horse", emoji: "🐴",
+    image: "horse-images/saga-icelandic.jpg",
+    cardGradient: "linear-gradient(135deg, #7fb2c4, #34637a)",
+    coat: "Reddish chestnut with a thick, fluffy flaxen mane and forelock that flops over her eyes, plus a heavy winter coat",
+    temperament: "Friendly, sure-footed, tough and full of character — tiny but brave, and she never seems to tire.",
+    story: "Saga is an Icelandic horse, born on a frosty farm in Iceland. Her breed was brought to the island by the Vikings over 1,000 years ago and has stayed pure ever since. Saga is small but mighty, with a thick fluffy coat that keeps her cosy in snowstorms. She has a magical secret: as well as walk, trot and gallop, she can do a special smooth gait called the tölt — so smooth you could carry a cup of cocoa and not spill a single drop! She was named Saga after the old Icelandic adventure stories.",
+    facts: [
+      "🎵 Icelandic horses have a SPECIAL fifth gait called the tölt — so smooth the rider barely bounces at all!",
+      "🛡️ The Vikings brought them to Iceland over 1,000 years ago, and the breed has stayed pure ever since.",
+      "✈️ Once an Icelandic horse leaves Iceland it can NEVER come back — this keeps the whole breed healthy.",
+      "❄️ They grow a thick, fluffy double coat to stay warm through long, freezing Icelandic winters."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "My special gait is SO smooth 🎵 that a rider could hold a cup of cocoa on my back and not spill a single drop!" },
+      { label: "🐴 Breed Question",   text: "I am an Icelandic horse — small but mighty, brought to Iceland by the Vikings over 1,000 years ago. Don't call me a pony! Which horse am I? 🛡️" },
+      { label: "🎨 Coat Question",    text: "I am reddish chestnut with a thick, fluffy flaxen mane that flops over my eyes, and a cosy winter coat for the snow. Which horse am I? ❄️" },
+      { label: "💝 Personality",      text: "I am tiny but super tough and sure-footed — I stay calm and brave even in the middle of a snowstorm! Which horse am I? 💪" },
+      { label: "🌟 Fun Fact",         text: "I have a SECRET fifth gait that most other horses don't have — a super-smooth running walk called the tölt! Which horse am I? 🎵" }
+    ]
   }
 ];
 
@@ -1185,7 +1251,17 @@ const vetConcepts = [
   { horseIdx:11, type:'convert', treatment:'bandage', title:"Freyas Bergpfad-Schramme", intro:"Freya ist trittsicher (tritt-zi-cher) auf steilen Bergpfaden, doch heute hat sie sich an einem Stein das Bein geschrammt und braucht einen Verband.", cured:"Freyas Bein ist verbunden und sie klettert wieder sicher bergauf. 🛡️", make:()=>Qconvert('len',(disp,unit)=>`Freyas Beinverband ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
   { horseIdx:11, type:'money', treatment:'bucket', title:"Freyas Kraftfutter", intro:"Freya zieht schwere Karren und ist sehr kräftig. Ihre Muskeln (Mus-keln) brauchen Kraftfutter mit vielen Nährstoffen.", cured:"Freya ist stark und zieht den Karren mühelos. 💪", make:()=>Qmoney((cents,d)=>`Ein Sack Kraftfutter kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Säcke</b>. Wie viel kostet das zusammen?`) },
   { horseIdx:11, type:'compare', treatment:'bucket', title:"Freyas Winter-Heu", intro:"Im kalten Winter frisst Freya viel Heu, um warm zu bleiben. Zwei Läden verkaufen Heuballen – wo ist einer teurer?", cured:"Freya hat genug Heu für den ganzen Winter zum besten Preis. 🛡️", make:()=>Qcompare((qa,ta,qb,tb)=>`Laden A verkauft <b>${qa}</b> Heuballen für <b>${fmtMoney(ta/100)}</b>, Laden B <b>${qb}</b> für <b>${fmtMoney(tb/100)}</b>. Rechne den Preis für EINEN Ballen in jedem Laden aus, dann sag, welcher Laden teurer ist.`) },
-  { horseIdx:11, type:'longmult', treatment:'bucket', title:"Freya zieht den Karren", intro:"Freya ist klein, aber unglaublich stark und zieht den ganzen Tag Karren. Dafür braucht sie viel Hafer (Haa-fer).", cured:"Freya ist satt und zieht fröhlich den Karren über den Hof. 💪", make:()=>Qlongmult((a,b)=>`Freya bekommt <b>${a} g</b> Hafer pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) }
+  { horseIdx:11, type:'longmult', treatment:'bucket', title:"Freya zieht den Karren", intro:"Freya ist klein, aber unglaublich stark und zieht den ganzen Tag Karren. Dafür braucht sie viel Hafer (Haa-fer).", cured:"Freya ist satt und zieht fröhlich den Karren über den Hof. 💪", make:()=>Qlongmult((a,b)=>`Freya bekommt <b>${a} g</b> Hafer pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) },
+
+  // ── Chestnut (Suffolk Punch) ──
+  { horseIdx:12, type:'longmult', treatment:'bucket', title:"Chestnut zieht den Pflug", intro:"Chestnut ist ein kräftiges Zugpferd und zieht den ganzen Tag den Pflug. So viel Muskelarbeit (Mus-kel-ar-beit) macht hungrig – er braucht viel Hafer.", cured:"Chestnut ist satt und zieht den Pflug mühelos über das Feld. Stark! 🍂", make:()=>Qlongmult((a,b)=>`Chestnut bekommt <b>${a} g</b> Hafer pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) },
+  { horseIdx:12, type:'money', treatment:'salve', title:"Chestnuts schwere Hufe", intro:"Chestnut ist so schwer, dass seine Hufe (Hu-fe) besonders gepflegt werden müssen, damit sie nicht austrocknen und reißen. Du kaufst pflegendes Huf-Fett.", cured:"Chestnuts Hufe sind fest und gut gepflegt. Gut gemacht! 🍂", make:()=>Qmoney((cents,d)=>`Eine Dose Huf-Fett kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Dosen</b> für den Stall. Wie viel kostet das zusammen?`) },
+  { horseIdx:12, type:'convert', treatment:'bandage', title:"Chestnuts Schramme am Bein", intro:"Chestnut hat sich beim Pflügen am Bein geschrammt. Du legst einen sauberen Beinverband (Bein-fer-band) an, damit die Wunde sauber bleibt.", cured:"Chestnuts Bein ist gut verbunden und er stapft wieder los. 🍂", make:()=>Qconvert('len',(disp,unit)=>`Chestnuts Beinverband ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
+
+  // ── Saga (Islandpferd) ──
+  { horseIdx:13, type:'longmult', treatment:'injection', title:"Saga im kalten Winter", intro:"Damit Saga im langen, eisigen Winter gesund bleibt, bekommt sie eine Vitaminspritze (Vi-ta-min-spri-tse) mit allem, was ihr Körper braucht.", cured:"Saga ist bestens geschützt und trabt fröhlich durch den Schnee. ❄️", make:()=>Qlongmult((a,b)=>`Saga bekommt <b>${a} mg</b> Vitamine pro Spritze, <b>${b} Spritzen</b> über den Winter. Wie viele mg insgesamt?`) },
+  { horseIdx:13, type:'convert', treatment:'bucket', title:"Sagas langer Ausritt", intro:"Saga ist trittsicher (tritt-zi-cher) und liebt lange Ritte über die Lavafelder. Nach dem Tölten braucht sie viel frisches Wasser.", cured:"Saga hat genug getrunken und ist rundum zufrieden. ❄️", make:()=>Qconvert('dist',(disp,unit)=>`Saga ist heute <b>${disp}</b> getöltet. Wie weit ist das in <b>${unit}</b>?`) },
+  { horseIdx:13, type:'div', treatment:'bucket', title:"Saga teilt mit der Herde", intro:"Saga lebt in einer Herde (Her-de) mit anderen Islandpferden. Du teilst eine Tüte Vitamin-Pellets gerecht auf alle Eimer auf.", cured:"Jedes Pferd hat gerecht etwas abbekommen. Klug geteilt! ❄️", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} g</b> Vitamin-Pellets gleichmäßig auf <b>${b} Eimer</b> auf. Schätze zuerst, dann genau: wie viel pro Eimer – und wie viel bleibt übrig?`) }
 ];
 let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false, mPerfect = true;
 let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mTreat = null;
