@@ -104,6 +104,7 @@
         .cure-collect .cc-token { width:54px; height:54px; border-radius:50%; background:linear-gradient(135deg,#fff3c4,#ffe07a); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:inset 0 0 0 3px rgba(255,255,255,.6); }
         .cure-collect .cc-token svg { width:38px; height:38px; }
         .cure-collect .cc-text { font-weight:800; color:#b4881a; font-size:0.96rem; text-align:left; line-height:1.3; }
+        .ev-collect { background:#fff8e1; color:#b4881a; font-weight:800; border-radius:14px; padding:10px 14px; margin-top:12px; line-height:1.35; }
 
         /* ── TIERARZT-PRÜFUNG EXAM (Phase 4) ── */
         .exam-btn { display:block; margin:16px auto 0; font-family:'Fredoka One',cursive; font-size:1.15rem; padding:14px 30px; border:none; border-radius:40px; cursor:pointer; color:white; background:linear-gradient(135deg,#7b4dff,#b06ab3); box-shadow:0 6px 20px rgba(123,77,255,.35); animation:examPulse 1.6s ease-in-out infinite; }
@@ -1879,11 +1880,6 @@ function showCure(q) {
         sp.style.animationDelay = (i * 0.28) + 's';
         hc.appendChild(sp);
     });
-    const cc = document.getElementById('mCureCollect');
-    const drop = maybeDropCollectible();   // ~1 in 4 chance she finds a collectible
-    if (drop) { cc.innerHTML = `<div class="cc-token">${drop.svg}</div><div class="cc-text">🎁 Neu für deine Sammlung:<br><b>${drop.name}</b>!</div>`; cc.classList.remove('hidden'); }
-    else { cc.classList.add('hidden'); cc.innerHTML = ''; }
-
     document.getElementById('mCureOverlay').classList.add('active');
 }
 function nextAfterCure() {
@@ -1939,7 +1935,17 @@ function setVetPoints(p) { try { localStorage.setItem('ellaVetPoints', String(p)
 function vetTierIndex(points) { var idx = 0; for (var i = 0; i < VET_TIERS.length; i++) if (points >= VET_TIERS[i].min) idx = i; return idx; }
 
 // ── Phase 4: rank is gated by the Tierarzt-Prüfung. Points UNLOCK the exam; passing PROMOTES. ──
-function getRankAchieved() { try { var v = parseInt(localStorage.getItem('ellaRankAchieved'), 10); return isNaN(v) ? 0 : v; } catch (e) { return 0; } }
+function getRankAchieved() {
+    try {
+        var raw = localStorage.getItem('ellaRankAchieved');
+        if (raw === null) {                                   // first run of the exam feature:
+            var t = Math.max(0, vetTierIndex(getVetPoints()) - 1);  // keep her ranks up to ONE below her points,
+            localStorage.setItem('ellaRankAchieved', String(t));    // so the level her points just reached needs a test
+            return t;
+        }
+        var v = parseInt(raw, 10); return isNaN(v) ? 0 : v;
+    } catch (e) { return 0; }
+}
 function setRankAchieved(i) { try { localStorage.setItem('ellaRankAchieved', String(i)); } catch (e) {} }
 function effectiveTier() { return Math.min(vetTierIndex(getVetPoints()), getRankAchieved()); }   // can't outrank your exams
 function examAvailable() { return vetTierIndex(getVetPoints()) > getRankAchieved() && getRankAchieved() < VET_TIERS.length - 1; }
@@ -1957,7 +1963,57 @@ const EXAM = {
   "Stille in Patches' Bauch":   { q:"Woran erkennt man eine Kolik (Bauchschmerzen)?", correct:"Das Pferd scharrt und schaut immer wieder zu seinem Bauch.", wrong:["Das Pferd niest die ganze Zeit.", "Das Pferd will nur noch schlafen."] },
   "Biscuits Hufabszess":        { q:"Was ist ein Hufabszess?", correct:"Eine schmerzhafte Eiterstelle in der Hufwand.", wrong:["Ein zu lang gewachsener Huf.", "Ein verlorenes Hufeisen."] },
   "Es riecht aus dem Huf":      { q:"Was ist Strahlfäule?", correct:"Eine Infektion am weichen Teil des Hufs, die streng riecht.", wrong:["Eine Krankheit der Augen.", "Ein Bruch im Bein."] },
-  "Dottys Sommerjucken":        { q:"Was ist ein Sommerekzem?", correct:"Eine Allergie gegen den Speichel kleiner Mücken (Gnitzen).", wrong:["Eine Erkältung im kalten Winter.", "Zu lange Hufe vom wenig Laufen."] }
+  "Dottys Sommerjucken":        { q:"Was ist ein Sommerekzem?", correct:"Eine Allergie gegen den Speichel kleiner Mücken (Gnitzen).", wrong:["Eine Erkältung im kalten Winter.", "Zu lange Hufe vom wenig Laufen."] },
+
+  "Stella hat hohes Fieber":        { q:"Was bedeutet 'hohes Fieber'?", correct:"Die Körpertemperatur ist viel zu hoch.", wrong:["Das Pferd hat einfach nur Hunger.", "Das Pferd ist nur ein bisschen müde."] },
+  "Brio frisst gern lange":         { q:"Warum frisst ein Pferd am liebsten den ganzen Tag kleine Mengen?", correct:"Weil ein Pferd ein Dauerfresser ist und sonst der Magen wehtut.", wrong:["Weil es nachts nicht schlafen kann.", "Weil es dann schneller läuft."] },
+  "Kaltes Wasser gegen Schwellung": { q:"Warum hilft ein kühler Verband gegen eine Schwellung?", correct:"Kälte lässt die Blutgefäße enger werden und nimmt die Schwellung.", wrong:["Kälte macht das Pferd schneller.", "Kälte färbt das Fell heller."] },
+  "Spritze ins Gelenk":             { q:"Was ist eine Gelenkspritze?", correct:"Eine Spritze mit Medizin direkt in ein schmerzendes Gelenk.", wrong:["Eine Spritze ins Auge.", "Eine Spritze, die das Pferd schneller macht."] },
+  "Biscuits Magensonde":            { q:"Wofür ist eine Nasenschlundsonde?", correct:"Ein weicher Schlauch durch die Nase, um Öl in den Magen zu bringen.", wrong:["Ein Gerät zum Hufe schneiden.", "Eine Brille für das Pferd."] },
+  "Blutprobe am Hals":              { q:"Wo nimmt der Tierarzt einem Pferd am sichersten Blut ab?", correct:"An der großen Drosselvene am Hals.", wrong:["Am Ende des Schweifs.", "An der Spitze des Ohrs."] },
+  "Dottys Tetanus-Impfung":         { q:"Wie kann sich ein Pferd mit Tetanus (Wundstarrkrampf) anstecken?", correct:"Durch eine kleine Wunde, denn die Bakterien stecken im Boden.", wrong:["Durch zu viel Trinken.", "Durch zu langes Schlafen."] },
+  "Midnight wird betäubt":          { q:"Was bewirkt eine Sedierung?", correct:"Sie macht das Pferd schläfrig, damit es ruhig behandelt werden kann.", wrong:["Sie macht das Pferd hellwach und schnell.", "Sie färbt die Hufe bunt."] },
+  "Biscuits Sehne braucht Halt":    { q:"Warum bekommt eine gezerrte Sehne einen festen Stützverband?", correct:"Damit sie Halt hat und sich nicht bei jedem Schritt weiter dehnt.", wrong:["Damit das Pferd schneller wird.", "Damit das Bein bunt aussieht."] },
+  "Ultraschall zeigt die Sehne":    { q:"Was kann man mit einem Ultraschall sehen?", correct:"Das Innere vom Bein, zum Beispiel gerissene Sehnenfasern.", wrong:["Nur die Farbe vom Fell.", "Wie schnell das Pferd rennt."] },
+  "Brios Wurmkur wechselt":         { q:"Warum wechselt man bei der Entwurmung immer das Mittel?", correct:"Damit sich die Würmer nicht an ein Mittel gewöhnen.", wrong:["Damit es bunter aussieht.", "Damit das Pferd schneller frisst."] },
+  "Sunnys Muskeln verkrampfen":     { q:"Was passiert bei einem Kreuzverschlag?", correct:"Die Muskeln verkrampfen nach Anstrengung und werden steinhart.", wrong:["Die Hufe werden zu lang.", "Die Augen fangen an zu tränen."] },
+  "Cupcake hat Bauchweh":           { q:"Was hilft Cupcake bei Bauchweh vom vielen Fressen?", correct:"Beruhigende Heilkräuter im Futter, die der Verdauung helfen.", wrong:["Noch viel mehr Leckerlis.", "Ein schneller Galopp über die Wiese."] },
+  "Patches' weiße Linie":           { q:"Was ist das Problem an Patches' Huf?", correct:"An der weichen weißen Linie sitzen Bakterien.", wrong:["Der Huf ist zu kurz geschnitten.", "Der Huf ist viel zu sauber."] },
+  "Brios Huf-Umschlag":             { q:"Wofür ist ein warmer Breiumschlag mit Zugsalbe?", correct:"Er zieht den Eiter aus einem Hufabszess sanft heraus.", wrong:["Er macht den Huf schön bunt.", "Er lässt das Pferd schneller laufen."] },
+  "Heu einweichen":                 { q:"Warum weicht man Heu vor dem Füttern in Wasser ein?", correct:"Damit weniger Staub in die Luft kommt und das Pferd leichter atmet.", wrong:["Damit das Heu schwerer wird.", "Damit es viel süßer schmeckt."] },
+  "Lunas Erholung":                 { q:"Warum muss Luna nach der Spritze eine Weile ruhen?", correct:"Damit die Medizin in Ruhe gut wirken kann.", wrong:["Damit sie schneller wird.", "Damit ihr Fell glänzt."] },
+  "Cupcakes Salzleckstein":         { q:"Wozu hängt im Stall ein Salzleckstein?", correct:"Damit das Pferd Mineralstoffe lecken kann, wenn sein Körper sie braucht.", wrong:["Zum Spielen und Herumwerfen.", "Damit die Box besser riecht."] },
+  "Patches' Futtermenge":           { q:"Warum wiegt man das Futter genau ab?", correct:"Damit das Pferd die richtige Menge bekommt und gesund bleibt.", wrong:["Damit das Futter teurer wird.", "Damit es bunter aussieht."] },
+  "Stellas Ausdauertraining":       { q:"Was bedeutet 'Ausdauer' bei einem Pferd?", correct:"Dass es lange Strecken laufen kann, ohne schnell müde zu werden.", wrong:["Dass es besonders hoch springt.", "Dass es sehr laut wiehert."] },
+  "Dottys langer Ausritt":          { q:"Was bedeutet 'Trockenreiten' nach einem langen Ausritt?", correct:"Das Pferd langsam abkühlen lassen, bis es nicht mehr schwitzt.", wrong:["Das Pferd sofort kalt abspritzen.", "Das Pferd gleich fressen lassen."] },
+  "Thunders Beinwickel":            { q:"Wofür ist ein Beinwickel?", correct:"Er schützt eine Wunde am Bein und hält sie sauber.", wrong:["Er macht das Pferd schneller.", "Er hält den Schweif hoch."] },
+  "Stellas Augenentzündung":        { q:"Was ist eine Bindehautentzündung?", correct:"Ein rotes, tränendes Auge, das eine Augensalbe braucht.", wrong:["Ein zu lang gewachsener Huf.", "Ein Knoten im Schweif."] },
+  "Biscuit braucht Verband":        { q:"Wofür braucht man Verbandrollen?", correct:"Um ein verletztes Bein zu verbinden.", wrong:["Um den Schweif zu flechten.", "Um den Stall zu fegen."] },
+  "Sunny braucht Elektrolyte":      { q:"Warum braucht ein Pferd nach dem Schwitzen Elektrolyte?", correct:"Weil es beim Schwitzen wichtige Salze verliert.", wrong:["Weil es dann schneller läuft.", "Weil das Fell sonst dunkler wird."] },
+  "Dottys Mückenschutz":            { q:"Wogegen hilft die schützende Lotion auf Dottys Haut?", correct:"Gegen die Stiche kleiner Mücken (Gnitzen).", wrong:["Gegen zu lange Hufe.", "Gegen großen Hunger."] },
+  "Patches' Hufpflege":             { q:"Warum pflegt man die Hufe regelmäßig mit Salbe?", correct:"Damit sie gesund bleiben und nicht krank werden.", wrong:["Damit sie bunt glänzen.", "Damit das Pferd lauter wiehert."] },
+  "Lunas Impfung":                  { q:"Warum bekommt ein Pferd jedes Jahr eine Impfung?", correct:"Damit es vor Krankheiten geschützt ist.", wrong:["Damit es schneller wird.", "Damit es weniger frisst."] },
+  "Brios Kraftfutter":              { q:"Wofür braucht ein hart arbeitendes Pferd Kraftfutter?", correct:"Für viel Energie und wichtige Nährstoffe.", wrong:["Damit sein Fell bunter wird.", "Damit es leiser ist."] },
+  "Thunders Futter-Einkauf":        { q:"Was fressen Pferde besonders gern?", correct:"Karotten, Heu und Hafer.", wrong:["Schokolade und Chips.", "Fleisch und Fisch."] },
+  "Midnights Verband-Einkauf":      { q:"Wofür braucht man im Stall Verbandrollen?", correct:"Um Wunden und verletzte Beine zu verbinden.", wrong:["Um die Mähne zu flechten.", "Um den Boden zu fegen."] },
+  "Cupcakes Leckerli-Einkauf":      { q:"Was sind Leckerlis für Pferde?", correct:"Kleine Belohnungen zum Fressen, die Pferde gern mögen.", wrong:["Schuhe für die Hufe.", "Bürsten für die Mähne."] },
+  "Biscuits Salben-Einkauf":        { q:"Wofür ist eine Wundsalbe?", correct:"Sie hilft einer Wunde beim Heilen.", wrong:["Sie macht das Pferd schneller.", "Sie färbt das Fell."] },
+  "Sunnys Spritzen-Einkauf":        { q:"Warum nimmt man für jede Behandlung eine frische Einweg-Spritze?", correct:"Damit alles sauber und keimfrei bleibt.", wrong:["Damit es bunter aussieht.", "Damit das Pferd schneller wird."] },
+  "Stellas Hafer-Einkauf":          { q:"Wofür bekommt ein Pferd Hafer?", correct:"Als Futter, das ihm viel Energie gibt.", wrong:["Als Bett zum Schlafen.", "Als Spielzeug für die Box."] },
+  "Auroras Ausdauer-Ritt":          { q:"Was braucht Aurora nach einem langen Ritt in der Hitze?", correct:"Viel frisches Wasser zum Trinken.", wrong:["Eine warme Winterdecke.", "Gleich noch einen schnellen Ritt."] },
+  "Aurora schwitzt in der Hitze":   { q:"Wie bekommt Aurora ihre beim Schwitzen verlorenen Salze zurück?", correct:"Mit Elektrolyten im Trinkwasser.", wrong:["Mit einem kalten Bad.", "Mit ganz viel Schlaf."] },
+  "Auroras goldenes Fell":          { q:"Wofür ist das Vitamin Biotin gut?", correct:"Für gesundes, glänzendes Fell und feste Hufe.", wrong:["Für schnellere Beine.", "Für lautes Wiehern."] },
+  "Auroras Glanz-Pflege":           { q:"Wofür benutzt man ein Glanz-Öl beim Pferd?", correct:"Damit das Fell schön glänzt.", wrong:["Damit das Pferd schneller läuft.", "Damit es weniger frisst."] },
+  "Freyas Bergpfad-Schramme":       { q:"Was bedeutet 'trittsicher'?", correct:"Dass ein Pferd sicher läuft und nicht stolpert, auch auf steilen Wegen.", wrong:["Dass es sehr laut wiehert.", "Dass es nicht gern frisst."] },
+  "Freyas Kraftfutter":             { q:"Warum braucht das kräftige Fjordpferd Freya viel gutes Futter?", correct:"Weil ihre Muskeln für die schwere Arbeit Nährstoffe brauchen.", wrong:["Weil sie sonst die Farbe wechselt.", "Weil sie sonst nicht schlafen kann."] },
+  "Freyas Winter-Heu":              { q:"Warum frisst ein Pferd im kalten Winter besonders viel Heu?", correct:"Weil das Verdauen von Heu den Körper von innen wärmt.", wrong:["Weil Heu im Winter süßer schmeckt.", "Weil es dann schneller läuft."] },
+  "Freya zieht den Karren":         { q:"Warum braucht ein Pferd, das schwer arbeitet, viel Futter wie Hafer?", correct:"Weil es dabei sehr viel Energie verbraucht.", wrong:["Weil Hafer die Hufe färbt.", "Weil es sonst nicht wiehern kann."] },
+  "Chestnut zieht den Pflug":       { q:"Warum hat ein Pferd nach schwerer Muskelarbeit großen Hunger?", correct:"Weil es dabei viel Energie verbraucht hat.", wrong:["Weil es traurig geworden ist.", "Weil es zu viel geschlafen hat."] },
+  "Chestnuts schwere Hufe":         { q:"Warum pflegt man die Hufe mit Huf-Fett?", correct:"Damit sie nicht austrocknen und reißen.", wrong:["Damit sie schneller wachsen und bunt werden.", "Damit das Pferd lauter läuft."] },
+  "Chestnuts Schramme am Bein":     { q:"Warum legt man bei einer Schramme einen sauberen Beinverband an?", correct:"Damit die Wunde sauber bleibt und gut heilt.", wrong:["Damit das Bein dicker aussieht.", "Damit das Pferd schneller wird."] },
+  "Saga im kalten Winter":          { q:"Wofür ist eine Vitaminspritze im Winter gut?", correct:"Sie gibt dem Pferd wichtige Vitamine, damit es gesund bleibt.", wrong:["Sie macht das Pferd schneller.", "Sie färbt das Fell weiß."] },
+  "Sagas langer Ausritt":           { q:"Was ist der Tölt beim Islandpferd?", correct:"Eine besonders weiche, schnelle Gangart.", wrong:["Eine Krankheit der Hufe.", "Ein Futter aus Island."] },
+  "Saga teilt mit der Herde":       { q:"Was ist eine Herde?", correct:"Eine Gruppe von Pferden, die zusammen lebt.", wrong:["Ein Stall aus Holz.", "Ein Sattel für lange Ritte."] }
 };
 const EXAM_LEN = 5;
 let exQs = [], exIdx = 0, exRight = 0, exMissed = [];
@@ -2094,6 +2150,10 @@ function showMathEnd() {
         html += `<div class="ev-progress"><div class="ev-progress-fill" style="width:100%"></div></div>`;
         html += `<div class="ev-next">🏆 Highest rank — you're a hero!</div>`;
     }
+    // collectible reward: rolled ONCE per completed round (~1 in 4), so she must finish to keep it
+    const drop = maybeDropCollectible();
+    if (drop) html += `<div class="ev-collect">🎁 Du hast etwas für deine Sammlung gefunden:<br><b>${drop.name}</b>! 🐴</div>`;
+
     document.getElementById('mEndVet').innerHTML = html;
     renderVetCard();
 }
