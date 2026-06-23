@@ -63,6 +63,79 @@
         .maths-info-card p { color: #555; font-size: 0.95rem; line-height: 1.55; font-weight: 600; }
         .maths-info-note { margin-top: 22px; color: #6a3fb5; font-weight: 800; font-size: 1.02rem; line-height: 1.5; }
 
+        /* ── CHOOSE YOUR PATIENT (vet game) ── */
+        .choose-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.58); z-index:1000; align-items:center; justify-content:center; padding:20px; }
+        .choose-overlay.active { display:flex; }
+        .choose-card { background:white; border-radius:26px; max-width:660px; width:100%; padding:28px 24px 30px; box-shadow:0 24px 70px rgba(0,0,0,0.32); animation:popIn 0.28s ease; text-align:center; }
+        .choose-card h2 { font-family:'Fredoka One',cursive; font-size:clamp(1.4rem,4.5vw,1.9rem); color:#c0392b; margin-bottom:6px; }
+        .choose-sub { color:#777; font-weight:700; font-size:0.98rem; margin-bottom:20px; }
+        .choose-row { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+        .choose-horse { width:160px; border-radius:18px; overflow:hidden; cursor:pointer; box-shadow:0 5px 16px rgba(0,0,0,0.14); transition:transform .2s ease, box-shadow .2s ease; background:white; }
+        .choose-horse:hover { transform:translateY(-6px) scale(1.04); box-shadow:0 14px 32px rgba(0,0,0,0.24); }
+        .choose-horse .ch-img { position:relative; height:118px; }
+        .choose-horse .ch-img img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+        .choose-horse .ch-emoji { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:3rem; }
+        .choose-horse .ch-name { font-family:'Fredoka One',cursive; font-size:1.12rem; color:#2d2d2d; padding:9px 6px 1px; }
+        .choose-horse .ch-breed { color:#999; font-weight:700; font-size:0.8rem; padding:0 6px 12px; }
+
+        /* ── FOCUS STRIP: idle-sound toggle + 10-min hourglass (vet game) ── */
+        .focus-strip { max-width:680px; margin:8px auto 0; padding:0 24px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; }
+        .focus-toggle { font-family:'Fredoka One',cursive; font-size:0.95rem; padding:6px 16px; border:none; border-radius:30px; background:#eef1f6; color:#888; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.08); transition:background .2s; }
+        .focus-toggle.on { background:#fff3c4; color:#b4881a; }
+        .hourglass { display:flex; align-items:center; gap:8px; font-weight:800; color:#6a3fb5; font-size:1rem; }
+        .hourglass.off { opacity:.35; }
+        .hg-time { font-variant-numeric:tabular-nums; min-width:48px; }
+        .hg-bar { width:120px; height:9px; border-radius:6px; background:#e6e0f3; overflow:hidden; }
+        .hg-bar-fill { height:100%; width:100%; background:linear-gradient(90deg,#c77dff,#6a3fb5); transition:width 1s linear; }
+
+        /* ── COLLECTIBLES (Phase 3) ── */
+        .collection-card { max-width:440px; margin:30px auto 0; background:white; border-radius:22px; padding:18px 22px 22px; box-shadow:0 8px 26px rgba(0,0,0,0.12); border:3px solid #ffd93d; text-align:center; }
+        .collection-card h3 { font-family:'Fredoka One',cursive; font-size:1.25rem; color:#b4881a; }
+        .collection-count { color:#999; font-weight:800; font-size:0.85rem; margin:2px 0 14px; }
+        .collection-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+        .collect-item { display:flex; flex-direction:column; align-items:center; gap:5px; }
+        .collect-token { width:62px; height:62px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#fff3c4,#ffe07a); box-shadow:inset 0 0 0 3px rgba(255,255,255,.6), 0 3px 8px rgba(0,0,0,.12); }
+        .collect-token svg { width:44px; height:44px; }
+        .collect-item.locked .collect-token { background:#eceff3; box-shadow:inset 0 0 0 3px rgba(255,255,255,.6); }
+        .collect-item.locked .collect-token svg { filter:grayscale(1) brightness(1.5); opacity:.3; }
+        .collect-name { font-weight:800; font-size:0.72rem; color:#666; }
+        .collect-item.locked .collect-name { color:#c2c2c2; }
+        .cure-collect { margin:14px auto 2px; padding:11px 14px; background:#fff8e1; border-radius:16px; display:flex; align-items:center; gap:12px; justify-content:center; animation:popIn .3s ease; }
+        .cure-collect .cc-token { width:54px; height:54px; border-radius:50%; background:linear-gradient(135deg,#fff3c4,#ffe07a); display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:inset 0 0 0 3px rgba(255,255,255,.6); }
+        .cure-collect .cc-token svg { width:38px; height:38px; }
+        .cure-collect .cc-text { font-weight:800; color:#b4881a; font-size:0.96rem; text-align:left; line-height:1.3; }
+
+        /* ── TIERARZT-PRÜFUNG EXAM (Phase 4) ── */
+        .exam-btn { display:block; margin:16px auto 0; font-family:'Fredoka One',cursive; font-size:1.15rem; padding:14px 30px; border:none; border-radius:40px; cursor:pointer; color:white; background:linear-gradient(135deg,#7b4dff,#b06ab3); box-shadow:0 6px 20px rgba(123,77,255,.35); animation:examPulse 1.6s ease-in-out infinite; }
+        @keyframes examPulse { 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.05);} }
+        .exam-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.62); z-index:1200; align-items:center; justify-content:center; padding:20px; overflow-y:auto; }
+        .exam-overlay.active { display:flex; }
+        .exam-card { background:white; border-radius:26px; max-width:560px; width:100%; padding:26px 26px 28px; box-shadow:0 24px 70px rgba(0,0,0,0.35); animation:popIn .3s ease; text-align:center; }
+        .exam-head { font-family:'Fredoka One',cursive; font-size:1.7rem; color:#7b4dff; }
+        .exam-sub { color:#777; font-weight:700; font-size:0.95rem; margin-top:4px; }
+        .exam-progress { color:#aaa; font-weight:800; font-size:0.85rem; margin:10px 0 6px; }
+        .exam-q { font-family:'Fredoka One',cursive; font-size:1.25rem; color:#2d2d2d; line-height:1.25; margin:8px 0 18px; }
+        .exam-answers { display:flex; flex-direction:column; gap:12px; }
+        .exam-ans { font-family:'Nunito',sans-serif; font-weight:800; font-size:1.02rem; padding:14px 16px; border:3px solid #e0e0ec; border-radius:16px; background:#f7f7fc; color:#333; cursor:pointer; transition:all .15s; text-align:left; }
+        .exam-ans:hover:not(:disabled) { border-color:#b06ab3; background:#f3eeff; }
+        .exam-ans:disabled { cursor:default; }
+        .exam-ans.correct { border-color:#38c172; background:#e7f9ef; color:#1d7a45; }
+        .exam-ans.wrong { border-color:#e64535; background:#fde9e7; color:#b32218; }
+        .exam-fb { min-height:24px; font-weight:800; margin-top:14px; }
+        .exam-fb.ok { color:#1d7a45; } .exam-fb.no { color:#b32218; }
+        .exam-info { color:#555; font-weight:600; font-size:1rem; line-height:1.55; margin:14px 0; }
+        .exam-review { text-align:left; list-style:none; padding:0; margin:6px 0 16px; }
+        .exam-review li { background:#f7f7fc; border-radius:14px; padding:12px 14px; margin-bottom:10px; font-size:0.95rem; line-height:1.4; color:#444; }
+        .exam-close-btn { font-family:'Fredoka One',cursive; font-size:1.1rem; padding:13px 28px; border:none; border-radius:40px; cursor:pointer; color:white; background:linear-gradient(135deg,#7b4dff,#b06ab3); box-shadow:0 6px 18px rgba(0,0,0,.18); margin-top:8px; }
+        .exam-close-btn.alt { background:#ffd93d; color:#7a5a00; }
+        .exam-result-btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+        .exam-diploma { border:4px dashed #d7c24a; border-radius:20px; padding:22px 16px; background:linear-gradient(135deg,#fffdf3,#fff7d6); margin-bottom:18px; }
+        .exam-dip-emoji { font-size:3.4rem; }
+        .exam-dip-title { font-family:'Fredoka One',cursive; font-size:1.6rem; color:#b4881a; margin-top:4px; }
+        .exam-dip-note { color:#8a7a3a; font-weight:800; margin-top:6px; }
+        .exam-dip-rank { font-family:'Fredoka One',cursive; font-size:1.3rem; color:#2d2d2d; margin-top:12px; }
+        .exam-dip-sub { color:#777; font-weight:700; margin-top:6px; }
+
         /* ── FOOTER ── */
         footer { text-align: center; padding: 28px 20px; color: white; font-weight: 700; font-size: 1.05rem; text-shadow: 1px 1px 0 rgba(0,0,0,0.15); }
 
@@ -336,6 +409,7 @@
             <div class="vc-next" id="vcNext"></div>
         </div>
     </div>
+    <button class="exam-btn hidden" id="examBtn" onclick="startExam()">🎓 Tierarzt-Prüfung ablegen!</button>
     <div class="play-btn-wrap">
         <button class="play-btn" onclick="showGame()">🎮 Play the Horse Game!</button>
         <div style="height:20px"></div>
@@ -349,6 +423,13 @@
         <p style="margin-top:12px;color:#999;font-weight:700;font-size:0.95rem;">12 Karten richtig = +5 Punkte und 1 Extra-Fütterung! 🥕</p>
         <div style="margin-top:6px"><button class="admin-link" onclick="openAdmin()">🔒 Grown-ups</button></div>
     </div>
+    <!-- ════════════════ COLLECTION ALBUM (Phase 3) ════════════════ -->
+    <div class="collection-card" id="collectionCard">
+        <h3>🎁 Meine Sammlung</h3>
+        <div class="collection-count" id="collectionCount"></div>
+        <div class="collection-grid" id="collectionGrid"></div>
+    </div>
+
     <!-- ════════════════ MATHS OPERATIONS EXPLAINER ════════════════ -->
     <section class="maths-info">
         <h2>🧮 Welche Rechen-Arten übst du im Tierarzt-Spiel?</h2>
@@ -437,6 +518,14 @@
     <div class="progress-wrap">
         <div class="progress-track"><div class="progress-fill" id="mProgressFill"></div></div>
     </div>
+    <div class="focus-strip" id="mFocusStrip">
+        <button class="focus-toggle on" id="mFocusToggle" onclick="toggleFocus()">🔔 Fokus</button>
+        <div class="hourglass" id="mHourglass">
+            <span id="mHgIcon">⏳</span>
+            <span class="hg-time" id="mHgTime">10:00</span>
+            <div class="hg-bar"><div class="hg-bar-fill" id="mHgFill"></div></div>
+        </div>
+    </div>
 
     <div class="case-wrap">
         <div class="case-file">
@@ -492,6 +581,12 @@
 <audio id="sndSnort"  src="horse-sounds/cure-snort.mp3"  preload="auto"></audio>
 <audio id="sndStamp"  src="horse-sounds/cure-stamp.mp3"  preload="auto"></audio>
 
+<!-- gentle idle-nudge clips (Phase 2). Played quietly + rotated. SWAP-IN: drop your own soft
+     nicker mp3s in horse-sounds/ and point these three src= at them (gentlest first). -->
+<audio id="sndNudge1" src="horse-sounds/cure-snort.mp3"  preload="auto"></audio>
+<audio id="sndNudge2" src="horse-sounds/cure-stamp.mp3"  preload="auto"></audio>
+<audio id="sndNudge3" src="horse-sounds/cure-whinny.mp3" preload="auto"></audio>
+
 <!-- ════════════════ CURE CELEBRATION ════════════════ -->
 <div class="cure-overlay" id="mCureOverlay">
     <div class="cure-card">
@@ -499,8 +594,23 @@
         <img id="mCureImg" class="cure-photo" alt="">
         <div class="cure-title">💚 Geheilt! 💚</div>
         <div class="cure-text" id="mCureText"></div>
+        <div class="cure-collect hidden" id="mCureCollect"></div>
         <button class="end-btn end-btn-again" onclick="nextAfterCure()">Nächstes Pferd →</button>
     </div>
+</div>
+
+<!-- ════════════════ CHOOSE YOUR PATIENT (Phase 1) ════════════════ -->
+<div class="choose-overlay" id="mChooseOverlay">
+    <div class="choose-card">
+        <h2>🐴 Welches Pferd braucht dich?</h2>
+        <p class="choose-sub">Such dir deinen ersten Patienten aus! 🩺</p>
+        <div class="choose-row" id="mChooseRow"></div>
+    </div>
+</div>
+
+<!-- ════════════════ TIERARZT-PRÜFUNG EXAM (Phase 4) ════════════════ -->
+<div class="exam-overlay" id="examOverlay">
+    <div class="exam-card" id="examCard"></div>
 </div>
 
 <!-- ════════════════ VET MATHS END SCREEN ════════════════ -->
@@ -930,6 +1040,7 @@ function showGame() {
     startGame();
 }
 function showMain() {
+    stopFocus();
     document.getElementById('gamePage').classList.add('hidden');
     document.getElementById('endScreen').classList.add('hidden');
     document.getElementById('mathGamePage').classList.add('hidden');
@@ -940,6 +1051,7 @@ function showMain() {
     document.querySelectorAll('.mix-drop').forEach(t => t.classList.remove('active', 'over'));
     document.getElementById('mainPage').classList.remove('hidden');
     renderVetCard();
+    renderCollection();
     renderFeedButton();
 }
 function playAgain() {
@@ -1265,6 +1377,7 @@ const vetConcepts = [
 ];
 let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false, mPerfect = true;
 let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mTreat = null;
+let mChooseSlot = 0, mChooseCandidates = [], mChosen = false;   // Phase 1: one patient per session is hers to choose
 
 // A session is 4 fresh questions, weighted to the new skills (long ×, money ×, unit price,
 // unit conversion). Plain division with rounding shows up only occasionally. Each question
@@ -1281,6 +1394,16 @@ function buildMathPool() {
         usedHorse.add(c.horseIdx);
         out.push(Object.assign({ horseIdx: c.horseIdx, title: c.title, intro: c.intro, cured: c.cured, treatment: c.treatment }, c.make()));
     }
+    // Phase 1 — "Choose your patient": slot 0 is hers. Offer the auto-picked horse plus up to
+    // 2 other horses that have a concept of slot 0's maths type and aren't used by the other 3
+    // slots — so she influences only WHICH horse (not the maths), and favourites can't take over.
+    mChooseSlot = 0;
+    const slotType = out[mChooseSlot].kind;
+    const otherHorses = new Set(out.filter((q, i) => i !== mChooseSlot).map(q => q.horseIdx));
+    const picked = out[mChooseSlot].horseIdx;
+    const pool = [...new Set(vetConcepts.filter(c => c.type === slotType && !otherHorses.has(c.horseIdx)).map(c => c.horseIdx))];
+    const others = shuffle(pool.filter(h => h !== picked)).slice(0, 2);
+    mChooseCandidates = shuffle([picked, ...others]);
     return out;
 }
 
@@ -1288,9 +1411,10 @@ function showMathGame() {
     document.getElementById('mainPage').classList.add('hidden');
     document.getElementById('mathGamePage').classList.remove('hidden');
     startMathGame();
+    mHgLeft = 600; startFocus();   // fresh 10-minute hourglass each time she enters
 }
 function startMathGame() {
-    mScore = 0; mQ = 0; mBusy = false; mPerfect = true;
+    mScore = 0; mQ = 0; mBusy = false; mPerfect = true; mChosen = false;
     mPool = buildMathPool();
     document.getElementById('mQTotal').textContent = mPool.length;
     showMathQuestion();
@@ -1301,9 +1425,112 @@ function mathPlayAgain() {
     startMathGame();
 }
 
+// Phase 1 — let her pick which horse to treat for her one "choice" patient this session.
+function showPatientChooser() {
+    const row = document.getElementById('mChooseRow');
+    row.innerHTML = mChooseCandidates.map(idx => {
+        const h = horses[idx];
+        return `<div class="choose-horse" onclick="choosePatient(${idx})">
+            <div class="ch-img" style="background:${h.cardGradient}">
+                <span class="ch-emoji">${h.emoji}</span>
+                <img src="${h.image}" alt="${h.name}" onerror="this.style.display='none'">
+            </div>
+            <div class="ch-name">${h.name}</div>
+            <div class="ch-breed">${h.breed}</div>
+        </div>`;
+    }).join('');
+    document.getElementById('mChooseOverlay').classList.add('active');
+}
+function choosePatient(idx) {
+    mChosen = true;
+    document.getElementById('mChooseOverlay').classList.remove('active');
+    // rebuild her chosen slot with that horse's concept of the same maths type
+    const slotType = mPool[mChooseSlot].kind;
+    let opts = shuffle(vetConcepts.filter(c => c.horseIdx === idx && c.type === slotType));
+    if (!opts.length) opts = shuffle(vetConcepts.filter(c => c.horseIdx === idx));
+    const c = opts[0];
+    mPool[mChooseSlot] = Object.assign({ horseIdx: c.horseIdx, title: c.title, intro: c.intro, cured: c.cured, treatment: c.treatment }, c.make());
+    showMathQuestion();
+}
+
+// ── Phase 2: focus helpers — toggleable gentle idle nudge (45s) + a 10-minute hourglass ──
+let mFocusOn = true, mHgLeft = 600, mHgTimer = null, mIdleTimer = null, mNudgeIdx = 0, mFocusInit = false, mAudioCtx = null;
+const mNudgeClips = ['sndNudge1', 'sndNudge2', 'sndNudge3'];
+function fmtClock(s) { const m = Math.floor(s / 60), ss = s % 60; return m + ':' + String(ss).padStart(2, '0'); }
+function renderFocus() {
+    const tog = document.getElementById('mFocusToggle'), hg = document.getElementById('mHourglass');
+    if (!tog) return;
+    tog.classList.toggle('on', mFocusOn);
+    tog.textContent = (mFocusOn ? '🔔' : '🔕') + ' Fokus';
+    hg.classList.toggle('off', !mFocusOn);
+    document.getElementById('mHgTime').textContent = fmtClock(mHgLeft);
+    document.getElementById('mHgFill').style.width = (mHgLeft / 600 * 100) + '%';
+}
+function startFocus() {
+    mFocusOn = localStorage.getItem('ellaNudgeOn') !== '0';   // default ON
+    if (!mFocusInit) {
+        const page = document.getElementById('mathGamePage');
+        page.addEventListener('pointerdown', resetIdle, true);
+        page.addEventListener('keydown', resetIdle, true);
+        mFocusInit = true;
+    }
+    renderFocus();
+    if (mHgTimer) return;                 // already running (stays continuous across sessions)
+    if (mFocusOn) tickStart();
+    resetIdle();
+}
+function tickStart() {
+    if (mHgTimer) clearInterval(mHgTimer);
+    mHgTimer = setInterval(() => {
+        mHgLeft--;
+        if (mHgLeft <= 0) { mHgLeft = 600; softChime(); }    // refill + soft chime
+        renderFocus();
+    }, 1000);
+}
+function stopFocus() {
+    if (mHgTimer) { clearInterval(mHgTimer); mHgTimer = null; }
+    if (mIdleTimer) { clearTimeout(mIdleTimer); mIdleTimer = null; }
+}
+function toggleFocus() {
+    mFocusOn = !mFocusOn;
+    localStorage.setItem('ellaNudgeOn', mFocusOn ? '1' : '0');
+    renderFocus();
+    if (mFocusOn) { tickStart(); resetIdle(); }
+    else { if (mHgTimer) { clearInterval(mHgTimer); mHgTimer = null; } if (mIdleTimer) { clearTimeout(mIdleTimer); mIdleTimer = null; } }
+}
+function resetIdle() {
+    if (mIdleTimer) { clearTimeout(mIdleTimer); mIdleTimer = null; }
+    if (!mFocusOn) return;
+    mIdleTimer = setTimeout(() => { playNudge(); resetIdle(); }, 45000);   // gentle nudge after 45s idle, then re-arm
+}
+function playNudge() {
+    const el = document.getElementById(mNudgeClips[mNudgeIdx % mNudgeClips.length]);   // rotate so it differs each time
+    mNudgeIdx++;
+    if (!el) return;
+    try { el.pause(); el.currentTime = 0; el.volume = 0.3; el.play().catch(() => {}); setTimeout(() => { try { el.pause(); } catch (e) {} }, 2200); } catch (e) {}
+}
+function softChime() {
+    try {
+        mAudioCtx = mAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (mAudioCtx.state === 'suspended') mAudioCtx.resume();
+        const now = mAudioCtx.currentTime;
+        [[660, 0], [880, 0.18]].forEach(([f, t]) => {
+            const o = mAudioCtx.createOscillator(), g = mAudioCtx.createGain();
+            o.type = 'sine'; o.frequency.value = f;
+            g.gain.setValueAtTime(0, now + t);
+            g.gain.linearRampToValueAtTime(0.12, now + t + 0.03);
+            g.gain.exponentialRampToValueAtTime(0.0001, now + t + 0.5);
+            o.connect(g); g.connect(mAudioCtx.destination);
+            o.start(now + t); o.stop(now + t + 0.55);
+        });
+    } catch (e) {}
+}
+
 function showMathQuestion() {
     if (mQ >= mPool.length) { showMathEnd(); return; }
+    if (mQ === mChooseSlot && !mChosen && mChooseCandidates.length >= 2) { showPatientChooser(); return; }
     const q = mPool[mQ];
+    addSeenConcept(q.title);   // remember she has seen this concept (so the exam can ask about it)
     mFirstTry = true; mBusy = false;
 
     document.getElementById('mScoreVal').textContent = mScore;
@@ -1329,6 +1556,8 @@ function showMathQuestion() {
     fbEl.textContent = ''; fbEl.className = 'calc-feedback';
     const btn = document.getElementById('mMixBtn');
     btn.classList.remove('hidden'); btn.disabled = false; btn.textContent = '✅ Dosis prüfen!';
+
+    resetIdle();   // re-arm the gentle idle nudge for this new question
 }
 
 function calcField(id, label, mode) {
@@ -1650,12 +1879,50 @@ function showCure(q) {
         sp.style.animationDelay = (i * 0.28) + 's';
         hc.appendChild(sp);
     });
+    const cc = document.getElementById('mCureCollect');
+    const drop = maybeDropCollectible();   // ~1 in 4 chance she finds a collectible
+    if (drop) { cc.innerHTML = `<div class="cc-token">${drop.svg}</div><div class="cc-text">🎁 Neu für deine Sammlung:<br><b>${drop.name}</b>!</div>`; cc.classList.remove('hidden'); }
+    else { cc.classList.add('hidden'); cc.innerHTML = ''; }
+
     document.getElementById('mCureOverlay').classList.add('active');
 }
 function nextAfterCure() {
     document.getElementById('mCureOverlay').classList.remove('active');
     mQ++;
     showMathQuestion();
+}
+
+// ── Phase 3: collectibles — cartoon items she finds (~1 in 4) when she heals a horse ──
+const COLLECTIBLES = [
+  { id:'karotte',   name:'Karotte',     svg:`<svg viewBox="0 0 64 64"><path d="M30 25c6 0 13 3 13 8 0 7-8 23-11 25-1 1-3 1-4 0-3-2-11-18-11-25 0-5 7-8 13-8z" fill="#f47b20"/><path d="M33 27c4 1 8 3 8 6 0 6-7 20-9 22 1-9 0-20 1-28z" fill="#d2620d" opacity=".45"/><g stroke="#3fae4a" stroke-width="5" stroke-linecap="round"><path d="M30 25 24 16"/><path d="M30 25v-11"/><path d="M30 25 37 17"/></g></svg>` },
+  { id:'apfel',     name:'Apfel',       svg:`<svg viewBox="0 0 64 64"><path d="M32 24c-4-4-15-4-17 5-2 9 3 23 9 27 3 2 5 2 8 0 6-4 11-18 9-27-2-9-13-9-17-5z" fill="#e64535"/><rect x="30.5" y="14" width="3" height="11" rx="1.5" fill="#7a4a1a"/><path d="M34 19c4-5 10-4 10-4s-1 8-10 4z" fill="#3fae4a"/><ellipse cx="25" cy="32" rx="3.2" ry="6" fill="#fff" opacity=".35"/></svg>` },
+  { id:'hufeisen',  name:'Hufeisen',    svg:`<svg viewBox="0 0 64 64"><path d="M21 14c-9 7-11 30 0 41M43 14c9 7 11 30 0 41" fill="none" stroke="#f0b429" stroke-width="9" stroke-linecap="round"/><g fill="#7a5a12"><circle cx="18" cy="25" r="1.7"/><circle cx="17" cy="35" r="1.7"/><circle cx="19" cy="45" r="1.7"/><circle cx="46" cy="25" r="1.7"/><circle cx="47" cy="35" r="1.7"/><circle cx="45" cy="45" r="1.7"/></g></svg>` },
+  { id:'eimer',     name:'Eimer',       svg:`<svg viewBox="0 0 64 64"><path d="M20 24c2-11 22-11 24 0" fill="none" stroke="#9aa0a6" stroke-width="3"/><path d="M16 27h32l-4 25a3 3 0 01-3 3H23a3 3 0 01-3-3z" fill="#4d96ff"/><path d="M17 33h30l-1 6H18z" fill="#a9d3ff"/><rect x="13" y="23" width="38" height="6" rx="3" fill="#3b7de0"/></svg>` },
+  { id:'heuballen', name:'Heuballen',   svg:`<svg viewBox="0 0 64 64"><rect x="11" y="23" width="42" height="28" rx="7" fill="#e8c14a"/><rect x="11" y="23" width="42" height="9" rx="7" fill="#f1d472"/><g stroke="#bfa033" stroke-width="2.5"><path d="M23 24v26"/><path d="M43 24v26"/></g><path d="M13 39h38" stroke="#d4b540" stroke-width="1.5"/></svg>` },
+  { id:'sattel',    name:'Sattel',      svg:`<svg viewBox="0 0 64 64"><path d="M11 31c7-9 35-9 42 0 3 4 2 13-5 13-4 0-6-3-9-3H25c-3 0-5 3-9 3-7 0-8-9-5-13z" fill="#9a6433"/><path d="M11 31c7-9 35-9 42 0-7-4-35-4-42 0z" fill="#7a4d23"/><path d="M23 42c0 6 18 6 18 0" fill="none" stroke="#5e3c1a" stroke-width="2.5"/><rect x="20" y="43" width="3" height="10" fill="#6b4423"/><rect x="41" y="43" width="3" height="10" fill="#6b4423"/><ellipse cx="21.5" cy="54" rx="4" ry="3" fill="none" stroke="#9aa0a6" stroke-width="2.5"/><ellipse cx="42.5" cy="54" rx="4" ry="3" fill="none" stroke="#9aa0a6" stroke-width="2.5"/></svg>` },
+  { id:'decke',     name:'Pferdedecke', svg:`<svg viewBox="0 0 64 64"><path d="M13 21h31l8 6-6 25a3 3 0 01-3 2H15a3 3 0 01-3-3l1-25z" fill="#4d96ff"/><path d="M13 21h31l8 6H13z" fill="#3b7de0"/><g stroke="#ffd93d" stroke-width="3"><path d="M17 33h30"/><path d="M16 41h30"/></g><circle cx="44" cy="49" r="3" fill="#fff"/></svg>` },
+  { id:'striegel',  name:'Striegel',    svg:`<svg viewBox="0 0 64 64"><rect x="26" y="15" width="12" height="7" rx="3.5" fill="#8a5a2b"/><ellipse cx="32" cy="27" rx="18" ry="9" fill="#e0954f"/><ellipse cx="32" cy="25.5" rx="18" ry="8" fill="#f0a85f"/><g stroke="#3a2a1a" stroke-width="2.4" stroke-linecap="round"><path d="M20 33v9"/><path d="M26 35v11"/><path d="M32 36v11"/><path d="M38 35v11"/><path d="M44 33v9"/></g></svg>` },
+  { id:'schleife',  name:'Schleife',    svg:`<svg viewBox="0 0 64 64"><path d="M27 35 18 57l9-5 4 7 5-19z" fill="#ff6b6b"/><path d="M37 35l9 22-9-5-4 7-5-19z" fill="#4d96ff"/><circle cx="32" cy="25" r="14" fill="#ffd93d"/><circle cx="32" cy="25" r="14" fill="none" stroke="#e0a93b" stroke-width="2"/><circle cx="32" cy="25" r="6" fill="#f0b429"/><text x="32" y="29" font-size="9" text-anchor="middle" fill="#fff" font-family="Arial" font-weight="bold">1</text></svg>` }
+];
+function loadCollection() { try { return JSON.parse(localStorage.getItem('ellaCollection') || '[]'); } catch (e) { return []; } }
+function saveCollection(a) { try { localStorage.setItem('ellaCollection', JSON.stringify(a)); } catch (e) {} }
+function renderCollection() {
+    const grid = document.getElementById('collectionGrid'); if (!grid) return;
+    const have = loadCollection();
+    grid.innerHTML = COLLECTIBLES.map(it => {
+        const got = have.includes(it.id);
+        return `<div class="collect-item ${got ? '' : 'locked'}"><div class="collect-token">${it.svg}</div><div class="collect-name">${got ? it.name : '???'}</div></div>`;
+    }).join('');
+    document.getElementById('collectionCount').textContent = have.length + ' / ' + COLLECTIBLES.length + ' gesammelt';
+}
+function maybeDropCollectible() {
+    const have = loadCollection();
+    const missing = COLLECTIBLES.filter(it => !have.includes(it.id));
+    if (!missing.length) return null;            // collection complete, no more drops
+    if (Math.random() >= 0.25) return null;      // ~1 in 4 heals
+    const item = missing[Math.floor(Math.random() * missing.length)];
+    have.push(item.id); saveCollection(have); renderCollection();
+    return item;
 }
 
 // ── Persistent vet rank: total points are saved by the browser so progress is remembered ──
@@ -1670,24 +1937,126 @@ const VET_TIERS = [
 function getVetPoints() { try { var v = parseInt(localStorage.getItem('ellaVetPoints'), 10); return isNaN(v) ? 0 : v; } catch (e) { return 0; } }
 function setVetPoints(p) { try { localStorage.setItem('ellaVetPoints', String(p)); } catch (e) {} }
 function vetTierIndex(points) { var idx = 0; for (var i = 0; i < VET_TIERS.length; i++) if (points >= VET_TIERS[i].min) idx = i; return idx; }
+
+// ── Phase 4: rank is gated by the Tierarzt-Prüfung. Points UNLOCK the exam; passing PROMOTES. ──
+function getRankAchieved() { try { var v = parseInt(localStorage.getItem('ellaRankAchieved'), 10); return isNaN(v) ? 0 : v; } catch (e) { return 0; } }
+function setRankAchieved(i) { try { localStorage.setItem('ellaRankAchieved', String(i)); } catch (e) {} }
+function effectiveTier() { return Math.min(vetTierIndex(getVetPoints()), getRankAchieved()); }   // can't outrank your exams
+function examAvailable() { return vetTierIndex(getVetPoints()) > getRankAchieved() && getRankAchieved() < VET_TIERS.length - 1; }
+
+// concepts she has actually seen (by title) — the exam only asks about these
+function getSeenConcepts() { try { return JSON.parse(localStorage.getItem('ellaSeenConcepts') || '[]'); } catch (e) { return []; } }
+function addSeenConcept(title) { try { var s = getSeenConcepts(); if (title && s.indexOf(title) < 0) { s.push(title); localStorage.setItem('ellaSeenConcepts', JSON.stringify(s)); } } catch (e) {} }
+
+// ── Exam questions = VET-CONCEPT comprehension (not maths), keyed by the concept's title.
+//    PHASE 4a: sample set of 6. The full ~55 get authored in Phase 4b.
+//    Each: q (question) + correct answer + two kind (not tricksy) wrong answers. ──
+const EXAM = {
+  "Ein neues Pferd ist krank": { q:"Was ist Druse?", correct:"Eine ansteckende Krankheit mit dicken Beulen unter dem Kiefer.", wrong:["Ein Loch im Huf vom vielen Laufen.", "Eine Allergie gegen frisches Gras."] },
+  "Midnights Magen brennt":     { q:"Wie entsteht ein Magengeschwür beim Pferd?", correct:"Wenn das Pferd zu lange nichts frisst und die Magensäure die Magenwand reizt.", wrong:["Wenn das Pferd zu viel schläft.", "Wenn das Pferd zu schnell galoppiert."] },
+  "Stille in Patches' Bauch":   { q:"Woran erkennt man eine Kolik (Bauchschmerzen)?", correct:"Das Pferd scharrt und schaut immer wieder zu seinem Bauch.", wrong:["Das Pferd niest die ganze Zeit.", "Das Pferd will nur noch schlafen."] },
+  "Biscuits Hufabszess":        { q:"Was ist ein Hufabszess?", correct:"Eine schmerzhafte Eiterstelle in der Hufwand.", wrong:["Ein zu lang gewachsener Huf.", "Ein verlorenes Hufeisen."] },
+  "Es riecht aus dem Huf":      { q:"Was ist Strahlfäule?", correct:"Eine Infektion am weichen Teil des Hufs, die streng riecht.", wrong:["Eine Krankheit der Augen.", "Ein Bruch im Bein."] },
+  "Dottys Sommerjucken":        { q:"Was ist ein Sommerekzem?", correct:"Eine Allergie gegen den Speichel kleiner Mücken (Gnitzen).", wrong:["Eine Erkältung im kalten Winter.", "Zu lange Hufe vom wenig Laufen."] }
+};
+const EXAM_LEN = 5;
+let exQs = [], exIdx = 0, exRight = 0, exMissed = [];
+
+function startExam() {
+    if (!examAvailable()) return;
+    var pool = shuffle(getSeenConcepts().filter(function (t) { return EXAM[t]; }));
+    openExamOverlay();
+    if (pool.length < 3) {   // not enough learned material yet
+        document.getElementById('examCard').dataset.locked = '';
+        document.getElementById('examCard').innerHTML =
+            '<div class="exam-head">🎓 Tierarzt-Prüfung</div>' +
+            '<p class="exam-info">Spiel zuerst noch ein paar Tierarzt-Fälle, dann hast du genug gelernt für die Prüfung! 🩺</p>' +
+            '<button class="exam-close-btn" onclick="closeExam()">Okay!</button>';
+        return;
+    }
+    exQs = pool.slice(0, EXAM_LEN); exIdx = 0; exRight = 0; exMissed = [];
+    renderExamQuestion();
+}
+function openExamOverlay() { document.getElementById('examOverlay').classList.add('active'); }
+function closeExam() { document.getElementById('examOverlay').classList.remove('active'); renderVetCard(); }
+
+function renderExamQuestion() {
+    var item = EXAM[exQs[exIdx]];
+    var answers = shuffle([{ t: item.correct, ok: true }, { t: item.wrong[0], ok: false }, { t: item.wrong[1], ok: false }]);
+    var target = VET_TIERS[getRankAchieved() + 1];
+    var card = document.getElementById('examCard');
+    card.dataset.locked = '';
+    card.innerHTML =
+        '<div class="exam-head">🎓 Tierarzt-Prüfung</div>' +
+        '<div class="exam-sub">Bestehe sie, um <b>' + target.name + '</b> zu werden! ' + target.emoji + '</div>' +
+        '<div class="exam-progress">Frage ' + (exIdx + 1) + ' / ' + exQs.length + '</div>' +
+        '<div class="exam-q">' + item.q + '</div>' +
+        '<div class="exam-answers">' + answers.map(function (a) {
+            return '<button class="exam-ans" data-ok="' + a.ok + '" onclick="answerExam(this,' + a.ok + ')">' + a.t + '</button>';
+        }).join('') + '</div>' +
+        '<div class="exam-fb" id="examFb"></div>';
+}
+function answerExam(btn, ok) {
+    var card = document.getElementById('examCard');
+    if (card.dataset.locked === '1') return;
+    card.dataset.locked = '1';
+    card.querySelectorAll('.exam-ans').forEach(function (b) { b.disabled = true; if (b.dataset.ok === 'true') b.classList.add('correct'); });
+    var fb = document.getElementById('examFb');
+    if (ok) { exRight++; fb.textContent = '✅ Richtig!'; fb.className = 'exam-fb ok'; }
+    else { btn.classList.add('wrong'); exMissed.push(exQs[exIdx]); fb.textContent = '❌ Schau dir die richtige Antwort an.'; fb.className = 'exam-fb no'; }
+    setTimeout(function () { exIdx++; if (exIdx < exQs.length) renderExamQuestion(); else finishExam(); }, 1150);
+}
+function finishExam() {
+    var pct = exRight / exQs.length, passed = pct >= 0.8;
+    var card = document.getElementById('examCard'); card.dataset.locked = '';
+    if (passed) {
+        var newTier = getRankAchieved() + 1; setRankAchieved(newTier);
+        var t = VET_TIERS[newTier], grade = pct >= 0.9 ? '1,0' : '2,0';
+        card.innerHTML =
+            '<div class="exam-diploma"><div class="exam-dip-emoji">🎓</div>' +
+            '<div class="exam-dip-title">Prüfung bestanden!</div>' +
+            '<div class="exam-dip-note">Note ' + grade + ' · ' + exRight + ' von ' + exQs.length + ' richtig</div>' +
+            '<div class="exam-dip-rank">' + t.emoji + ' Du bist jetzt ' + t.name + '!</div>' +
+            '<div class="exam-dip-sub">🐴 Herzlichen Glückwunsch, Frau Doktor Ella!</div></div>' +
+            '<button class="exam-close-btn" onclick="closeExam()">Juhu! 🎉</button>';
+    } else {
+        var review = exMissed.map(function (title) { return '<li><b>' + EXAM[title].q + '</b><br>✅ ' + EXAM[title].correct + '</li>'; }).join('');
+        card.innerHTML =
+            '<div class="exam-head">Fast geschafft! 🩺</div>' +
+            '<p class="exam-info">Du hattest <b>' + exRight + ' von ' + exQs.length + '</b> richtig. Zum Bestehen brauchst du 80%. Schau dir das hier an, dann probier es nochmal — deine Punkte bleiben alle da! 💛</p>' +
+            (review ? '<ul class="exam-review">' + review + '</ul>' : '') +
+            '<div class="exam-result-btns"><button class="exam-close-btn alt" onclick="startExam()">🔁 Nochmal versuchen</button><button class="exam-close-btn" onclick="closeExam()">Später</button></div>';
+    }
+    renderVetCard();
+}
+
 function renderVetCard() {
-    var pts = getVetPoints(), ti = vetTierIndex(pts), tier = VET_TIERS[ti];
+    var pts = getVetPoints(), eff = effectiveTier(), tier = VET_TIERS[eff], ach = getRankAchieved();
     document.getElementById('vcEmoji').textContent = tier.emoji;
     document.getElementById('vcTier').textContent = tier.name;
     document.getElementById('vcPoints').textContent = pts + (pts === 1 ? ' vet point' : ' vet points');
-    var fill = document.getElementById('vcProgressFill'), next = document.getElementById('vcNext');
-    if (ti < VET_TIERS.length - 1) {
-        var span = VET_TIERS[ti + 1].min - tier.min, into = pts - tier.min;
-        var need = VET_TIERS[ti + 1].min - pts;
-        fill.style.width = Math.round(into / span * 100) + '%';
-        next.textContent = '🎯 Earn just ' + need + (need === 1 ? ' more point' : ' more points') + ' to become a ' + VET_TIERS[ti + 1].name + '! ' + VET_TIERS[ti + 1].emoji;
-    } else {
+    var fill = document.getElementById('vcProgressFill'), next = document.getElementById('vcNext'), examBtn = document.getElementById('examBtn');
+    if (examAvailable()) {
+        var target = VET_TIERS[ach + 1];
         fill.style.width = '100%';
-        next.textContent = '🏆 Top rank reached — amazing!';
+        next.innerHTML = '🎓 Exam unlocked! Pass the <b>Tierarzt-Prüfung</b> to become a ' + target.name + '! ' + target.emoji;
+        if (examBtn) examBtn.classList.remove('hidden');
+    } else {
+        if (examBtn) examBtn.classList.add('hidden');
+        if (ach < VET_TIERS.length - 1) {
+            var nextTier = VET_TIERS[ach + 1];
+            var span = nextTier.min - VET_TIERS[ach].min, into = pts - VET_TIERS[ach].min, need = nextTier.min - pts;
+            fill.style.width = Math.max(0, Math.min(100, Math.round(into / span * 100))) + '%';
+            next.textContent = '🎯 Earn just ' + need + (need === 1 ? ' more point' : ' more points') + ' to unlock the ' + nextTier.name + ' exam! ' + nextTier.emoji;
+        } else {
+            fill.style.width = '100%';
+            next.textContent = '🏆 Top rank reached — amazing!';
+        }
     }
 }
 
 function showMathEnd() {
+    if (mIdleTimer) { clearTimeout(mIdleTimer); mIdleTimer = null; }   // no idle nudge on the end screen
     document.getElementById('mathGamePage').classList.add('hidden');
     document.getElementById('mProgressFill').style.width = '100%';
     document.getElementById('mathEndScreen').classList.remove('hidden');
@@ -1703,21 +2072,24 @@ function showMathEnd() {
     const earned = mPerfect ? 15 : 10;
     const before = getVetPoints(), after = before + earned;
     setVetPoints(after);
-    const beforeTier = vetTierIndex(before), afterTier = vetTierIndex(after), tier = VET_TIERS[afterTier];
+    const eff = effectiveTier(), tier = VET_TIERS[eff], ach = getRankAchieved();
 
     // earning points also unlocks 2 plays of the just-for-fun Feed Kitchen
     setFeedTokens(getFeedTokens() + 2); renderFeedButton();
 
     let html = `<div class="ev-earned">🎖️ +${earned} vet points!${mPerfect ? ' (perfect bonus +5! ✨)' : ''}</div>`;
     html += `<div class="ev-feed">🥕 +2 Feed Kitchen plays unlocked!</div>`;
-    if (afterTier > beforeTier) html += `<div class="ev-levelup">🎉 LEVEL UP! You're now a ${tier.name}! ${tier.emoji}</div>`;
+    if (examAvailable()) html += `<div class="ev-levelup">🎓 Exam unlocked! Take the Tierarzt-Prüfung on the main page to level up! ${VET_TIERS[ach + 1].emoji}</div>`;
     html += `<div class="ev-total">Total: ${after} vet points</div>`;
     html += `<div class="ev-tier-badge">${tier.emoji} ${tier.name}</div>`;
-    if (afterTier < VET_TIERS.length - 1) {
-        const span = VET_TIERS[afterTier + 1].min - tier.min, into = after - tier.min;
-        const need = VET_TIERS[afterTier + 1].min - after;
-        html += `<div class="ev-progress"><div class="ev-progress-fill" style="width:${Math.round(into / span * 100)}%"></div></div>`;
-        html += `<div class="ev-next">🎯 Earn just ${need} more ${need === 1 ? 'point' : 'points'} to become a ${VET_TIERS[afterTier + 1].name}! ${VET_TIERS[afterTier + 1].emoji}</div>`;
+    if (examAvailable()) {
+        html += `<div class="ev-progress"><div class="ev-progress-fill" style="width:100%"></div></div>`;
+        html += `<div class="ev-next">🎓 Pass the Tierarzt-Prüfung to become a ${VET_TIERS[ach + 1].name}! ${VET_TIERS[ach + 1].emoji}</div>`;
+    } else if (ach < VET_TIERS.length - 1) {
+        const span = VET_TIERS[ach + 1].min - VET_TIERS[ach].min, into = after - VET_TIERS[ach].min;
+        const need = VET_TIERS[ach + 1].min - after;
+        html += `<div class="ev-progress"><div class="ev-progress-fill" style="width:${Math.max(0, Math.min(100, Math.round(into / span * 100)))}%"></div></div>`;
+        html += `<div class="ev-next">🎯 Earn just ${need} more ${need === 1 ? 'point' : 'points'} to unlock the ${VET_TIERS[ach + 1].name} exam! ${VET_TIERS[ach + 1].emoji}</div>`;
     } else {
         html += `<div class="ev-progress"><div class="ev-progress-fill" style="width:100%"></div></div>`;
         html += `<div class="ev-next">🏆 Highest rank — you're a hero!</div>`;
@@ -1922,7 +2294,7 @@ function flashDone() {
     document.getElementById('flashBtn').classList.add('hidden');
     document.getElementById('flashFeedback').textContent = '';
     let msg = `<div class="ev-earned">🎖️ +5 Punkte und 🥕 +1 Fütterung!</div>`;
-    if (leveledUp) { const t = VET_TIERS[vetTierIndex(getVetPoints())]; msg += `<div class="ev-levelup">🎉 LEVEL UP! Du bist jetzt ${t.name}! ${t.emoji}</div>`; }
+    if (examAvailable()) { const t = VET_TIERS[getRankAchieved() + 1]; msg += `<div class="ev-levelup">🎓 Prüfung freigeschaltet! Mach die Tierarzt-Prüfung auf der Startseite, um ${t.name} zu werden! ${t.emoji}</div>`; }
     msg += `<div class="ev-total">Insgesamt: ${getVetPoints()} Punkte</div>`;
     document.getElementById('flashInputs').innerHTML = msg +
         `<div class="end-btns" style="margin-top:16px;"><button class="end-btn end-btn-again" onclick="startFlash()">⚡ Nochmal!</button><button class="end-btn end-btn-back" onclick="showMain()">🐴 Zurück</button></div>`;
@@ -1983,6 +2355,7 @@ const starsEl = document.getElementById('stars');
 
 // show Ella's saved vet rank as soon as the page opens
 renderVetCard();
+renderCollection();
 // give a small starter allowance for the Feed Kitchen the very first time
 try { if (localStorage.getItem('ellaFeedTokens') === null) setFeedTokens(2); } catch (e) {}
 renderFeedButton();
