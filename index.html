@@ -106,6 +106,25 @@
         .cure-collect .cc-text { font-weight:800; color:#b4881a; font-size:0.96rem; text-align:left; line-height:1.3; }
         .ev-collect { background:#fff8e1; color:#b4881a; font-weight:800; border-radius:14px; padding:10px 14px; margin-top:12px; line-height:1.35; }
 
+        /* ── gifting collectibles to horses ── */
+        .gift-tray { margin-top:16px; border-top:2px dashed #ffd93d; padding-top:12px; }
+        .gift-tray-title { font-weight:800; font-size:0.82rem; color:#b4881a; margin-bottom:10px; line-height:1.35; }
+        .gift-tray-row { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+        .gift-token { width:54px; height:54px; border-radius:50%; background:linear-gradient(135deg,#fff3c4,#ffe07a); display:flex; align-items:center; justify-content:center; cursor:grab; box-shadow:inset 0 0 0 3px rgba(255,255,255,.6),0 3px 8px rgba(0,0,0,.12); transition:transform .15s; }
+        .gift-token svg { width:38px; height:38px; pointer-events:none; }
+        .gift-token:hover { transform:scale(1.08); }
+        .gift-token.selected { outline:3px solid #ff6b6b; outline-offset:2px; transform:scale(1.12); }
+        body.give-mode .horse-card { box-shadow:0 0 0 3px #ffd93d, 0 5px 18px rgba(0,0,0,0.12); }
+        .horse-card.gift-target { box-shadow:0 0 0 4px #38c172, 0 10px 26px rgba(0,0,0,0.22); transform:translateY(-4px) scale(1.02); }
+        .horse-gifts { display:flex; flex-wrap:wrap; gap:8px; }
+        .horse-gift { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#fff3c4,#ffe07a); display:inline-flex; align-items:center; justify-content:center; box-shadow:inset 0 0 0 2px rgba(255,255,255,.6); }
+        .horse-gift svg { width:30px; height:30px; }
+        .gift-toast { position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(20px); opacity:0; background:white; border-radius:18px; box-shadow:0 12px 40px rgba(0,0,0,0.25); padding:12px 18px; display:flex; align-items:center; gap:10px; z-index:1300; transition:opacity .3s, transform .3s; max-width:90vw; }
+        .gift-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+        .gift-toast .gt-emoji { font-size:1.8rem; }
+        .gift-toast .gt-svg svg { width:34px; height:34px; vertical-align:middle; }
+        .gift-toast .gt-text { font-weight:800; color:#b4881a; font-size:0.95rem; }
+
         /* ── TIERARZT-PRÜFUNG EXAM (Phase 4) ── */
         .exam-btn { display:block; margin:16px auto 0; font-family:'Fredoka One',cursive; font-size:1.15rem; padding:14px 30px; border:none; border-radius:40px; cursor:pointer; color:white; background:linear-gradient(135deg,#7b4dff,#b06ab3); box-shadow:0 6px 20px rgba(123,77,255,.35); animation:examPulse 1.6s ease-in-out infinite; }
         @keyframes examPulse { 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.05);} }
@@ -136,6 +155,15 @@
         .exam-dip-note { color:#8a7a3a; font-weight:800; margin-top:6px; }
         .exam-dip-rank { font-family:'Fredoka One',cursive; font-size:1.3rem; color:#2d2d2d; margin-top:12px; }
         .exam-dip-sub { color:#777; font-weight:700; margin-top:6px; }
+        .exam-dip-new { background:#e7f9ef; color:#1d7a45; font-weight:800; border-radius:14px; padding:10px 14px; margin-top:12px; line-height:1.35; }
+
+        /* ── locked reward horses (Phase A) ── */
+        .horse-card.locked-horse { cursor:default; }
+        .horse-card.locked-horse:hover { transform:none; box-shadow:0 5px 18px rgba(0,0,0,0.12); }
+        .locked-fallback { display:flex !important; align-items:center; justify-content:center; font-size:3.6rem; height:100%; background:linear-gradient(135deg,#d7dbe2,#aeb6c2); }
+        .horse-card.locked-horse .card-info h2 { color:#aab1bd; }
+        .horse-card.locked-horse .breed-label { color:#c2c7d0; }
+        .horse-card.locked-horse .click-hint { color:#9aa3b0; font-size:0.72rem; }
 
         /* ── FOOTER ── */
         footer { text-align: center; padding: 28px 20px; color: white; font-weight: 700; font-size: 1.05rem; text-shadow: 1px 1px 0 rgba(0,0,0,0.15); }
@@ -429,6 +457,7 @@
         <h3>🎁 Meine Sammlung</h3>
         <div class="collection-count" id="collectionCount"></div>
         <div class="collection-grid" id="collectionGrid"></div>
+        <div class="gift-tray hidden" id="giftTray"></div>
     </div>
 
     <!-- ════════════════ MATHS OPERATIONS EXPLAINER ════════════════ -->
@@ -981,30 +1010,134 @@ const horses = [
       { label: "💝 Personality",      text: "I am tiny but super tough and sure-footed — I stay calm and brave even in the middle of a snowstorm! Which horse am I? 💪" },
       { label: "🌟 Fun Fact",         text: "I have a SECRET fifth gait that most other horses don't have — a super-smooth running walk called the tölt! Which horse am I? 🎵" }
     ]
+  },
+  {
+    name: "Ottilia", breed: "Falabella", emoji: "🐴", unlockRank: 6, gift: true,
+    image: "horse-images/ottilia-falabella.jpg",
+    cardGradient: "linear-gradient(135deg, #c9a06a, #8a6232)",
+    coat: "Soft, fluffy fawn-brown baby coat, still woolly and downy, with a little fuzzy mane",
+    temperament: "Tiny, playful and curious — the littlest horse in the whole stable, with the biggest heart.",
+    story: "Ottilia is a Falabella, one of the smallest horse breeds in the whole world. Even fully grown she will be no taller than a big dog! She is still a fuzzy little foal, born on a sunny farm. She loves bouncing through the grass on her tiny legs, napping in the warm sunshine, and following the bigger horses around like a little shadow. Ella earned Ottilia as a special reward for reaching a brand-new level. 🎉",
+    facts: [
+      "🐶 Falabellas are one of the SMALLEST horse breeds on Earth, often no taller than a large dog!",
+      "🌎 The breed comes from Argentina and was bred by the Falabella family over 100 years ago.",
+      "❤️ Even though they are tiny, they are strong, clever and very friendly.",
+      "🍼 Falabella foals are so small you could almost cradle one like a puppy!"
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "I was given to Ella as a special reward 🎉, and I am the tiniest, fuzziest little foal in the whole stable!" },
+      { label: "🐴 Breed Question",   text: "I am a Falabella, one of the smallest horse breeds in the world, no taller than a big dog! Which horse am I? 🐶" },
+      { label: "🎨 Coat Question",    text: "I have a soft, fluffy fawn-brown baby coat and a little fuzzy mane. Which horse am I? 🤎" },
+      { label: "💝 Personality",      text: "I am tiny, playful and curious, and I follow the big horses around like a little shadow! Which horse am I? 🥰" },
+      { label: "🌟 Fun Fact",         text: "My breed comes from Argentina and was created by the Falabella family over 100 years ago! Which horse am I? 🌎" }
+    ]
+  },
+  {
+    name: "Pebbles", breed: "Welsh Mountain Pony", emoji: "🐴", unlockRank: 7,
+    image: "horse-images/pebbles-welsh.jpg",
+    cardGradient: "linear-gradient(135deg, #cfd8e3, #8b9bb0)",
+    coat: "Snowy white all over, with a thick mane and a dainty, dished little face",
+    temperament: "Bright, bold and a little bit cheeky, she's sure she can do anything the big horses can.",
+    story: "Pebbles is a Welsh Mountain Pony from the green hills of Wales, where her hardy little breed has lived for hundreds of years. She may be small, but she is clever, brave and full of spirit. She loves cantering up grassy slopes, splashing through puddles, and proving she can keep up with the biggest horses in the stable.",
+    facts: [
+      "🏔️ Welsh Mountain Ponies come from the hills of Wales and are very hardy in cold, wet weather.",
+      "✨ They have a pretty 'dished' face, a little like an Arabian horse.",
+      "🥰 They are clever and kind, which makes them one of the best first ponies for children.",
+      "💪 Though small, they are strong and surprisingly fast."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "I roamed the green hills of Wales, and even though I am small I am sure I can do anything the big horses can! 🏔️" },
+      { label: "🐴 Breed Question",   text: "I am a Welsh Mountain Pony, a hardy little pony from the hills of Wales with a pretty dished face. Which horse am I? 🏔️" },
+      { label: "🎨 Coat Question",    text: "I am snowy white all over, with a thick mane and a dainty little face. Which horse am I? ❄️" },
+      { label: "💝 Personality",      text: "I am bright, bold and a tiny bit cheeky, I think I can do everything the big horses do! Which horse am I? 😄" },
+      { label: "🌟 Fun Fact",         text: "My breed is one of the BEST first ponies for children, because we are clever and kind. Which horse am I? 🥰" }
+    ]
+  },
+  {
+    name: "Mausi", breed: "Dartmoor Pony", emoji: "🐴", unlockRank: 8,
+    image: "horse-images/mausi-dartmoor.jpg",
+    cardGradient: "linear-gradient(135deg, #8a5a34, #5e3a1f)",
+    coat: "Warm chestnut-brown with a dark mane and tail, and a strong, sturdy little body",
+    temperament: "Calm, tough and sure-footed, perfectly happy outside in any weather at all.",
+    story: "Mausi is a Dartmoor Pony, born wild and free on the wide open moors of Dartmoor in England, where her breed has roamed for thousands of years. Wind, rain or snow, Mausi is always content. She is gentle and patient, and loves nibbling moorland grass and dozing in the sun behind a big granite rock.",
+    facts: [
+      "🏞️ Dartmoor Ponies have roamed the moors of England for thousands of years.",
+      "🌦️ They are incredibly hardy and stay healthy outside in all kinds of weather.",
+      "🥕 They are gentle and patient, which makes them lovely ponies for children.",
+      "🐾 Herds of them still live semi-wild on Dartmoor today."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "I live wild and free out on the open moors of Dartmoor in England, in sunshine, rain and snow! 🌧️" },
+      { label: "🐴 Breed Question",   text: "I am a Dartmoor Pony, a tough little pony that has roamed the English moors for thousands of years. Which horse am I? 🏞️" },
+      { label: "🎨 Coat Question",    text: "I have a warm chestnut-brown coat with a dark mane and tail, and a strong, sturdy little body. Which horse am I? 🤎" },
+      { label: "💝 Personality",      text: "I am calm, tough and sure-footed, and I am happy outside in any weather at all! Which horse am I? 🌦️" },
+      { label: "🌟 Fun Fact",         text: "My breed is so gentle and patient that we make wonderful ponies for children learning to ride. Which horse am I? 🥕" }
+    ]
+  },
+  {
+    name: "Wölkchen", breed: "Connemara Pony", emoji: "🐴", unlockRank: 9,
+    image: "horse-images/woelkchen-connemara.jpg",
+    cardGradient: "linear-gradient(135deg, #b8c2cf, #6b7a8c)",
+    coat: "Dappled silver-grey, with soft spots that look like little clouds, and a flowing pale mane",
+    temperament: "Gentle, clever and very athletic, she loves to leap and gallop across the green fields.",
+    story: "Wölkchen is a Connemara Pony from the rocky west of Ireland, Ireland's only native pony breed. Her name means 'little cloud', because her dappled grey coat looks just like soft clouds in the sky. She is famous for being a wonderful jumper and adores bounding over logs and streams, then galloping across the emerald fields.",
+    facts: [
+      "🍀 The Connemara is Ireland's only native pony breed.",
+      "🦘 They are famous all over the world for being brilliant, brave jumpers.",
+      "☁️ Many Connemaras are dapple grey, like little clouds.",
+      "💪 Growing up on rocky Irish ground makes them strong and very sure-footed."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "My name means 'little cloud', and I love to leap and gallop across the green fields of Ireland! ☁️" },
+      { label: "🐴 Breed Question",   text: "I am a Connemara Pony, Ireland's ONLY native pony breed, and I am famous for being a brilliant jumper! Which horse am I? 🍀" },
+      { label: "🎨 Coat Question",    text: "I am dappled silver-grey, with soft spots that look like little clouds, and a flowing pale mane. Which horse am I? ☁️" },
+      { label: "💝 Personality",      text: "I am gentle, clever and very athletic, and I absolutely LOVE to jump! Which horse am I? 🦘" },
+      { label: "🌟 Fun Fact",         text: "I come from the rocky west of Ireland, which is why I am so strong and sure-footed. Which horse am I? 🍀" }
+    ]
   }
 ];
 
 // ═══════════════════════════════════════════════════════════
 //  BUILD MAIN GRID
 // ═══════════════════════════════════════════════════════════
-const grid = document.getElementById('horseGrid');
-horses.forEach((horse, i) => {
-    const card = document.createElement('div');
-    card.className = 'horse-card';
-    card.innerHTML = `
-        <div class="card-top">
-            <img src="${horse.image}" alt="${horse.name}" class="card-img"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-            <div class="card-emoji-fallback" style="display:none;background:${horse.cardGradient}">${horse.emoji}</div>
-        </div>
-        <div class="card-info">
-            <h2>${horse.name}</h2>
-            <p class="breed-label">${horse.breed}</p>
-            <p class="click-hint">👆 Click to learn more!</p>
-        </div>`;
-    card.addEventListener('click', () => openModal(i));
-    grid.appendChild(card);
-});
+function renderHorseGrid() {
+    const grid = document.getElementById('horseGrid');
+    grid.innerHTML = '';
+    horses.forEach((horse, i) => {
+        const card = document.createElement('div');
+        if (!isHorseUnlocked(horse)) {                       // locked reward horse: greyed silhouette
+            const req = VET_TIERS[horse.unlockRank];
+            card.className = 'horse-card locked-horse';
+            card.innerHTML = `
+                <div class="card-top"><div class="card-emoji-fallback locked-fallback">🔒</div></div>
+                <div class="card-info">
+                    <h2>???</h2>
+                    <p class="breed-label">Geheimes Pferd</p>
+                    <p class="click-hint">🔒 Wird bei „${req ? req.name : '?'}" ${req ? req.emoji : ''} freigeschaltet</p>
+                </div>`;
+            grid.appendChild(card);
+            return;
+        }
+        card.className = 'horse-card';
+        card.innerHTML = `
+            <div class="card-top">
+                <img src="${horse.image}" alt="${horse.name}" class="card-img"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div class="card-emoji-fallback" style="display:none;background:${horse.cardGradient}">${horse.emoji}</div>
+            </div>
+            <div class="card-info">
+                <h2>${horse.name}</h2>
+                <p class="breed-label">${horse.breed}</p>
+                <p class="click-hint">👆 Click to learn more!</p>
+            </div>`;
+        card.dataset.horseIdx = i;
+        card.addEventListener('click', () => { if (giftSelected !== null) giveGift(giftSelected, i); else openModal(i); });
+        card.addEventListener('dragover', e => { if (draggingGift !== null) { e.preventDefault(); card.classList.add('gift-target'); } });
+        card.addEventListener('dragleave', () => card.classList.remove('gift-target'));
+        card.addEventListener('drop', e => { e.preventDefault(); card.classList.remove('gift-target'); if (draggingGift !== null) giveGift(draggingGift, i); });
+        grid.appendChild(card);
+    });
+}
 
 // ═══════════════════════════════════════════════════════════
 //  MODAL
@@ -1020,7 +1153,7 @@ function openModal(i) {
         <div class="info-block"><h3>🎨 Coat &amp; Colour</h3><p>${h.coat}</p></div>
         <div class="info-block"><h3>💝 Temperament</h3><p>${h.temperament}</p></div>
         <div class="info-block"><h3>📖 ${h.name}'s Story</h3><p>${h.story}</p></div>
-        <div class="info-block"><h3>🌟 Fun Facts About ${h.name}'s Breed</h3><ul>${h.facts.map(f=>`<li>${f}</li>`).join('')}</ul></div>`;
+        <div class="info-block"><h3>🌟 Fun Facts About ${h.name}'s Breed</h3><ul>${h.facts.map(f=>`<li>${f}</li>`).join('')}</ul></div>` + horseGiftsHtml(i);
     document.getElementById('modalOverlay').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
@@ -1053,6 +1186,7 @@ function showMain() {
     document.getElementById('mainPage').classList.remove('hidden');
     renderVetCard();
     renderCollection();
+    renderHorseGrid();
     renderFeedButton();
 }
 function playAgain() {
@@ -1072,6 +1206,7 @@ function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 function buildQuestionPool() {
     const pool = [];
     horses.forEach((h, horseIdx) => {
+        if (!isHorseUnlocked(h)) return;                  // only horses she has met
         h.questions.forEach(q => {
             pool.push({ text: q.text, label: q.label, horseIdx });
         });
@@ -1103,7 +1238,7 @@ function showQuestion() {
 
     // 4 choices: correct horse + 3 random wrong horses
     const correctIdx = q.horseIdx;
-    const wrong = shuffle(horses.map((_, i) => i).filter(i => i !== correctIdx)).slice(0, 3);
+    const wrong = shuffle(horses.map((_, i) => i).filter(i => i !== correctIdx && isHorseUnlocked(horses[i]))).slice(0, 3);
     const choices = shuffle([correctIdx, ...wrong]);
 
     const picker = document.getElementById('horsePicker');
@@ -1374,7 +1509,23 @@ const vetConcepts = [
   // ── Saga (Islandpferd) ──
   { horseIdx:13, type:'longmult', treatment:'injection', title:"Saga im kalten Winter", intro:"Damit Saga im langen, eisigen Winter gesund bleibt, bekommt sie eine Vitaminspritze (Vi-ta-min-spri-tse) mit allem, was ihr Körper braucht.", cured:"Saga ist bestens geschützt und trabt fröhlich durch den Schnee. ❄️", make:()=>Qlongmult((a,b)=>`Saga bekommt <b>${a} mg</b> Vitamine pro Spritze, <b>${b} Spritzen</b> über den Winter. Wie viele mg insgesamt?`) },
   { horseIdx:13, type:'convert', treatment:'bucket', title:"Sagas langer Ausritt", intro:"Saga ist trittsicher (tritt-zi-cher) und liebt lange Ritte über die Lavafelder. Nach dem Tölten braucht sie viel frisches Wasser.", cured:"Saga hat genug getrunken und ist rundum zufrieden. ❄️", make:()=>Qconvert('dist',(disp,unit)=>`Saga ist heute <b>${disp}</b> getöltet. Wie weit ist das in <b>${unit}</b>?`) },
-  { horseIdx:13, type:'div', treatment:'bucket', title:"Saga teilt mit der Herde", intro:"Saga lebt in einer Herde (Her-de) mit anderen Islandpferden. Du teilst eine Tüte Vitamin-Pellets gerecht auf alle Eimer auf.", cured:"Jedes Pferd hat gerecht etwas abbekommen. Klug geteilt! ❄️", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} g</b> Vitamin-Pellets gleichmäßig auf <b>${b} Eimer</b> auf. Schätze zuerst, dann genau: wie viel pro Eimer – und wie viel bleibt übrig?`) }
+  { horseIdx:13, type:'div', treatment:'bucket', title:"Saga teilt mit der Herde", intro:"Saga lebt in einer Herde (Her-de) mit anderen Islandpferden. Du teilst eine Tüte Vitamin-Pellets gerecht auf alle Eimer auf.", cured:"Jedes Pferd hat gerecht etwas abbekommen. Klug geteilt! ❄️", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} g</b> Vitamin-Pellets gleichmäßig auf <b>${b} Eimer</b> auf. Schätze zuerst, dann genau: wie viel pro Eimer – und wie viel bleibt übrig?`) },
+
+  // ── Ottilia (Falabella) ──
+  { horseIdx:14, type:'longmult', treatment:'bucket', title:"Ottilias kleine Portionen", intro:"Ottilia ist ein Falabella (Fa-la-bel-la), eines der kleinsten Pferde der Welt. So ein Mini-Pferd braucht nur kleine Futtermengen, sonst wird es schnell zu dick.", cured:"Ottilia hat genau die richtige Menge bekommen und hüpft fröhlich durch die Wiese. 🥕", make:()=>Qlongmult((a,b)=>`Ottilia bekommt <b>${a} g</b> Futter pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) },
+  { horseIdx:14, type:'convert', treatment:'bandage', title:"Ottilias Mini-Verband", intro:"Ottilia hat sich am winzigen Bein geschrammt. Du legst einen ganz kleinen Verband (Fer-band) an, damit die Wunde sauber bleibt.", cured:"Ottilias Beinchen ist versorgt und sie tippelt wieder los. 🎀", make:()=>Qconvert('len',(disp,unit)=>`Ottilias Mini-Verband ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
+
+  // ── Pebbles (Welsh Mountain Pony) ──
+  { horseIdx:15, type:'money', treatment:'salve', title:"Pebbles' Sonnenschutz", intro:"Pebbles ist schneeweiß und hat eine rosa Nase. Helle Haut bekommt in der Sonne leicht einen Sonnenbrand (Son-nen-brand). Du kaufst eine schützende Sonnencreme.", cured:"Pebbles' Nase ist geschützt und sie genießt die Sonne. ☀️", make:()=>Qmoney((cents,d)=>`Eine Tube Sonnencreme kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Tuben</b>. Wie viel kostet das zusammen?`) },
+  { horseIdx:15, type:'longmult', treatment:'bucket', title:"Pebbles darf nicht zu viel Gras", intro:"Ponys wie Pebbles dürfen nicht zu viel saftiges Gras fressen, sonst droht Hufrehe (Huf-reh-e), eine schmerzhafte Huf-Entzündung. Du wiegst ihr Heu genau ab.", cured:"Pebbles bekommt die richtige Menge und ihre Hufe bleiben gesund. 🌿", make:()=>Qlongmult((a,b)=>`Pebbles bekommt <b>${a} g</b> Heu pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) },
+
+  // ── Mausi (Dartmoor Pony) ──
+  { horseIdx:16, type:'longmult', treatment:'bucket', title:"Mausi im Moor-Winter", intro:"Mausi lebt das ganze Jahr draußen auf dem Moor (Moor). Im kalten Winter braucht sie mehr Heu, damit ihr Körper von innen warm bleibt.", cured:"Mausi ist satt und warm und trabt fröhlich über das Moor. ❄️", make:()=>Qlongmult((a,b)=>`Mausi bekommt im Winter <b>${a} g</b> Heu pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) },
+  { horseIdx:16, type:'div', treatment:'salve', title:"Mausis Zeckenschutz", intro:"Auf der Weide können sich Zecken (Ze-cken) an Mausis Haut festsaugen. Du teilst ein Schutzmittel gleichmäßig auf mehrere Stellen auf.", cured:"Mausi ist gut geschützt und fühlt sich wohl. 🌿", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} ml</b> Zeckenschutz gleichmäßig auf <b>${b} Stellen</b> auf. Schätze zuerst, dann genau: wie viel pro Stelle – und wie viel bleibt übrig?`) },
+
+  // ── Wölkchen (Connemara Pony) ──
+  { horseIdx:17, type:'convert', treatment:'bandage', title:"Wölkchens Spring-Verband", intro:"Wölkchen liebt das Springen. Nach einem hohen Sprung ist ihre Sehne (Zeh-ne) warm, darum bekommt sie einen stützenden Verband.", cured:"Wölkchens Bein ist gestützt und sie springt wieder leichtfüßig. ☁️", make:()=>Qconvert('len',(disp,unit)=>`Wölkchens Stützverband ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
+  { horseIdx:17, type:'money', treatment:'bucket', title:"Wölkchens gutes Heu", intro:"Wölkchen ist sehr sportlich und springt gern. Dafür braucht sie gutes Heu mit vielen Nährstoffen (Nähr-schtof-fe).", cured:"Wölkchen ist gestärkt und galoppiert über die grüne Wiese. ☁️", make:()=>Qmoney((cents,d)=>`Ein Ballen gutes Heu kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Ballen</b>. Wie viel kostet das zusammen?`) }
 ];
 let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false, mPerfect = true;
 let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mTreat = null;
@@ -1390,8 +1541,8 @@ function buildMathPool() {
     const usedHorse = new Set(), out = [];
     for (const t of types) {
         // a concept of this skill type on a horse not used yet this game; fall back to any free horse
-        let opts = shuffle(vetConcepts.filter(c => c.type === t && !usedHorse.has(c.horseIdx)));
-        let c = opts[0] || shuffle(vetConcepts.filter(c => !usedHorse.has(c.horseIdx)))[0];
+        let opts = shuffle(vetConcepts.filter(c => c.type === t && !usedHorse.has(c.horseIdx) && isHorseUnlocked(horses[c.horseIdx])));
+        let c = opts[0] || shuffle(vetConcepts.filter(c => !usedHorse.has(c.horseIdx) && isHorseUnlocked(horses[c.horseIdx])))[0];
         usedHorse.add(c.horseIdx);
         out.push(Object.assign({ horseIdx: c.horseIdx, title: c.title, intro: c.intro, cured: c.cured, treatment: c.treatment }, c.make()));
     }
@@ -1402,7 +1553,7 @@ function buildMathPool() {
     const slotType = out[mChooseSlot].kind;
     const otherHorses = new Set(out.filter((q, i) => i !== mChooseSlot).map(q => q.horseIdx));
     const picked = out[mChooseSlot].horseIdx;
-    const pool = [...new Set(vetConcepts.filter(c => c.type === slotType && !otherHorses.has(c.horseIdx)).map(c => c.horseIdx))];
+    const pool = [...new Set(vetConcepts.filter(c => c.type === slotType && !otherHorses.has(c.horseIdx) && isHorseUnlocked(horses[c.horseIdx])).map(c => c.horseIdx))];
     const others = shuffle(pool.filter(h => h !== picked)).slice(0, 2);
     mChooseCandidates = shuffle([picked, ...others]);
     return out;
@@ -1880,6 +2031,11 @@ function showCure(q) {
         sp.style.animationDelay = (i * 0.28) + 's';
         hc.appendChild(sp);
     });
+    const cc = document.getElementById('mCureCollect');
+    const drop = maybeDropCollectible();   // ~1 in 4 chance per heal, during the round
+    if (drop) { cc.innerHTML = `<div class="cc-token">${drop.svg}</div><div class="cc-text">🎁 Neu für deine Sammlung:<br><b>${drop.name}</b>!</div>`; cc.classList.remove('hidden'); }
+    else { cc.classList.add('hidden'); cc.innerHTML = ''; }
+
     document.getElementById('mCureOverlay').classList.add('active');
 }
 function nextAfterCure() {
@@ -1900,35 +2056,125 @@ const COLLECTIBLES = [
   { id:'striegel',  name:'Striegel',    svg:`<svg viewBox="0 0 64 64"><rect x="26" y="15" width="12" height="7" rx="3.5" fill="#8a5a2b"/><ellipse cx="32" cy="27" rx="18" ry="9" fill="#e0954f"/><ellipse cx="32" cy="25.5" rx="18" ry="8" fill="#f0a85f"/><g stroke="#3a2a1a" stroke-width="2.4" stroke-linecap="round"><path d="M20 33v9"/><path d="M26 35v11"/><path d="M32 36v11"/><path d="M38 35v11"/><path d="M44 33v9"/></g></svg>` },
   { id:'schleife',  name:'Schleife',    svg:`<svg viewBox="0 0 64 64"><path d="M27 35 18 57l9-5 4 7 5-19z" fill="#ff6b6b"/><path d="M37 35l9 22-9-5-4 7-5-19z" fill="#4d96ff"/><circle cx="32" cy="25" r="14" fill="#ffd93d"/><circle cx="32" cy="25" r="14" fill="none" stroke="#e0a93b" stroke-width="2"/><circle cx="32" cy="25" r="6" fill="#f0b429"/><text x="32" y="29" font-size="9" text-anchor="middle" fill="#fff" font-family="Arial" font-weight="bold">1</text></svg>` }
 ];
-function loadCollection() { try { return JSON.parse(localStorage.getItem('ellaCollection') || '[]'); } catch (e) { return []; } }
-function saveCollection(a) { try { localStorage.setItem('ellaCollection', JSON.stringify(a)); } catch (e) {} }
+// Set 2 — unlocks after Set 1 is complete. More sets can be appended to COLLECTIBLE_SETS anytime.
+const COLLECTIBLES_SET2 = [
+  { id:'halfter',         name:'Halfter',         svg:`<svg viewBox="0 0 64 64"><g fill="none" stroke="#9a6433" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="30" width="36" height="16" rx="8"/><path d="M20 30v-8h24v8"/><path d="M14 38h36"/></g><rect x="29" y="35" width="6" height="6" rx="1.5" fill="#c0922f"/></svg>` },
+  { id:'fuehrstrick',     name:'Führstrick',      svg:`<svg viewBox="0 0 64 64"><g fill="none" stroke="#3f6fb0" stroke-width="5" stroke-linecap="round"><circle cx="30" cy="28" r="13"/><circle cx="30" cy="28" r="6"/></g><rect x="26" y="43" width="8" height="13" rx="3" fill="#9aa0a6"/><path d="M30 43v-3" stroke="#9aa0a6" stroke-width="3"/></svg>` },
+  { id:'hufkratzer',      name:'Hufkratzer',      svg:`<svg viewBox="0 0 64 64"><rect x="28" y="13" width="8" height="26" rx="4" fill="#e0954f"/><path d="M32 39c0 9-5 11-13 11" fill="none" stroke="#9aa0a6" stroke-width="5" stroke-linecap="round"/></svg>` },
+  { id:'salzleckstein',   name:'Salzleckstein',   svg:`<svg viewBox="0 0 64 64"><path d="M16 26l16-6 16 6v18l-16 6-16-6z" fill="#f3a9b0"/><path d="M16 26l16 6 16-6" fill="none" stroke="#d98792" stroke-width="2"/><path d="M32 32v24" stroke="#d98792" stroke-width="2" fill="none"/></svg>` },
+  { id:'zuckerwuerfel',   name:'Zuckerwürfel',    svg:`<svg viewBox="0 0 64 64"><path d="M18 26l14-6 14 6v16l-14 6-14-6z" fill="#ffffff" stroke="#d7d7e0" stroke-width="2"/><path d="M18 26l14 6 14-6M32 32v22" fill="none" stroke="#e3e3ec" stroke-width="2"/><path d="M46 13l1.4 3 3.3.4-2.4 2.2.6 3.3-2.9-1.6-3 1.6.6-3.3-2.4-2.2 3.3-.4z" fill="#ffd93d"/></svg>` },
+  { id:'leckerli',        name:'Leckerli',        svg:`<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="18" fill="#c98a4b"/><circle cx="32" cy="32" r="18" fill="none" stroke="#a9702f" stroke-width="2"/><g fill="#7a4a1a"><circle cx="26" cy="27" r="2.2"/><circle cx="38" cy="30" r="2.2"/><circle cx="30" cy="38" r="2.2"/><circle cx="39" cy="39" r="1.8"/></g></svg>` },
+  { id:'wassertrog',      name:'Wassertrog',      svg:`<svg viewBox="0 0 64 64"><rect x="12" y="24" width="40" height="6" rx="3" fill="#7e858c"/><path d="M14 30h36l-3 21a3 3 0 01-3 3H20a3 3 0 01-3-3z" fill="#9aa0a6"/><path d="M17 33h30l-1.4 12H18.4z" fill="#4d96ff"/><path d="M18.4 43h27.2" stroke="#a9d3ff" stroke-width="2"/></svg>` },
+  { id:'maehnenschleife', name:'Mähnenschleife',  svg:`<svg viewBox="0 0 64 64"><path d="M32 30 15 22v16z" fill="#ff6b6b"/><path d="M32 30 49 22v16z" fill="#ff6b6b"/><path d="M30 33l-6 19 8-6 8 6-6-19z" fill="#ff8a85"/><circle cx="32" cy="30" r="5" fill="#e0504a"/></svg>` },
+  { id:'reithelm',        name:'Reithelm',        svg:`<svg viewBox="0 0 64 64"><path d="M14 38a18 16 0 0 1 36 0z" fill="#2c3e50"/><path d="M14 38h40v3a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2z" fill="#1f2c39"/><path d="M50 39h8a2 2 0 0 1 0 4h-8z" fill="#1f2c39"/><g fill="none" stroke="#4a5a6a" stroke-width="2"><path d="M24 24v16M32 22v18M40 24v16"/></g><circle cx="32" cy="22" r="2.5" fill="#9aa0a6"/></svg>` }
+];
+const COLLECTIBLE_SETS = [COLLECTIBLES, COLLECTIBLES_SET2];
+const COLLECTIBLE_BY_ID = {};
+COLLECTIBLE_SETS.forEach(function (s) { s.forEach(function (it) { COLLECTIBLE_BY_ID[it.id] = it; }); });
+let giftSelected = null, draggingGift = null;
+
+// ── set state: which set she's collecting, progress in it, giftable inventory, and gifts given to each horse ──
+function getCollSet() { try { var v = parseInt(localStorage.getItem('ellaCollectSet'), 10); return isNaN(v) ? 0 : v; } catch (e) { return 0; } }
+function setCollSet(n) { try { localStorage.setItem('ellaCollectSet', String(n)); } catch (e) {} }
+function getProgress() { try { return JSON.parse(localStorage.getItem('ellaCollectProgress') || localStorage.getItem('ellaCollection') || '[]'); } catch (e) { return []; } }
+function saveProgress(a) { try { localStorage.setItem('ellaCollectProgress', JSON.stringify(a)); } catch (e) {} }
+function getGifts() { try { return JSON.parse(localStorage.getItem('ellaGifts') || '[]'); } catch (e) { return []; } }
+function saveGifts(a) { try { localStorage.setItem('ellaGifts', JSON.stringify(a)); } catch (e) {} }
+function getHorseGifts() { try { return JSON.parse(localStorage.getItem('ellaHorseGifts') || '{}'); } catch (e) { return {}; } }
+function saveHorseGifts(o) { try { localStorage.setItem('ellaHorseGifts', JSON.stringify(o)); } catch (e) {} }
+
 function renderCollection() {
     const grid = document.getElementById('collectionGrid'); if (!grid) return;
-    const have = loadCollection();
-    grid.innerHTML = COLLECTIBLES.map(it => {
-        const got = have.includes(it.id);
-        return `<div class="collect-item ${got ? '' : 'locked'}"><div class="collect-token">${it.svg}</div><div class="collect-name">${got ? it.name : '???'}</div></div>`;
-    }).join('');
-    document.getElementById('collectionCount').textContent = have.length + ' / ' + COLLECTIBLES.length + ' gesammelt';
+    const setIdx = getCollSet(), set = COLLECTIBLE_SETS[setIdx] || [], prog = getProgress();
+    if (set.length) {
+        grid.innerHTML = set.map(it => {
+            const got = prog.includes(it.id);
+            return `<div class="collect-item ${got ? '' : 'locked'}"><div class="collect-token">${it.svg}</div><div class="collect-name">${got ? it.name : '???'}</div></div>`;
+        }).join('');
+        document.getElementById('collectionCount').textContent = 'Set ' + (setIdx + 1) + ': ' + prog.length + ' / ' + set.length + ' gesammelt';
+    } else {
+        grid.innerHTML = '';
+        document.getElementById('collectionCount').textContent = 'Alle Sets gesammelt! 🎉';
+    }
+    renderGiftTray();
+}
+function renderGiftTray() {
+    const tray = document.getElementById('giftTray'); if (!tray) return;
+    const gifts = getGifts();
+    if (!gifts.length) { tray.innerHTML = ''; tray.classList.add('hidden'); return; }
+    tray.classList.remove('hidden');
+    tray.innerHTML = '<div class="gift-tray-title">🎁 Zu verschenken: zieh ein Geschenk auf ein Pferd (oder tippe erst das Geschenk, dann das Pferd):</div>'
+        + '<div class="gift-tray-row">'
+        + gifts.map((id, idx) => { const it = COLLECTIBLE_BY_ID[id]; return it ? `<div class="gift-token${giftSelected === idx ? ' selected' : ''}" draggable="true" onclick="selectGift(${idx})" ondragstart="dragGiftStart(event,${idx})" ondragend="dragGiftEnd()">${it.svg}</div>` : ''; }).join('')
+        + '</div>';
 }
 function maybeDropCollectible() {
-    const have = loadCollection();
-    const missing = COLLECTIBLES.filter(it => !have.includes(it.id));
-    if (!missing.length) return null;            // collection complete, no more drops
-    if (Math.random() >= 0.25) return null;      // ~1 in 4 heals
+    if (Math.random() >= 0.25) return null;          // ~1 in 4 heals
+    const setIdx = getCollSet(), set = COLLECTIBLE_SETS[setIdx];
+    if (!set) return null;                           // no more sets to collect right now
+    const prog = getProgress();
+    const missing = set.filter(it => !prog.includes(it.id));
+    if (!missing.length) return null;
     const item = missing[Math.floor(Math.random() * missing.length)];
-    have.push(item.id); saveCollection(have); renderCollection();
+    prog.push(item.id); saveProgress(prog);
+    if (prog.length >= set.length) {                 // set complete: its items become giftable, next set begins
+        const gifts = getGifts(); set.forEach(it => gifts.push(it.id)); saveGifts(gifts);
+        setCollSet(setIdx + 1); saveProgress([]);
+    }
+    renderCollection();
     return item;
+}
+function selectGift(idx) {
+    giftSelected = (giftSelected === idx) ? null : idx;
+    document.body.classList.toggle('give-mode', giftSelected !== null);
+    renderGiftTray();
+}
+function dragGiftStart(e, idx) { draggingGift = idx; try { e.dataTransfer.setData('text/plain', String(idx)); e.dataTransfer.effectAllowed = 'move'; } catch (err) {} }
+function dragGiftEnd() { draggingGift = null; document.querySelectorAll('.horse-card.gift-target').forEach(c => c.classList.remove('gift-target')); }
+function giveGift(giftIdx, horseIdx) {
+    const gifts = getGifts();
+    if (giftIdx < 0 || giftIdx >= gifts.length) return;
+    const id = gifts[giftIdx];
+    gifts.splice(giftIdx, 1); saveGifts(gifts);
+    const hg = getHorseGifts(); (hg[horseIdx] = hg[horseIdx] || []).push(id); saveHorseGifts(hg);
+    giftSelected = null; draggingGift = null;
+    document.body.classList.remove('give-mode');
+    renderCollection();
+    showGiftThanks(horses[horseIdx], COLLECTIBLE_BY_ID[id]);
+}
+function showGiftThanks(h, it) {
+    if (!h || !it) return;
+    const t = document.createElement('div'); t.className = 'gift-toast';
+    t.innerHTML = `<span class="gt-emoji">${h.emoji}</span><span class="gt-svg">${it.svg}</span><span class="gt-text">${h.name} freut sich riesig über dein Geschenk! 😋</span>`;
+    document.body.appendChild(t);
+    try { playHealSound(); } catch (e) {}
+    setTimeout(() => t.classList.add('show'), 20);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 320); }, 2100);
+}
+function horseGiftsHtml(i) {
+    const g = getHorseGifts()[i] || [];
+    if (!g.length) return '';
+    return `<div class="info-block"><h3>🎁 Geschenke von Ella</h3><div class="horse-gifts">${g.map(id => { const it = COLLECTIBLE_BY_ID[id]; return it ? `<span class="horse-gift" title="${it.name}">${it.svg}</span>` : ''; }).join('')}</div></div>`;
 }
 
 // ── Persistent vet rank: total points are saved by the browser so progress is remembered ──
 const VET_TIERS = [
-    { name: 'Apprentice',     emoji: '🌱', min: 0 },
-    { name: 'Junior Vet',     emoji: '🐴', min: 30 },
-    { name: 'Full Vet',       emoji: '🩺', min: 60 },
-    { name: 'Senior Vet',     emoji: '⭐', min: 90 },
-    { name: 'Super Vet',      emoji: '🌟', min: 120 },
-    { name: 'Super Hero Vet', emoji: '🦸', min: 150 }
+    { name: 'Apprentice',      emoji: '🌱', min: 0 },
+    { name: 'Junior Vet',      emoji: '🐴', min: 30 },
+    { name: 'Full Vet',        emoji: '🩺', min: 60 },
+    { name: 'Senior Vet',      emoji: '⭐', min: 90 },
+    { name: 'Super Vet',       emoji: '🌟', min: 120 },
+    { name: 'Super Hero Vet',  emoji: '🦸', min: 150 },
+    { name: 'Mega Vet',        emoji: '💫', min: 180 },
+    { name: 'Ultra Vet',       emoji: '🚀', min: 210 },
+    { name: 'Legendary Vet',   emoji: '🏆', min: 240 },
+    { name: 'Herriot Vet',     emoji: '📖', min: 270 },
+    { name: 'Goodall Vet',     emoji: '🐵', min: 300 },
+    { name: 'Attenborough Vet',emoji: '🌍', min: 330 },
+    { name: 'Irwin Vet',       emoji: '🐊', min: 360 },
+    { name: 'Fossey Vet',      emoji: '🦍', min: 390 },
+    { name: 'Durrell Vet',     emoji: '🐧', min: 420 },
+    { name: 'Darwin Vet',      emoji: '🐢', min: 450 }
 ];
 function getVetPoints() { try { var v = parseInt(localStorage.getItem('ellaVetPoints'), 10); return isNaN(v) ? 0 : v; } catch (e) { return 0; } }
 function setVetPoints(p) { try { localStorage.setItem('ellaVetPoints', String(p)); } catch (e) {} }
@@ -1949,6 +2195,9 @@ function getRankAchieved() {
 function setRankAchieved(i) { try { localStorage.setItem('ellaRankAchieved', String(i)); } catch (e) {} }
 function effectiveTier() { return Math.min(vetTierIndex(getVetPoints()), getRankAchieved()); }   // can't outrank your exams
 function examAvailable() { return vetTierIndex(getVetPoints()) > getRankAchieved() && getRankAchieved() < VET_TIERS.length - 1; }
+
+// a horse is unlocked if it's an original (no unlockRank), a gift (Ottilia), or its rank is reached
+function isHorseUnlocked(h) { return (h.unlockRank == null) || h.gift === true || (h.unlockRank <= getRankAchieved()); }
 
 // concepts she has actually seen (by title) — the exam only asks about these
 function getSeenConcepts() { try { return JSON.parse(localStorage.getItem('ellaSeenConcepts') || '[]'); } catch (e) { return []; } }
@@ -2013,7 +2262,15 @@ const EXAM = {
   "Chestnuts Schramme am Bein":     { q:"Warum legt man bei einer Schramme einen sauberen Beinverband an?", correct:"Damit die Wunde sauber bleibt und gut heilt.", wrong:["Damit das Bein dicker aussieht.", "Damit das Pferd schneller wird."] },
   "Saga im kalten Winter":          { q:"Wofür ist eine Vitaminspritze im Winter gut?", correct:"Sie gibt dem Pferd wichtige Vitamine, damit es gesund bleibt.", wrong:["Sie macht das Pferd schneller.", "Sie färbt das Fell weiß."] },
   "Sagas langer Ausritt":           { q:"Was ist der Tölt beim Islandpferd?", correct:"Eine besonders weiche, schnelle Gangart.", wrong:["Eine Krankheit der Hufe.", "Ein Futter aus Island."] },
-  "Saga teilt mit der Herde":       { q:"Was ist eine Herde?", correct:"Eine Gruppe von Pferden, die zusammen lebt.", wrong:["Ein Stall aus Holz.", "Ein Sattel für lange Ritte."] }
+  "Saga teilt mit der Herde":       { q:"Was ist eine Herde?", correct:"Eine Gruppe von Pferden, die zusammen lebt.", wrong:["Ein Stall aus Holz.", "Ein Sattel für lange Ritte."] },
+  "Ottilias kleine Portionen":      { q:"Warum bekommt ein winziges Falabella nur kleine Futtermengen?", correct:"Damit es nicht zu dick wird.", wrong:["Damit es schneller wächst.", "Damit es lauter wiehert."] },
+  "Ottilias Mini-Verband":          { q:"Was ist ein Falabella?", correct:"Eines der allerkleinsten Pferde der Welt.", wrong:["Eine ansteckende Pferdekrankheit.", "Ein großes, schweres Zugpferd."] },
+  "Pebbles' Sonnenschutz":          { q:"Warum braucht ein weißes Pony mit rosa Nase Sonnencreme?", correct:"Weil seine helle Haut in der Sonne leicht einen Sonnenbrand bekommt.", wrong:["Damit es schneller laufen kann.", "Damit die Nase blau wird."] },
+  "Pebbles darf nicht zu viel Gras":{ q:"Was kann passieren, wenn ein Pony zu viel saftiges Gras frisst?", correct:"Es kann Hufrehe bekommen, eine schmerzhafte Huf-Entzündung.", wrong:["Es wird sofort viel größer.", "Seine Mähne wird länger."] },
+  "Mausi im Moor-Winter":           { q:"Wie hält sich ein Pony, das draußen lebt, im Winter warm?", correct:"Mit einem dicken Winterfell und viel Heu zum Fressen.", wrong:["Mit einer Sonnenbrille.", "Indem es den ganzen Tag schläft."] },
+  "Mausis Zeckenschutz":            { q:"Was sind Zecken, die ein Pony auf der Weide bekommen kann?", correct:"Kleine Tierchen, die sich an der Haut festsaugen.", wrong:["Eine besondere Futtersorte.", "Kleine bunte Hufeisen."] },
+  "Wölkchens Spring-Verband":       { q:"Warum bekommt ein Spring-Pony nach dem Springen manchmal einen Stützverband?", correct:"Damit die Sehne im Bein Halt hat und sich erholen kann.", wrong:["Damit es noch höher springen kann.", "Damit das Bein bunt aussieht."] },
+  "Wölkchens gutes Heu":            { q:"Warum braucht ein sportliches Pony besonders gutes Futter?", correct:"Weil es für Springen und Galopp viel Energie braucht.", wrong:["Damit sein Fell bunter wird.", "Damit es leiser wiehert."] }
 };
 const EXAM_LEN = 5;
 let exQs = [], exIdx = 0, exRight = 0, exMissed = [];
@@ -2068,11 +2325,14 @@ function finishExam() {
     if (passed) {
         var newTier = getRankAchieved() + 1; setRankAchieved(newTier);
         var t = VET_TIERS[newTier], grade = pct >= 0.9 ? '1,0' : '2,0';
+        var fh = horses.find(function (h) { return h.unlockRank === newTier && !h.gift; });   // newly unlocked horse
+        renderHorseGrid();
         card.innerHTML =
             '<div class="exam-diploma"><div class="exam-dip-emoji">🎓</div>' +
             '<div class="exam-dip-title">Prüfung bestanden!</div>' +
             '<div class="exam-dip-note">Note ' + grade + ' · ' + exRight + ' von ' + exQs.length + ' richtig</div>' +
             '<div class="exam-dip-rank">' + t.emoji + ' Du bist jetzt ' + t.name + '!</div>' +
+            (fh ? '<div class="exam-dip-new">🎉 Neues Pferd freigeschaltet: <b>' + fh.name + '</b>! 🐴</div>' : '') +
             '<div class="exam-dip-sub">🐴 Herzlichen Glückwunsch, Frau Doktor Ella!</div></div>' +
             '<button class="exam-close-btn" onclick="closeExam()">Juhu! 🎉</button>';
     } else {
@@ -2150,10 +2410,6 @@ function showMathEnd() {
         html += `<div class="ev-progress"><div class="ev-progress-fill" style="width:100%"></div></div>`;
         html += `<div class="ev-next">🏆 Highest rank — you're a hero!</div>`;
     }
-    // collectible reward: rolled ONCE per completed round (~1 in 4), so she must finish to keep it
-    const drop = maybeDropCollectible();
-    if (drop) html += `<div class="ev-collect">🎁 Du hast etwas für deine Sammlung gefunden:<br><b>${drop.name}</b>! 🐴</div>`;
-
     document.getElementById('mEndVet').innerHTML = html;
     renderVetCard();
 }
@@ -2416,6 +2672,7 @@ const starsEl = document.getElementById('stars');
 // show Ella's saved vet rank as soon as the page opens
 renderVetCard();
 renderCollection();
+renderHorseGrid();   // build the grid (locked reward horses show as silhouettes)
 // give a small starter allowance for the Feed Kitchen the very first time
 try { if (localStorage.getItem('ellaFeedTokens') === null) setFeedTokens(2); } catch (e) {}
 renderFeedButton();
