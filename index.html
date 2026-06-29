@@ -1220,6 +1220,27 @@ const horses = [
       { label: "💝 Personality",      text: "I am calm, kind and friendly, a gentle giant who loves people and attention. Which horse am I? 🥰" },
       { label: "🌟 Fun Fact",         text: "I have long, silky white feathers of hair around my hooves, like fancy flared trousers! Which horse am I? ✨" }
     ]
+  },
+  {
+    name: "Rani", breed: "Marwari", emoji: "🐎", unlockRank: 15,
+    image: "horse-images/rani-marwari.jpg",
+    cardGradient: "linear-gradient(135deg, #3a2418, #c9962f)",
+    coat: "Deep glossy bay, a dark reddish-brown, with elegant black points and dainty white socks",
+    temperament: "Noble, brave and loyal, a proud horse with the heart of a queen.",
+    story: "Rani is a Marwari from Rajasthan in India, a rare and noble breed once ridden into battle by kings and warriors. Marwari horses have a magical secret: their ears curve inwards and can touch at the very tips, like a little crown. Legends say a Marwari would never leave its rider, even in the thick of a battle. Rani is the proudest, bravest horse in the whole stable, a true queen, which is exactly what her name means.",
+    facts: [
+      "👂 Marwari horses have ears that curve inward and can touch at the tips, no other breed does this!",
+      "🇮🇳 They come from Rajasthan in India and were the proud war horses of kings and warriors.",
+      "🛡️ Legends say a Marwari would never leave its rider, even in the middle of a battle.",
+      "👑 They are so treasured that long ago only royalty were allowed to ride them."
+    ],
+    questions: [
+      { label: "🌟 Story Clue",       text: "I am the rare and noble war horse of Indian kings, brave and loyal to the very end! 🛡️" },
+      { label: "🐴 Breed Question",   text: "I am a Marwari from India, with magical ears that curve inward and can touch at the tips. Which horse am I? 👂" },
+      { label: "🎨 Coat Question",    text: "I am a deep glossy bay, a dark reddish-brown, with black points and dainty white socks. Which horse am I? 💛" },
+      { label: "💝 Personality",      text: "I am noble, brave and loyal, with the proud heart of a queen. Which horse am I? 👑" },
+      { label: "🌟 Fun Fact",         text: "Long ago, only kings and royalty in India were allowed to ride horses of my breed! Which horse am I? 🇮🇳" }
+    ]
   }
 ];
 
@@ -1675,7 +1696,11 @@ const vetConcepts = [
 
   // ── Pixie (Gypsy Vanner) ──
   { horseIdx:23, type:'money', treatment:'salve', title:"Pixies Behänge", intro:"Pixie hat lange, weiße Behänge (Be-hän-ge) an den Beinen. Sie müssen sauber und trocken bleiben, sonst wird die Haut darunter wund. Du kaufst eine sanfte Waschlotion.", cured:"Pixies Beine sind sauber und ihre weißen Behänge glänzen. ✨", make:()=>Qmoney((cents,d)=>`Eine Flasche Waschlotion kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Flaschen</b>. Wie viel kostet das zusammen?`) },
-  { horseIdx:23, type:'longmult', treatment:'bucket', title:"Pixie zieht den Wohnwagen", intro:"Pixies Vorfahren zogen schwere, bunte Wohnwagen (Wohn-wa-gen). So ein kräftiges Pferd braucht viel gutes Futter mit Energie.", cured:"Pixie ist stark und zieht den bunten Wagen mühelos. 🎪", make:()=>Qlongmult((a,b)=>`Pixie bekommt <b>${a} g</b> Kraftfutter pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) }
+  { horseIdx:23, type:'longmult', treatment:'bucket', title:"Pixie zieht den Wohnwagen", intro:"Pixies Vorfahren zogen schwere, bunte Wohnwagen (Wohn-wa-gen). So ein kräftiges Pferd braucht viel gutes Futter mit Energie.", cured:"Pixie ist stark und zieht den bunten Wagen mühelos. 🎪", make:()=>Qlongmult((a,b)=>`Pixie bekommt <b>${a} g</b> Kraftfutter pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) },
+
+  // ── Rani (Marwari) ──
+  { horseIdx:24, type:'convert', treatment:'bucket', title:"Ranis Abkühlung", intro:"Nach der Arbeit in der heißen Sonne muss Rani langsam abgekühlt (ab-ge-kühlt) werden, sonst droht ein Hitzschlag (Hitz-schlag). Du kühlst sie mit Wasser und Schatten.", cured:"Rani ist schön abgekühlt und steht zufrieden im Schatten. 👑", make:()=>Qconvert('time',(disp,unit)=>`Rani wird <b>${disp}</b> lang langsam abgekühlt. Wie viele <b>${unit}</b> sind das?`) },
+  { horseIdx:24, type:'money', treatment:'salve', title:"Ranis besondere Ohren", intro:"Ranis Ohren sind etwas ganz Besonderes: Sie kringeln sich nach innen und berühren sich fast an den Spitzen. Du prüfst sie und kaufst sanfte Ohren-Reinigungstücher.", cured:"Ranis besondere Ohren sind sauber und gesund. 👂", make:()=>Qmoney((cents,d)=>`Eine Packung Ohren-Reinigungstücher kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Packungen</b>. Wie viel kostet das zusammen?`) }
 ];
 let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false, mPerfect = true;
 let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mTreat = null;
@@ -2432,7 +2457,9 @@ const EXAM = {
   "Luzies Aufwärmen":               { q:"Warum wärmt sich ein Pferd vor dem Training auf?", correct:"Damit die Muskeln geschmeidig werden und sich nicht verletzen.", wrong:["Damit das Fell mehr glänzt.", "Damit es größer wird."] },
   "Luzies Mähnenpflege":            { q:"Warum pflegt man die lange Mähne eines Pferdes?", correct:"Damit sie nicht verfilzt und gesund und schön bleibt.", wrong:["Damit das Pferd schneller läuft.", "Damit es weniger frisst."] },
   "Pixies Behänge":                 { q:"Warum müssen die langen Beinhaare (Behänge) eines Pferdes sauber und trocken bleiben?", correct:"Sonst kann die Haut darunter wund werden.", wrong:["Damit sie bunt leuchten.", "Damit das Pferd schneller wird."] },
-  "Pixie zieht den Wohnwagen":      { q:"Wofür wurden Gypsy-Vanner-Pferde gezüchtet?", correct:"Um die bunten Wohnwagen der fahrenden Leute zu ziehen.", wrong:["Für schnelle Pferderennen.", "Als winzige Schoßtiere für drinnen."] }
+  "Pixie zieht den Wohnwagen":      { q:"Wofür wurden Gypsy-Vanner-Pferde gezüchtet?", correct:"Um die bunten Wohnwagen der fahrenden Leute zu ziehen.", wrong:["Für schnelle Pferderennen.", "Als winzige Schoßtiere für drinnen."] },
+  "Ranis Abkühlung":                { q:"Was ist ein Hitzschlag bei einem Pferd?", correct:"Wenn der Körper bei großer Hitze viel zu heiß wird, das ist gefährlich.", wrong:["Wenn das Pferd zu viel gefressen hat.", "Wenn die Hufe zu lang geworden sind."] },
+  "Ranis besondere Ohren":          { q:"Was ist das Besondere an den Ohren eines Marwari-Pferdes?", correct:"Sie kringeln sich nach innen und können sich an den Spitzen berühren.", wrong:["Sie sind so groß wie bei einem Esel.", "Sie leuchten im Dunkeln."] }
 };
 const EXAM_LEN = 5;
 let exQs = [], exIdx = 0, exRight = 0, exMissed = [];
