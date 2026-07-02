@@ -418,6 +418,9 @@
         .admin-cancel { font-family: 'Fredoka One', cursive; font-size: 1rem; padding: 12px 20px; border: none; border-radius: 40px; background: #e6e6e6; color: #555; cursor: pointer; }
         .admin-cancel:hover { background: #d8d8d8; }
     </style>
+    <!-- Firebase Realtime Database (cross-device save), loaded from Google CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -503,6 +506,20 @@
                 <button class="admin-cancel" onclick="adminReset0()">Reset to 0</button>
                 <button class="admin-cancel" onclick="closeAdmin()">Close</button>
             </div>
+            <hr style="border:none;border-top:1px solid #eadff5;margin:16px 0 10px;">
+            <div class="admin-title" style="font-size:1rem;">☁️ Save across computers</div>
+            <label class="admin-label">Magic word (use the SAME word on every computer)</label>
+            <input id="adminMagic" class="admin-input" placeholder="e.g. ella-pony-7431" autocomplete="off">
+            <div class="admin-btns"><button class="mix-btn" onclick="syncConnect()">Connect</button></div>
+            <div id="adminSyncMsg" class="admin-msg"></div>
+            <details style="margin-top:8px;">
+                <summary style="cursor:pointer;color:#7a5a9e;">Manual backup (no internet setup needed)</summary>
+                <div class="admin-btns" style="margin-top:6px;">
+                    <button class="admin-cancel" onclick="syncMakeCode()">Copy backup code</button>
+                    <button class="admin-cancel" onclick="syncRestore()">Restore from code</button>
+                </div>
+                <textarea id="adminBackup" class="admin-input" rows="3" placeholder="Backup code appears here — or paste one and press Restore" style="font-family:monospace;font-size:.72rem;"></textarea>
+            </details>
         </div>
     </div>
 </div>
@@ -1075,12 +1092,12 @@ const horses = [
     ]
   },
   {
-    name: "Wölkchen", breed: "Connemara Pony", emoji: "🐴", unlockRank: 8,
+    name: "Laeticia", breed: "Connemara Pony", emoji: "🐴", unlockRank: 8,
     image: "horse-images/woelkchen-connemara.jpg",
     cardGradient: "linear-gradient(135deg, #b8c2cf, #6b7a8c)",
     coat: "Dappled silver-grey, with soft spots that look like little clouds, and a flowing pale mane",
     temperament: "Gentle, clever and very athletic, she loves to leap and gallop across the green fields.",
-    story: "Wölkchen is a Connemara Pony from the rocky west of Ireland, Ireland's only native pony breed. Her name means 'little cloud', because her dappled grey coat looks just like soft clouds in the sky. She is famous for being a wonderful jumper and adores bounding over logs and streams, then galloping across the emerald fields.",
+    story: "Laeticia is a Connemara Pony from the rocky west of Ireland, Ireland's only native pony breed. Her dappled grey coat looks just like soft clouds in the sky. She is famous for being a wonderful jumper and adores bounding over logs and streams, then galloping across the emerald fields.",
     facts: [
       "🍀 The Connemara is Ireland's only native pony breed.",
       "🦘 They are famous all over the world for being brilliant, brave jumpers.",
@@ -1088,7 +1105,7 @@ const horses = [
       "💪 Growing up on rocky Irish ground makes them strong and very sure-footed."
     ],
     questions: [
-      { label: "🌟 Story Clue",       text: "My name means 'little cloud', and I love to leap and gallop across the green fields of Ireland! ☁️" },
+      { label: "🌟 Story Clue",       text: "My dappled coat looks just like little clouds, and I love to leap and gallop across the green fields of Ireland! ☁️" },
       { label: "🐴 Breed Question",   text: "I am a Connemara Pony, Ireland's ONLY native pony breed, and I am famous for being a brilliant jumper! Which horse am I? 🍀" },
       { label: "🎨 Coat Question",    text: "I am dappled silver-grey, with soft spots that look like little clouds, and a flowing pale mane. Which horse am I? ☁️" },
       { label: "💝 Personality",      text: "I am gentle, clever and very athletic, and I absolutely LOVE to jump! Which horse am I? 🦘" },
@@ -1138,12 +1155,12 @@ const horses = [
     ]
   },
   {
-    name: "Heidi", breed: "Fell Pony", emoji: "🐴", unlockRank: 11,
+    name: "Margo", breed: "Fell Pony", emoji: "🐴", unlockRank: 11,
     image: "horse-images/heidi-fell.jpg",
     cardGradient: "linear-gradient(135deg, #2b2b30, #50505a)",
     coat: "Glossy black, with a long thick mane and feathery hair around her hooves",
     temperament: "Lively, hardy and friendly, a strong little pony with lots and lots of go.",
-    story: "Heidi is a Fell Pony from the green fells of northern England, an ancient breed that is usually jet black with feathery hair around the hooves. Fell ponies are strong and full of energy, and long ago they helped shepherds round up sheep across the hills. Heidi loves a good gallop and tossing her long, thick mane in the wind.",
+    story: "Margo is a Fell Pony from the green fells of northern England, an ancient breed that is usually jet black with feathery hair around the hooves. Fell ponies are strong and full of energy, and long ago they helped shepherds round up sheep across the hills. Margo loves a good gallop and tossing her long, thick mane in the wind.",
     facts: [
       "🏞️ Fell Ponies come from northern England (Cumbria) and are an ancient breed.",
       "🖤 They are usually black, with long manes and feathery hair around the hooves.",
@@ -1222,12 +1239,12 @@ const horses = [
     ]
   },
   {
-    name: "Rani", breed: "Marwari", emoji: "🐎", unlockRank: 15,
+    name: "Rosie", breed: "Marwari", emoji: "🐎", unlockRank: 15,
     image: "horse-images/rani-marwari.jpg",
     cardGradient: "linear-gradient(135deg, #3a2418, #c9962f)",
     coat: "Deep glossy bay, a dark reddish-brown, with elegant black points and dainty white socks",
     temperament: "Noble, brave and loyal, a proud horse with the heart of a queen.",
-    story: "Rani is a Marwari from Rajasthan in India, a rare and noble breed once ridden into battle by kings and warriors. Marwari horses have a magical secret: their ears curve inwards and can touch at the very tips, like a little crown. Legends say a Marwari would never leave its rider, even in the thick of a battle. Rani is the proudest, bravest horse in the whole stable, a true queen, which is exactly what her name means.",
+    story: "Rosie is a Marwari from Rajasthan in India, a rare and noble breed once ridden into battle by kings and warriors. Marwari horses have a magical secret: their ears curve inwards and can touch at the very tips, like a little crown. Legends say a Marwari would never leave its rider, even in the thick of a battle. Rosie is the proudest, bravest horse in the whole stable, with the heart of a true queen.",
     facts: [
       "👂 Marwari horses have ears that curve inward and can touch at the tips, no other breed does this!",
       "🇮🇳 They come from Rajasthan in India and were the proud war horses of kings and warriors.",
@@ -1670,9 +1687,9 @@ const vetConcepts = [
   { horseIdx:16, type:'longmult', treatment:'bucket', title:"Mausi im Moor-Winter", intro:"Mausi lebt das ganze Jahr draußen auf dem Moor (Moor). Im kalten Winter braucht sie mehr Heu, damit ihr Körper von innen warm bleibt.", cured:"Mausi ist satt und warm und trabt fröhlich über das Moor. ❄️", make:()=>Qlongmult((a,b)=>`Mausi bekommt im Winter <b>${a} g</b> Heu pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) },
   { horseIdx:16, type:'div', treatment:'salve', title:"Mausis Zeckenschutz", intro:"Auf der Weide können sich Zecken (Ze-cken) an Mausis Haut festsaugen. Du teilst ein Schutzmittel gleichmäßig auf mehrere Stellen auf.", cured:"Mausi ist gut geschützt und fühlt sich wohl. 🌿", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} ml</b> Zeckenschutz gleichmäßig auf <b>${b} Stellen</b> auf. Schätze zuerst, dann genau: wie viel pro Stelle – und wie viel bleibt übrig?`) },
 
-  // ── Wölkchen (Connemara Pony) ──
-  { horseIdx:17, type:'convert', treatment:'bandage', title:"Wölkchens Spring-Verband", intro:"Wölkchen liebt das Springen. Nach einem hohen Sprung ist ihre Sehne (Zeh-ne) warm, darum bekommt sie einen stützenden Verband.", cured:"Wölkchens Bein ist gestützt und sie springt wieder leichtfüßig. ☁️", make:()=>Qconvert('len',(disp,unit)=>`Wölkchens Stützverband ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
-  { horseIdx:17, type:'money', treatment:'bucket', title:"Wölkchens gutes Heu", intro:"Wölkchen ist sehr sportlich und springt gern. Dafür braucht sie gutes Heu mit vielen Nährstoffen (Nähr-schtof-fe).", cured:"Wölkchen ist gestärkt und galoppiert über die grüne Wiese. ☁️", make:()=>Qmoney((cents,d)=>`Ein Ballen gutes Heu kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Ballen</b>. Wie viel kostet das zusammen?`) },
+  // ── Laeticia (Connemara Pony) ──
+  { horseIdx:17, type:'convert', treatment:'bandage', title:"Laeticias Spring-Verband", intro:"Laeticia liebt das Springen. Nach einem hohen Sprung ist ihre Sehne (Zeh-ne) warm, darum bekommt sie einen stützenden Verband.", cured:"Laeticias Bein ist gestützt und sie springt wieder leichtfüßig. ☁️", make:()=>Qconvert('len',(disp,unit)=>`Laeticias Stützverband ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
+  { horseIdx:17, type:'money', treatment:'bucket', title:"Laeticias gutes Heu", intro:"Laeticia ist sehr sportlich und springt gern. Dafür braucht sie gutes Heu mit vielen Nährstoffen (Nähr-schtof-fe).", cured:"Laeticia ist gestärkt und galoppiert über die grüne Wiese. ☁️", make:()=>Qmoney((cents,d)=>`Ein Ballen gutes Heu kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Ballen</b>. Wie viel kostet das zusammen?`) },
 
   // ── Keks (Exmoor Pony) ──
   { horseIdx:18, type:'money', treatment:'salve', title:"Keks' Fliegenschutz", intro:"Im Sommer krabbeln Fliegen (Flie-gen) in Keks' Augen und Ohren. Das stört sie und kann Krankheiten übertragen. Du kaufst ein schützendes Fliegen-Gel.", cured:"Keks ist die Fliegen los und schaut wieder klar in die Welt. ☀️", make:()=>Qmoney((cents,d)=>`Eine Tube Fliegen-Gel kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Tuben</b>. Wie viel kostet das zusammen?`) },
@@ -1682,9 +1699,9 @@ const vetConcepts = [
   { horseIdx:19, type:'convert', treatment:'bucket', title:"Flöckchens schwere Last", intro:"Flöckchen ist ein starkes Highland-Pony und kann schwere Lasten tragen. Du wiegst ihre Satteltaschen (Sat-tel-ta-schen), damit sie nicht zu schwer werden.", cured:"Flöckchen trägt ihre Last bequem den Berg hinauf. 🏔️", make:()=>Qconvert('wt',(disp,unit)=>`Flöckchens Satteltaschen wiegen <b>${disp}</b>. Wie viel ist das in <b>${unit}</b>?`) },
   { horseIdx:19, type:'longmult', treatment:'bucket', title:"Flöckchens Hufschmied", intro:"Pferdehufe wachsen immer weiter. Darum kommt regelmäßig der Hufschmied (Huf-schmied) und kürzt sie. Zwischendurch bekommt Flöckchen ein Vitamin für feste Hufe.", cured:"Flöckchens Hufe sind gekürzt und gesund. 🏔️", make:()=>Qlongmult((a,b)=>`Flöckchen bekommt <b>${a} mg</b> Huf-Vitamin pro Tag, <b>${b} Tage</b> lang. Wie viele mg insgesamt?`) },
 
-  // ── Heidi (Fell Pony) ──
-  { horseIdx:20, type:'money', treatment:'salve', title:"Heidis Mauke", intro:"Heidi hat lange Behänge (Be-hän-ge), das ist das zottelige Haar an den Beinen. Im nassen Matsch kann darunter Mauke (Mau-ke) entstehen, eine wunde Hautstelle. Du kaufst eine Heilsalbe.", cured:"Heidis Beine sind sauber und die Haut heilt. 🖤", make:()=>Qmoney((cents,d)=>`Eine Dose Mauke-Salbe kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Dosen</b>. Wie viel kostet das zusammen?`) },
-  { horseIdx:20, type:'convert', treatment:'bucket', title:"Heidis Schafhüten", intro:"Früher halfen Fell-Ponys wie Heidi beim Hüten (Hü-ten) der Schafe und liefen dabei weite Strecken über die Berge. Danach braucht sie viel Wasser.", cured:"Heidi hat genug getrunken und ist zufrieden. 🐑", make:()=>Qconvert('dist',(disp,unit)=>`Heidi ist heute <b>${disp}</b> über die Berge gelaufen. Wie weit ist das in <b>${unit}</b>?`) },
+  // ── Margo (Fell Pony) ──
+  { horseIdx:20, type:'money', treatment:'salve', title:"Margos Mauke", intro:"Margo hat lange Behänge (Be-hän-ge), das ist das zottelige Haar an den Beinen. Im nassen Matsch kann darunter Mauke (Mau-ke) entstehen, eine wunde Hautstelle. Du kaufst eine Heilsalbe.", cured:"Margos Beine sind sauber und die Haut heilt. 🖤", make:()=>Qmoney((cents,d)=>`Eine Dose Mauke-Salbe kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Dosen</b>. Wie viel kostet das zusammen?`) },
+  { horseIdx:20, type:'convert', treatment:'bucket', title:"Margos Schafhüten", intro:"Früher halfen Fell-Ponys wie Margo beim Hüten (Hü-ten) der Schafe und liefen dabei weite Strecken über die Berge. Danach braucht sie viel Wasser.", cured:"Margo hat genug getrunken und ist zufrieden. 🐑", make:()=>Qconvert('dist',(disp,unit)=>`Margo ist heute <b>${disp}</b> über die Berge gelaufen. Wie weit ist das in <b>${unit}</b>?`) },
 
   // ── Bonbon (New Forest Pony) ──
   { horseIdx:21, type:'convert', treatment:'bucket', title:"Bonbons Wald-Streifzug", intro:"Bonbon wandert frei durch den großen Wald des New Forest und läuft dabei weite Strecken. Danach braucht sie frisches Wasser.", cured:"Bonbon hat genug getrunken und trabt zufrieden weiter. 🌳", make:()=>Qconvert('dist',(disp,unit)=>`Bonbon ist heute <b>${disp}</b> durch den Wald gewandert. Wie weit ist das in <b>${unit}</b>?`) },
@@ -1698,9 +1715,26 @@ const vetConcepts = [
   { horseIdx:23, type:'money', treatment:'salve', title:"Pixies Behänge", intro:"Pixie hat lange, weiße Behänge (Be-hän-ge) an den Beinen. Sie müssen sauber und trocken bleiben, sonst wird die Haut darunter wund. Du kaufst eine sanfte Waschlotion.", cured:"Pixies Beine sind sauber und ihre weißen Behänge glänzen. ✨", make:()=>Qmoney((cents,d)=>`Eine Flasche Waschlotion kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Flaschen</b>. Wie viel kostet das zusammen?`) },
   { horseIdx:23, type:'longmult', treatment:'bucket', title:"Pixie zieht den Wohnwagen", intro:"Pixies Vorfahren zogen schwere, bunte Wohnwagen (Wohn-wa-gen). So ein kräftiges Pferd braucht viel gutes Futter mit Energie.", cured:"Pixie ist stark und zieht den bunten Wagen mühelos. 🎪", make:()=>Qlongmult((a,b)=>`Pixie bekommt <b>${a} g</b> Kraftfutter pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) },
 
-  // ── Rani (Marwari) ──
-  { horseIdx:24, type:'convert', treatment:'bucket', title:"Ranis Abkühlung", intro:"Nach der Arbeit in der heißen Sonne muss Rani langsam abgekühlt (ab-ge-kühlt) werden, sonst droht ein Hitzschlag (Hitz-schlag). Du kühlst sie mit Wasser und Schatten.", cured:"Rani ist schön abgekühlt und steht zufrieden im Schatten. 👑", make:()=>Qconvert('time',(disp,unit)=>`Rani wird <b>${disp}</b> lang langsam abgekühlt. Wie viele <b>${unit}</b> sind das?`) },
-  { horseIdx:24, type:'money', treatment:'salve', title:"Ranis besondere Ohren", intro:"Ranis Ohren sind etwas ganz Besonderes: Sie kringeln sich nach innen und berühren sich fast an den Spitzen. Du prüfst sie und kaufst sanfte Ohren-Reinigungstücher.", cured:"Ranis besondere Ohren sind sauber und gesund. 👂", make:()=>Qmoney((cents,d)=>`Eine Packung Ohren-Reinigungstücher kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Packungen</b>. Wie viel kostet das zusammen?`) }
+  // ── Rosie (Marwari) ──
+  { horseIdx:24, type:'convert', treatment:'bucket', title:"Rosies Abkühlung", intro:"Nach der Arbeit in der heißen Sonne muss Rosie langsam abgekühlt (ab-ge-kühlt) werden, sonst droht ein Hitzschlag (Hitz-schlag). Du kühlst sie mit Wasser und Schatten.", cured:"Rosie ist schön abgekühlt und steht zufrieden im Schatten. 👑", make:()=>Qconvert('time',(disp,unit)=>`Rosie wird <b>${disp}</b> lang langsam abgekühlt. Wie viele <b>${unit}</b> sind das?`) },
+  { horseIdx:24, type:'money', treatment:'salve', title:"Rosies besondere Ohren", intro:"Rosies Ohren sind etwas ganz Besonderes: Sie kringeln sich nach innen und berühren sich fast an den Spitzen. Du prüfst sie und kaufst sanfte Ohren-Reinigungstücher.", cured:"Rosies besondere Ohren sind sauber und gesund. 👂", make:()=>Qmoney((cents,d)=>`Eine Packung Ohren-Reinigungstücher kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Packungen</b>. Wie viel kostet das zusammen?`) },
+
+  // ===== NEW CASES (2026-07 refresh) — one per always-unlocked horse, 3 per skill type =====
+  { horseIdx:7, type:'longmult', treatment:'bucket', title:"Cupcakes lockiges Fell", intro:"Cupcake hat sogar im Sommer ein dickes, lockiges Fell, das nicht ausfällt. Das kommt von Cushing (Kuu-shing): Ein kleiner Knoten im Kopf schickt falsche Signale an den Körper. Sie bekommt jeden Tag eine kleine Menge Medizin ins Futter, damit sie sich wieder wohlfühlt.", cured:"Cupcakes Fell wird wieder glatt und sie fühlt sich rundum wohl. 🍰", make:()=>Qlongmult((a,b)=>`Cupcake bekommt <b>${a} mg</b> Cushing-Medizin pro Tag ins Futter, <b>${b} Tage</b> lang. Wie viele mg sind das insgesamt?`) },
+  { horseIdx:3, type:'longmult', treatment:'salve', title:"Dottys Zahnhaken", intro:"Dotty kaut ihr Heu ganz schief und lässt Futter fallen. Die Tierärztin schaut ihr ins Maul und findet Zahnhaken (Zahn-ha-ken) – das sind scharfe Kanten an den Backenzähnen, die beim Kauen wehtun. Mit einer sanften Zahnfeile werden sie glatt geraspelt, danach reibt die Tierärztin eine beruhigende Salbe aufs Zahnfleisch. 🦷", cured:"Dotty mampft ihr Heu jetzt wieder gleichmäßig und zufrieden – kein einziges Hälmchen fällt mehr daneben! 😄🐴", make:()=>Qlongmult((a,b)=>`Nach der Zahnbehandlung frisst Dotty <b>${a} g</b> weiches Mash pro Tag, <b>${b} Tage</b> lang, bis das Zahnfleisch verheilt ist. Wie viel Gramm Mash sind das insgesamt?`) },
+  { horseIdx:1, type:'longmult', treatment:'bucket', title:"Biscuits braunes Wasser", intro:"Beim Koten läuft bei Biscuit braunes Wasser mit heraus – das nennt man Kotwasser (Kot-vas-ser). Das macht die Haut am Po wund. Du mischst ihm beruhigende Heilkräuter und Leinsamen (Lein-za-men) ins Futter, damit sein Darm zur Ruhe kommt.", cured:"Biscuits Darm ist ruhig, sein Po bleibt trocken und sauber. Geschafft! 🧡", make:()=>Qlongmult((a,b)=>`Biscuit bekommt <b>${a} g</b> Heilkräuter mit Leinsamen pro Tag, <b>${b} Tage</b> lang. Wie viele Gramm insgesamt?`) },
+  { horseIdx:2, type:'money', treatment:'bandage', title:"Thunders Regendecke", intro:"Thunder ist ein Mustang und steht bei jedem Wetter draußen. Im Sturm wird er nass und friert. Eine wasserdichte Regendecke (Ree-gen-de-cke) hält ihn trocken und warm.", cured:"Thunder bleibt im Regen kuschelig trocken und schüttelt fröhlich die Mähne. Stark! 💨", make:()=>Qmoney((cents,d)=>`Eine Regendecke kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Regendecken</b> für die Herde. Wie viel kostet das zusammen?`) },
+  { horseIdx:4, type:'money', treatment:'salve', title:"Midnights Satteldruck", intro:"Midnight tanzt gern Dressur mit dem Sattel. Reibt der Sattel zu fest, entsteht ein Satteldruck (Sat-tel-druck), eine wunde, gedrückte Stelle auf dem Rücken. Du kaufst eine heilende Salbe dafür.", cured:"Midnights Rücken ist wieder weich und heil, jetzt tanzt sie ohne Aua. 🖤", make:()=>Qmoney((cents,d)=>`Eine Tube Rücken-Salbe kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Tuben</b>. Wie viel kostet das zusammen?`) },
+  { horseIdx:13, type:'money', treatment:'bandage', title:"Sagas Abschwitzdecke", intro:"Saga hat ein dickes Winterfell und schwitzt beim Tölten stark. Nasses Fell trocknet langsam und dann friert sie leicht. Eine Abschwitzdecke (Ap-schwitz-de-cke) saugt den Schweiß auf, damit Saga schön trocken und warm bleibt.", cured:"Saga ist kuschelig trocken und schnaubt zufrieden im Stall. ❄️", make:()=>Qmoney((cents,d)=>`Eine Abschwitzdecke kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Decken</b> für den Stall. Wie viel kostet das zusammen?`) },
+  { horseIdx:9, type:'div', treatment:'bucket', title:"Lunas geschmeidige Dressur-Muskeln", intro:"Luna ist eine elegante Lipizzaner-Dame und übt fleißig Dressur. 💃 Damit ihre Muskeln schön geschmeidig (ge-schmai-dig) bleiben, macht sie sanfte Dehnübungen (Deen-üü-bung-en): Sie streckt Hals und Rücken nach einem Physio-Leckerli (Fies-io-Leck-er-li). So bleibt kein Muskel steif.", cured:"Luna dehnt sich locker und tanzt wieder leichtfüßig durch die Dressur! 💃", make:()=>Qdiv((a,b)=>`Du hast eine Tüte mit <b>${a} Physio-Leckerlis</b> und teilst sie gleichmäßig auf <b>${b} Dehnübungen</b> auf. Schätze zuerst, dann rechne genau: wie viele Leckerlis pro Übung – und wie viele bleiben übrig?`) },
+  { horseIdx:11, type:'div', treatment:'salve', title:"Freyas Steinchen im Huf", intro:"Nach dem Bergritt lahmt Freya ein bisschen. In ihrem Huf steckt ein kleines Steinchen, das du mit dem Hufkratzer (Huf-krat-zer) vorsichtig heraushebelst. Danach tupfst du eine pflegende Huf-Tinktur auf die Stelle.", cured:"Das Steinchen ist raus und Freya trabt wieder fröhlich und ohne Lahmen über den Hof. 🐴", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} ml</b> Huf-Tinktur gleichmäßig auf <b>${b} Behandlungen</b> auf. Schätze zuerst, dann genau: wie viel pro Behandlung – und wie viel bleibt übrig?`) },
+  { horseIdx:14, type:'div', treatment:'salve', title:"Ottilias kleine Kratzer", intro:"Nach dem wilden Toben auf der Wiese hat das Mini-Pony Ottilia mehrere kleine Kratzer (Krat-zer) an den Beinen. Du versorgst jede Stelle mit beruhigendem Wund-Gel (Vund-Gel).", cured:"Alle Kratzer sind eingecremt und heilen schön, und Ottilia flitzt schon wieder fröhlich los. 🐴", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} g</b> Wund-Gel gleichmäßig auf <b>${b} Kratzer</b> auf. Schätze zuerst, dann genau: wie viel pro Kratzer – und wie viel bleibt übrig?`) },
+  { horseIdx:12, type:'compare', treatment:'bucket', title:"Chestnuts Stroh-Einkauf", intro:"Chestnut ist ein riesiger Wallach (Wal-lach) und braucht in seiner großen Box viel Stroh-Einstreu (Ein-stroy), damit er sich weich hinlegen und gut ausruhen kann. Zwei Läden verkaufen Strohballen – wo ist ein Ballen teurer?", cured:"Chestnut hat ein dickes, weiches Strohbett zum besten Preis und döst zufrieden vor sich hin. Schlau eingekauft! 🌾", make:()=>Qcompare((qa,ta,qb,tb)=>`Laden A verkauft <b>${qa}</b> Strohballen für <b>${fmtMoney(ta/100)}</b>, Laden B <b>${qb}</b> für <b>${fmtMoney(tb/100)}</b>. Rechne den Preis für EINEN Ballen in jedem Laden aus, dann sag, welcher Laden teurer ist.`) },
+  { horseIdx:8, type:'compare', treatment:'bandage', title:"Brios Hufeisen-Einkauf", intro:"Der Hufschmied (Huf-schmiid) braucht neue Hufeisen für Brio, denn seine alten sind abgenutzt. Zwei Läden verkaufen Hufeisen im Set – wo kostet ein Eisen mehr?", cured:"Brio trägt vier funkelnde neue Hufeisen und klappert stolz über den Hof. Schlau eingekauft! 🐴", make:()=>Qcompare((qa,ta,qb,tb)=>`Laden A verkauft <b>${qa}</b> Hufeisen für <b>${fmtMoney(ta/100)}</b>, Laden B <b>${qb}</b> für <b>${fmtMoney(tb/100)}</b>. Rechne den Preis für EIN Hufeisen in jedem Laden aus, dann sag, welcher Laden teurer ist.`) },
+  { horseIdx:10, type:'compare', treatment:'bandage', title:"Auroras Fliegenmasken-Einkauf", intro:"Aurora hat ganz feines Fell und dünne Haut, darum sind ihre Augen sehr empfindlich für Sonne und Fliegen. Eine Fliegenmaske (Flie-gen-mas-ke) mit UV-Schutz hält Insekten weg und schützt vor grellem Licht.", cured:"Aurora trägt ihre Fliegenmaske und blinzelt entspannt in der Sonne. ✨", make:()=>Qcompare((qa,ta,qb,tb)=>`Aurora braucht eine neue Fliegenmaske. Laden A verkauft <b>${qa}</b> Masken für <b>${fmtMoney(ta/100)}</b>, Laden B <b>${qb}</b> für <b>${fmtMoney(tb/100)}</b>. Rechne den Preis für EINE Maske in jedem Laden aus, dann sag, welcher Laden teurer ist.`) },
+  { horseIdx:0, type:'convert', treatment:'bandage', title:"Stellas kühlende Tonerde", intro:"Stella ist eine Araberstute und rennt gern ganz schnell. Danach sind ihre Sehnen (Seh-nen) in den Beinen ganz warm. Du streichst eine kühlende Tonerde (Ton-er-de) auf die Beine und wickelst sie locker ein. Die kühle Packung muss eine Weile einwirken.", cured:"Nach der Kühlzeit sind Stellas Beine wieder schön kühl und sie tänzelt fröhlich über die Wiese! 💙", make:()=>Qconvert('time',(disp,unit)=>`Stellas kühlende Tonerde-Packung soll <b>${disp}</b> lang einwirken. Wie viel ist das in <b>${unit}</b>?`) },
+  { horseIdx:5, type:'convert', treatment:'bucket', title:"Sunnys Gewichtsmaßband", intro:"Damit Sunny genau die richtige Menge Futter bekommt, legst du ein Gewichtsmaßband (Ge-wichts-maas-band) um ihren Bauch. Aus dem Bauchumfang (Bauch-um-fang) kann man ihr Gewicht schätzen, ohne eine große Waage zu brauchen. So weißt du, wie viel Mineralfutter in ihren Eimer darf.", cured:"Sunny hat genau die richtige Menge im Eimer und ist rundum gesund versorgt. Klasse gemessen! ☀️", make:()=>Qconvert('len',(disp,unit)=>`Das Gewichtsmaßband um Sunnys Bauch ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
+  { horseIdx:6, type:'convert', treatment:'bucket', title:"Patches' dicke Beine", intro:"Patches hat lange in der Box gestanden und ihre Beine sind unten dick und weich – das nennt man angelaufene Beine (an-ge-lau-fe-ne Bei-ne). Weil sie sich zu wenig bewegt hat, staut sich Wasser in den Beinen. Bewegung ist hier die beste Medizin, darum führst du sie im Schritt spazieren.", cured:"Nach dem Spaziergang sind Patches' Beine wieder schön schlank und sie tänzelt fröhlich über die Wiese. 🌈", make:()=>Qconvert('dist',(disp,unit)=>`Du führst Patches heute <b>${disp}</b> weit im Schritt. Wie weit ist das in <b>${unit}</b>?`) },
 ];
 let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false, mPerfect = true;
 let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mTreat = null;
@@ -2444,22 +2478,37 @@ const EXAM = {
   "Pebbles darf nicht zu viel Gras":{ q:"Was kann passieren, wenn ein Pony zu viel saftiges Gras frisst?", correct:"Es kann Hufrehe bekommen, eine schmerzhafte Huf-Entzündung.", wrong:["Es wird sofort viel größer.", "Seine Mähne wird länger."] },
   "Mausi im Moor-Winter":           { q:"Wie hält sich ein Pony, das draußen lebt, im Winter warm?", correct:"Mit einem dicken Winterfell und viel Heu zum Fressen.", wrong:["Mit einer Sonnenbrille.", "Indem es den ganzen Tag schläft."] },
   "Mausis Zeckenschutz":            { q:"Was sind Zecken, die ein Pony auf der Weide bekommen kann?", correct:"Kleine Tierchen, die sich an der Haut festsaugen.", wrong:["Eine besondere Futtersorte.", "Kleine bunte Hufeisen."] },
-  "Wölkchens Spring-Verband":       { q:"Warum bekommt ein Spring-Pony nach dem Springen manchmal einen Stützverband?", correct:"Damit die Sehne im Bein Halt hat und sich erholen kann.", wrong:["Damit es noch höher springen kann.", "Damit das Bein bunt aussieht."] },
-  "Wölkchens gutes Heu":            { q:"Warum braucht ein sportliches Pony besonders gutes Futter?", correct:"Weil es für Springen und Galopp viel Energie braucht.", wrong:["Damit sein Fell bunter wird.", "Damit es leiser wiehert."] },
+  "Laeticias Spring-Verband":       { q:"Warum bekommt ein Spring-Pony nach dem Springen manchmal einen Stützverband?", correct:"Damit die Sehne im Bein Halt hat und sich erholen kann.", wrong:["Damit es noch höher springen kann.", "Damit das Bein bunt aussieht."] },
+  "Laeticias gutes Heu":            { q:"Warum braucht ein sportliches Pony besonders gutes Futter?", correct:"Weil es für Springen und Galopp viel Energie braucht.", wrong:["Damit sein Fell bunter wird.", "Damit es leiser wiehert."] },
   "Keks' Fliegenschutz":            { q:"Warum stören Fliegen ein Pferd besonders?", correct:"Sie krabbeln in Augen und Ohren und können Krankheiten übertragen.", wrong:["Sie machen das Fell bunt.", "Sie fressen das ganze Heu weg."] },
   "Keks' Mineralfutter":            { q:"Wofür braucht ein Pferd Mineralfutter?", correct:"Damit es alle wichtigen Mineralstoffe für einen gesunden Körper bekommt.", wrong:["Damit es schneller laufen kann.", "Damit sein Fell bunt wird."] },
   "Flöckchens schwere Last":        { q:"Wofür sind Highland-Ponys bekannt?", correct:"Sie sind sehr stark und können schwere Lasten über Berge tragen.", wrong:["Sie sind die schnellsten Rennpferde der Welt.", "Sie sind winzig wie ein kleiner Hund."] },
   "Flöckchens Hufschmied":          { q:"Was macht der Hufschmied?", correct:"Er kürzt und pflegt die Hufe, die immer weiterwachsen.", wrong:["Er füttert das Pferd mit Hafer.", "Er wäscht die Mähne."] },
-  "Heidis Mauke":                   { q:"Was ist Mauke beim Pferd?", correct:"Eine wunde, entzündete Hautstelle an den Beinen, oft durch nassen Matsch.", wrong:["Eine Krankheit der Zähne.", "Ein zu lang gewachsener Huf."] },
-  "Heidis Schafhüten":              { q:"Wofür wurden Fell-Ponys früher oft eingesetzt?", correct:"Zum Hüten von Schafen und für lange Strecken über die Berge.", wrong:["Als winzige Schoßtiere für drinnen.", "Nur für schnelle Pferderennen."] },
+  "Margos Mauke":                   { q:"Was ist Mauke beim Pferd?", correct:"Eine wunde, entzündete Hautstelle an den Beinen, oft durch nassen Matsch.", wrong:["Eine Krankheit der Zähne.", "Ein zu lang gewachsener Huf."] },
+  "Margos Schafhüten":              { q:"Wofür wurden Fell-Ponys früher oft eingesetzt?", correct:"Zum Hüten von Schafen und für lange Strecken über die Berge.", wrong:["Als winzige Schoßtiere für drinnen.", "Nur für schnelle Pferderennen."] },
   "Bonbons Wald-Streifzug":         { q:"Wie leben New-Forest-Ponys?", correct:"Sie wandern frei durch Wald und Heide im New Forest.", wrong:["Sie leben in Wohnungen in der Stadt.", "Sie leben tief unter der Erde."] },
   "Bonbons Zahnpflege":             { q:"Warum raspelt der Tierarzt die Zähne eines Pferdes?", correct:"Weil Pferdezähne immer weiterwachsen und scharfe Kanten bekommen.", wrong:["Damit die Zähne bunt werden.", "Damit das Pferd lauter wiehern kann."] },
   "Luzies Aufwärmen":               { q:"Warum wärmt sich ein Pferd vor dem Training auf?", correct:"Damit die Muskeln geschmeidig werden und sich nicht verletzen.", wrong:["Damit das Fell mehr glänzt.", "Damit es größer wird."] },
   "Luzies Mähnenpflege":            { q:"Warum pflegt man die lange Mähne eines Pferdes?", correct:"Damit sie nicht verfilzt und gesund und schön bleibt.", wrong:["Damit das Pferd schneller läuft.", "Damit es weniger frisst."] },
   "Pixies Behänge":                 { q:"Warum müssen die langen Beinhaare (Behänge) eines Pferdes sauber und trocken bleiben?", correct:"Sonst kann die Haut darunter wund werden.", wrong:["Damit sie bunt leuchten.", "Damit das Pferd schneller wird."] },
   "Pixie zieht den Wohnwagen":      { q:"Wofür wurden Gypsy-Vanner-Pferde gezüchtet?", correct:"Um die bunten Wohnwagen der fahrenden Leute zu ziehen.", wrong:["Für schnelle Pferderennen.", "Als winzige Schoßtiere für drinnen."] },
-  "Ranis Abkühlung":                { q:"Was ist ein Hitzschlag bei einem Pferd?", correct:"Wenn der Körper bei großer Hitze viel zu heiß wird, das ist gefährlich.", wrong:["Wenn das Pferd zu viel gefressen hat.", "Wenn die Hufe zu lang geworden sind."] },
-  "Ranis besondere Ohren":          { q:"Was ist das Besondere an den Ohren eines Marwari-Pferdes?", correct:"Sie kringeln sich nach innen und können sich an den Spitzen berühren.", wrong:["Sie sind so groß wie bei einem Esel.", "Sie leuchten im Dunkeln."] }
+  "Rosies Abkühlung":               { q:"Was ist ein Hitzschlag bei einem Pferd?", correct:"Wenn der Körper bei großer Hitze viel zu heiß wird, das ist gefährlich.", wrong:["Wenn das Pferd zu viel gefressen hat.", "Wenn die Hufe zu lang geworden sind."] },
+  "Rosies besondere Ohren":         { q:"Was ist das Besondere an den Ohren eines Marwari-Pferdes?", correct:"Sie kringeln sich nach innen und können sich an den Spitzen berühren.", wrong:["Sie sind so groß wie bei einem Esel.", "Sie leuchten im Dunkeln."] },
+  "Cupcakes lockiges Fell":         { q:"Warum hat Cupcake bei Cushing ein dickes, lockiges Fell, das nicht ausfällt?", correct:"Ein kleiner Knoten im Kopf schickt falsche Signale an den Körper.", wrong:["Weil sie im Winter draußen geschlafen hat.", "Damit sie schneller galoppieren kann."] },
+  "Dottys Zahnhaken":               { q:"Warum raspelt die Tierärztin Dottys Zahnhaken glatt?", correct:"Damit die scharfen Kanten nicht mehr wehtun und Dotty gut kauen kann.", wrong:["Damit ihre Zähne heller leuchten.", "Damit sie lauter wiehern kann."] },
+  "Biscuits braunes Wasser":        { q:"Was ist Kotwasser bei einem Pferd?", correct:"Beim Koten läuft braunes Wasser mit heraus.", wrong:["Das Pferd trinkt viel zu wenig Wasser.", "Das Pferd hat einen wunden Huf vom Laufen."] },
+  "Thunders Regendecke":            { q:"Warum bekommt Thunder eine Regendecke?", correct:"Weil sie ihn im Sturm wasserdicht trocken und warm hält.", wrong:["Weil sie ihn im Sommer vor Fliegen schützt.", "Weil sie seine Hufe fest und sauber macht."] },
+  "Midnights Satteldruck":          { q:"Wie entsteht ein Satteldruck beim Pferd?", correct:"Wenn der Sattel zu fest reibt und eine wunde Stelle auf dem Rücken drückt.", wrong:["Wenn das Pferd zu viel Wasser trinkt.", "Wenn die Mähne zu lang geflochten ist."] },
+  "Sagas Abschwitzdecke":           { q:"Wofür ist eine Abschwitzdecke gut?", correct:"Sie saugt den Schweiß auf, damit das Pferd trocken bleibt und nicht friert.", wrong:["Damit das Fell im Sommer ausfällt.", "Damit das Pferd schneller tölten kann."] },
+  "Lunas geschmeidige Dressur-Muskeln": { q:"Warum macht Luna vor der Dressur sanfte Dehnübungen mit Leckerlis?", correct:"Damit ihre Muskeln schön geschmeidig und locker bleiben.", wrong:["Damit ihre Hufe härter werden.", "Damit ihr Fell schön glänzt."] },
+  "Freyas Steinchen im Huf":        { q:"Wozu benutzt man einen Hufkratzer?", correct:"Um Steinchen und Schmutz vorsichtig aus dem Huf zu holen.", wrong:["Damit die Mähne schön glänzt.", "Damit das Pferd lauter wiehert."] },
+  "Ottilias kleine Kratzer":        { q:"Warum hat Ottilia die kleinen Kratzer bekommen?", correct:"Sie hat wild auf der Wiese getobt.", wrong:["Sie hat zu viele Möhren gefressen.", "Sie war zu lange im kalten Wasser."] },
+  "Chestnuts Stroh-Einkauf":        { q:"Wofür braucht Chestnut die viele Stroh-Einstreu in seiner Box?", correct:"Damit er ein weiches Bett hat und sich zum Ausruhen bequem hinlegen kann.", wrong:["Damit er das Stroh als Hauptfutter frisst und satt wird.", "Damit seine Hufe im Stroh schneller wachsen."] },
+  "Brios Hufeisen-Einkauf":         { q:"Warum braucht Brio neue Hufeisen?", correct:"Weil seine alten Hufeisen abgenutzt sind und der Hufschmied sie erneuern muss.", wrong:["Weil er im Sommer keine Hufeisen tragen darf.", "Weil bunte Hufeisen schneller machen."] },
+  "Auroras Fliegenmasken-Einkauf":  { q:"Warum sind Auroras Augen besonders empfindlich für Sonne und Fliegen?", correct:"Weil sie ganz feines Fell und dünne Haut hat.", wrong:["Weil sie im Dunkeln nicht sehen kann.", "Damit ihre Augen grün leuchten."] },
+  "Stellas kühlende Tonerde":       { q:"Warum bekommt Stella nach dem schnellen Ritt eine kühlende Tonerde-Packung?", correct:"Damit ihre warmen Sehnen sich beruhigen und abkühlen.", wrong:["Damit ihre Beine schön bunt aussehen.", "Damit sie noch schneller rennen kann."] },
+  "Sunnys Gewichtsmaßband":         { q:"Wozu legt man Sunny ein Gewichtsmaßband um den Bauch?", correct:"Um ihr Gewicht zu schätzen und die richtige Futtermenge zu finden.", wrong:["Damit ihr Bauch schneller wächst.", "Damit ihr Fell goldener glänzt."] },
+  "Patches' dicke Beine":           { q:"Warum führst du Patches mit dicken Beinen im Schritt spazieren?", correct:"Weil Bewegung das gestaute Wasser aus den Beinen pumpt.", wrong:["Damit ihr Fell mehr Flecken bekommt.", "Damit sie schneller galoppieren lernt."] },
 };
 const EXAM_LEN = 5;
 let exQs = [], exIdx = 0, exRight = 0, exMissed = [];
@@ -2824,6 +2873,7 @@ function adminCheckPw() {
         document.getElementById('adminStep2').classList.remove('hidden');
         document.getElementById('adminPts').value = getVetPoints();
         document.getElementById('adminFeed').value = getFeedTokens();
+        document.getElementById('adminMagic').value = getMagicWord();
     } else {
         const m = document.getElementById('adminPwMsg'); m.style.color = '#e74c3c'; m.textContent = 'Wrong password.';
     }
@@ -2865,6 +2915,80 @@ renderHorseGrid();   // build the grid (locked reward horses show as silhouettes
 // give a small starter allowance for the Feed Kitchen the very first time
 try { if (localStorage.getItem('ellaFeedTokens') === null) setFeedTokens(2); } catch (e) {}
 renderFeedButton();
+
+// ═══════════════════════════════════════════════════════════
+//  CROSS-DEVICE SAVE  (Firebase Realtime Database + manual backup code)
+//  Progress lives in the cloud under a "magic word", set once per computer
+//  in the Grown-ups panel. No config pasted / offline → local-only + manual code.
+// ═══════════════════════════════════════════════════════════
+// ⬇⬇ PASTE your Firebase web config object here (must include databaseURL). Leave null until then.
+const FIREBASE_CONFIG = null;
+// ⬆⬆
+
+(function () {
+  const SKIP = { ellaMagicWord: 1, ellaSyncTs: 1 };
+  const isProgressKey = k => !!k && k.indexOf('ella') === 0 && !SKIP[k];
+  const rawSet = localStorage.setItem.bind(localStorage);
+  const setRaw = (k, v) => rawSet(k, v);
+  function getMagicWord() { try { return localStorage.getItem('ellaMagicWord') || ''; } catch (e) { return ''; } }
+
+  function snapshot() {
+    const keys = {};
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (isProgressKey(k)) keys[k] = localStorage.getItem(k); }
+    return { keys, ts: Number(localStorage.getItem('ellaSyncTs') || 0) };
+  }
+  let applying = false;
+  function applyKeys(keys) { applying = true; try { Object.keys(keys || {}).forEach(k => { if (isProgressKey(k)) setRaw(k, keys[k]); }); } finally { applying = false; } }
+  function refreshAll() { try { renderVetCard(); } catch (e) {} try { renderFeedButton(); } catch (e) {} try { renderHorseGrid(); } catch (e) {} try { renderCollection(); } catch (e) {} }
+
+  let dbRef = null;
+  const fbReady = () => !!(FIREBASE_CONFIG && window.firebase && getMagicWord());
+  function fbInit() {
+    if (!fbReady()) return false;
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+      dbRef = firebase.database().ref('saves/' + getMagicWord().replace(/[^a-zA-Z0-9_-]/g, '_'));
+      return true;
+    } catch (e) { console.warn('Firebase init failed', e); dbRef = null; return false; }
+  }
+  let pushTimer = null;
+  function schedulePush() { if (!dbRef) return; clearTimeout(pushTimer); pushTimer = setTimeout(() => { try { dbRef.set(snapshot()); } catch (e) {} }, 600); }
+  function pullOnce(after) {
+    if (!dbRef) { after && after(false); return; }
+    dbRef.once('value').then(snap => {
+      const cloud = snap.val();
+      const localTs = Number(localStorage.getItem('ellaSyncTs') || 0);
+      if (cloud && cloud.keys && Number(cloud.ts || 0) >= localTs) {
+        applyKeys(cloud.keys); setRaw('ellaSyncTs', String(cloud.ts || Date.now())); refreshAll(); after && after(true);
+      } else { try { dbRef.set(snapshot()); } catch (e) {} after && after(false); }
+    }).catch(e => { console.warn('cloud pull failed', e); after && after(false); });
+  }
+
+  // capture every progress change and mirror it to the cloud (debounced)
+  localStorage.setItem = function (k, v) { rawSet(k, v); if (!applying && isProgressKey(k)) { setRaw('ellaSyncTs', String(Date.now())); schedulePush(); } };
+
+  // Grown-ups panel handlers
+  window.getMagicWord = getMagicWord;
+  window.syncConnect = function () {
+    const el = document.getElementById('adminMagic'), msg = document.getElementById('adminSyncMsg');
+    const word = ((el && el.value) || '').trim();
+    if (!word) { if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'Please enter a magic word.'; } return; }
+    setRaw('ellaMagicWord', word);
+    if (!FIREBASE_CONFIG) { if (msg) { msg.style.color = '#e67e22'; msg.textContent = 'Saved. Cloud sync starts once the Firebase config is added; manual backup works now.'; } return; }
+    if (msg) { msg.style.color = '#7a5a9e'; msg.textContent = 'Connecting…'; }
+    if (fbInit()) pullOnce(pulled => { if (msg) { msg.style.color = '#27ae60'; msg.textContent = pulled ? ('☁️ Connected as "' + word + '" — progress loaded.') : ('☁️ Connected as "' + word + '" — this computer is now the saved copy.'); } });
+    else if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'Could not reach the cloud — check internet / config.'; }
+  };
+  window.syncMakeCode = function () { const ta = document.getElementById('adminBackup'); try { ta.value = btoa(unescape(encodeURIComponent(JSON.stringify(snapshot().keys)))); ta.focus(); ta.select(); } catch (e) { ta.value = 'Could not make a code.'; } };
+  window.syncRestore = function () {
+    const ta = document.getElementById('adminBackup'), msg = document.getElementById('adminSyncMsg');
+    try { const keys = JSON.parse(decodeURIComponent(escape(atob(((ta && ta.value) || '').trim())))); applyKeys(keys); setRaw('ellaSyncTs', String(Date.now())); refreshAll(); schedulePush(); if (msg) { msg.style.color = '#27ae60'; msg.textContent = 'Restored from code. ✅'; } }
+    catch (e) { if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'That code did not work.'; } }
+  };
+
+  // on open: if word + config present, pull the cloud copy
+  if (fbInit()) pullOnce();
+})();
 </script>
 </body>
 </html>

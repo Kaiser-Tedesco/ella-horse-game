@@ -55,7 +55,8 @@ Single page that shows/hides "screens" via a `hidden` class.
 ## Ranks & reward horses
 - **16 ranks** (`VET_TIERS`, every 30 pts): 🌱Apprentice(0) 🐴Junior(30) 🩺Full(60) ⭐Senior(90) 🌟Super(120) 🦸Super Hero(150) 💫Mega(180) 🚀Ultra(210) 🏆Legendary(240) 📖Herriot(270) 🐵Goodall(300) 🌍Attenborough(330) 🐊Irwin(360) 🦍Fossey(390) 🐧Durrell(420) 🐢Darwin(450). (Ranks 9-15 named after vets/naturalists.)
 - **Rank model:** `getRankAchieved()` (key `ellaRankAchieved`); effective rank = `min(pointsTier, rankAchieved)`. **First run grandfathers** rankAchieved to `pointsTier − 1` (so the level her points just reached needs a test). **Grown-ups panel** sets it to the exact pointsTier (no test). `isHorseUnlocked(h)` = original (no `unlockRank`) OR `h.gift` OR `unlockRank ≤ rankAchieved`.
-- **Reward horses unlock one per rank 6-15:** Pebbles(6/Mega), Mausi(7), Wölkchen(8), Keks(9), Flöckchen(10), Heidi(11), Bonbon(12), Luzie(13), Pixie(14), **Rani(15/Darwin)**. **Ottilia** is a **gift** (`gift:true`, unlocked from the start; she was Ella's "reached a level" present).
+- **Reward horses unlock one per rank 6-15:** Pebbles(6/Mega), Mausi(7), Laeticia(8), Keks(9), Flöckchen(10), Margo(11), Bonbon(12), Luzie(13), Pixie(14), **Rosie(15/Darwin)**. **Ottilia** is a **gift** (`gift:true`, unlocked from the start; she was Ella's "reached a level" present).
+  - **Renamed 2026-07** (display name only): Wölkchen→**Laeticia**, Heidi→**Margo**, Rani→**Rosie**. Their **image filenames were left unchanged** (`woelkchen-connemara.jpg`, `heidi-fell.jpg`, `rani-marwari.jpg`), so don't be surprised the file stems don't match the new names. The renamed horses' concept titles + `EXAM` keys moved with them (still 1:1).
 
 ## Collectibles & gifting
 - Items come in **sets** (`COLLECTIBLE_SETS`, currently Set 1 + Set 2 of 9 hand-drawn inline-SVG items each; extensible — append more sets anytime). Lookup: `COLLECTIBLE_BY_ID`.
@@ -66,14 +67,15 @@ Single page that shows/hides "screens" via a `hidden` class.
 - 12 cards/round, **always includes 4×7 and 4×8**; rest random tables 2–9. Finishing → **+5 vet points, +1 feed play**. No gate.
 
 ## Data model (in `index.html` `<script>`)
-- `horses[]` — **25** objects: `name, breed, emoji, image, cardGradient, coat, temperament, story, facts[], questions[]`, plus reward horses have `unlockRank` (and Ottilia has `gift:true`). Indices 0-13 are the always-unlocked set (0 Stella … 11 Freya, **12 Chestnut/Suffolk Punch, 13 Saga/Icelandic**); 14 Ottilia (gift) … 24 Rani.
-- `vetConcepts[]` — **~77** concepts `{ horseIdx, type, treatment, title, intro, cured, make }`; `make()` calls a builder (`Qlongmult/Qmoney/Qdiv/Qconvert/Qcompare`). **Every horse has ≥2 concepts.**
+- `horses[]` — **25** objects: `name, breed, emoji, image, cardGradient, coat, temperament, story, facts[], questions[]`, plus reward horses have `unlockRank` (and Ottilia has `gift:true`). Indices 0-13 are the always-unlocked set (0 Stella … 11 Freya, **12 Chestnut/Suffolk Punch, 13 Saga/Icelandic**); 14 Ottilia (gift) … 24 Rosie.
+- `vetConcepts[]` — **~92** concepts (77 original + 15 added in the 2026-07 refresh, appended under a `// ===== NEW CASES` marker; one per always-unlocked horse, balanced across the 5 skill types) `{ horseIdx, type, treatment, title, intro, cured, make }`; `make()` calls a builder (`Qlongmult/Qmoney/Qdiv/Qconvert/Qcompare`). **Every horse has ≥2 concepts.**
 - `EXAM{}` — one MC entry per concept `{ q, correct, wrong:[2] }`, keyed by concept **title**.
 - `VET_TIERS[]`, `COLLECTIBLE_SETS[]`, `TREATMENTS{}`, `buildMathPool()`, `renderHorseGrid()`, `isHorseUnlocked()`.
 - **To add a reward horse:** append to `horses[]` with `unlockRank`; add ≥2 `vetConcepts` (`horseIdx` = its index); add a matching `EXAM` entry per concept title; source + resize a photo (below).
 
 ## localStorage keys (per device + per browser — NOT in the files)
 `ellaVetPoints`, `ellaFeedTokens`, `ellaRankAchieved`, `ellaSeenConcepts`, `ellaNudgeOn`, `ellaCollectSet`, `ellaCollectProgress`, `ellaGifts`, `ellaHorseGifts`. Reset/set via Grown-ups panel (0101) or console.
+- **Cross-device save (2026-07):** a self-contained module at the end of the main `<script>` monkey-patches `localStorage.setItem` to mirror every `ella*` progress key (except its own `ellaMagicWord` / `ellaSyncTs`) to a **Firebase Realtime Database** node `saves/<magic-word>`. Set the magic word once per computer in the Grown-ups panel (0101 → "☁️ Save across computers"); opening pulls the newer copy (timestamp-guarded), changes push back (~0.6 s debounce). **Not active until `FIREBASE_CONFIG` (currently `null`) is filled in** — see full setup steps + security rules in `Documents\Claude\Projects\ella-horse-game\phase3-firebase-sync-DRAFT.md`. Firebase SDK loaded via two compat `<script>` tags before `</head>`. A **manual backup** (copy/restore a base64 code) in the same panel works with no config and no internet.
 
 ## Assets / photos
 - Horse photos from **Wikimedia Commons** (free/CC or PD). Pick clear, riderless, single-horse shots; download with a descriptive User-Agent; **resize to ~1000px long edge, quality ~82** (~80–250 KB). Resize via PowerShell `System.Drawing` (no ImageMagick installed). Wikimedia rate-limits bursts (HTTP 429) — download steadily.
@@ -89,4 +91,4 @@ Single page that shows/hides "screens" via a `hidden` class.
 - More collectible sets; bigger unlock celebrations.
 - Real soft-nicker sounds for the idle nudge (swap `sndNudge1/2/3`).
 - Add written addition/subtraction and other Sommer-Übungsplan topics to the maths game.
-- A grown-up stats/progress view; optional cross-device save (needs a server — big job).
+- A grown-up stats/progress view. (Cross-device save was added 2026-07 — see the localStorage keys section.)
