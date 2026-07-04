@@ -12,7 +12,7 @@ Handover for a fresh session. This is Ella's horse website + learning games. One
 - **Local working folder (the ONLY source of truth):** `C:\Users\User\Documents\GitHub\ella-horse-game`
   - The old `OneDrive\...\Ella Website` folder was **deleted** — do not look for it.
 - **Main file:** `index.html`.
-- **Assets:** `horse-images/` (**25 photos**), `horse-sounds/` (3 mp3s). Keep these with `index.html`.
+- **Assets:** `horse-images/` (**35 photos**), `horse-sounds/` (3 mp3s). Keep these with `index.html`.
 - **Also in folder:** `README.md`, `.gitignore`, two `vet_cases_*_print.md` (old English source notes, not used at runtime, not kept current).
 - **Plan/status doc (outside the repo):** `C:\Users\User\Documents\Claude\Projects\ella-horse-game\FEATURE-PLAN.md` tracks the multi-phase build.
 - **GitHub repo:** `kaiser-tedesco/ella-horse-game` · **Live:** https://kaiser-tedesco.github.io/ella-horse-game/
@@ -28,7 +28,7 @@ User pushes via **GitHub Desktop**: review changed files → Summary → **Commi
 ## The site (features)
 Single page that shows/hides "screens" via a `hidden` class.
 
-1. **Main page** — rainbow header, **25 horse cards** (locked reward horses show as greyed "???" silhouettes), persistent **vet-rank card** + **🎓 exam button** when an exam is available, a **🎁 Meine Sammlung** collectibles album, the game buttons, and a German **"Welche Rechen-Arten"** explainer section above the footer.
+1. **Main page** — rainbow header, **35 horse cards** (locked reward horses show as greyed "???" silhouettes), persistent **vet-rank card** + **🎓 exam button** when an exam is available, a **🎁 Meine Sammlung** collectibles album, the game buttons, and a German **"Welche Rechen-Arten"** explainer section above the footer.
 2. **🎮 Horse Game** — see a clue, drag the right horse into the drop zone. Uses each horse's `questions` (5 each). **Only unlocked horses** appear (as the answer and as wrong choices).
 3. **🩺 Vet Maths Game** — the main learning game (details below).
 4. **🥕 Feed Kitchen** — just-for-fun, gated by "feed plays".
@@ -55,9 +55,10 @@ Single page that shows/hides "screens" via a `hidden` class.
 - Pass screen shows a diploma and, if the new rank unlocks a reward horse, "🎉 Neues Pferd freigeschaltet!".
 
 ## Ranks & reward horses
-- **16 ranks** (`VET_TIERS`, every 30 pts): 🌱Apprentice(0) 🐴Junior(30) 🩺Full(60) ⭐Senior(90) 🌟Super(120) 🦸Super Hero(150) 💫Mega(180) 🚀Ultra(210) 🏆Legendary(240) 📖Herriot(270) 🐵Goodall(300) 🌍Attenborough(330) 🐊Irwin(360) 🦍Fossey(390) 🐧Durrell(420) 🐢Darwin(450). (Ranks 9-15 named after vets/naturalists.)
+- **26 ranks** (`VET_TIERS`, every 30 pts): 🌱Apprentice(0) 🐴Junior(30) 🩺Full(60) ⭐Senior(90) 🌟Super(120) 🦸Super Hero(150) 💫Mega(180) 🚀Ultra(210) 🏆Legendary(240) 📖Herriot(270) 🐵Goodall(300) 🌍Attenborough(330) 🐊Irwin(360) 🦍Fossey(390) 🐧Durrell(420) 🐢Darwin(450) 🐬Cousteau(480) 🦋Carson(510) 🌲Muir(540) 🐛Wallace(570) 🗺️Humboldt(600) 🦓Grzimek(630) 🦁Adamson(660) 🦅Audubon(690) 🦴Leakey(720) 🌸Linnaeus(750). (Ranks 9-25 named after vets/naturalists; ranks 16-25 added 2026-07.)
 - **Rank model:** `getRankAchieved()` (key `ellaRankAchieved`); effective rank = `min(pointsTier, rankAchieved)`. **First run grandfathers** rankAchieved to `pointsTier − 1` (so the level her points just reached needs a test). **Grown-ups panel** sets it to the exact pointsTier (no test). `isHorseUnlocked(h)` = original (no `unlockRank`) OR `h.gift` OR `unlockRank ≤ rankAchieved`.
-- **Reward horses unlock one per rank 6-15:** Pebbles(6/Mega), Mausi(7), Laeticia(8), Keks(9), Flöckchen(10), Margo(11), Bonbon(12), Luzie(13), Pixie(14), **Rosie(15/Darwin)**. **Ottilia** is a **gift** (`gift:true`, unlocked from the start; she was Ella's "reached a level" present).
+- **Reward horses unlock one per rank 6-25:** Pebbles(6/Mega), Mausi(7), Laeticia(8), Keks(9), Flöckchen(10), Margo(11), Bonbon(12), Luzie(13), Pixie(14), Rosie(15/Darwin), then the 2026-07 additions: Merlin/Welsh Cob(16), Wicky/Dülmener(17), Perle/Caspian(18), Pixel/Pottok(19), Koni/Konik(20), Blanca/Camargue(21), Estrella/Lusitano(22), Balu/Shire(23), Domino/Knabstrupper(24), **Taki/Przewalski(25/Linnaeus)**. **Ottilia** is a **gift** (`gift:true`, unlocked from the start; she was Ella's "reached a level" present).
+  - The 10 new horses (indices 25-34) were sourced with real Wikimedia photos (in `horse-images/`, breed-slug filenames). Their vet cases were appended under `// ===== NEW REWARD HORSES` in `vetConcepts`/`EXAM`. **Flag for a future pass:** the Dülmener photo is a herd (with foal) not a single portrait, and the Knabstrupper photo has two people in the background — swap if desired.
   - **Renamed 2026-07** (display name only): Wölkchen→**Laeticia**, Heidi→**Margo**, Rani→**Rosie**. Their **image filenames were left unchanged** (`woelkchen-connemara.jpg`, `heidi-fell.jpg`, `rani-marwari.jpg`), so don't be surprised the file stems don't match the new names. The renamed horses' concept titles + `EXAM` keys moved with them (still 1:1).
 
 ## Collectibles & gifting
@@ -66,11 +67,11 @@ Single page that shows/hides "screens" via a `hidden` class.
 - **Gifting:** she drags a gift from the album onto a **horse card** (or tap-the-gift-then-tap-the-horse). It's **permanent**, removed from her tray, and shown under **"Geschenke von Ella"** in that horse's info modal. Key: `ellaHorseGifts` (`{horseIdx:[ids]}`).
 
 ## Flash cards (Mal-Quiz)
-- 12 cards/round, **always includes 4×7 and 4×8**; rest random tables 2–9. Finishing → **+5 vet points, +1 feed play**. No gate.
+- 12 cards/round, **always includes 4×7 and 4×8**; rest random tables 2–9. Finishing → **+3 vet points, +1 feed play** (reduced from +5 on 2026-07 to slow horse-unlocking). No gate.
 
 ## Data model (in `index.html` `<script>`)
-- `horses[]` — **25** objects: `name, breed, emoji, image, cardGradient, coat, temperament, story, facts[], questions[]`, plus reward horses have `unlockRank` (and Ottilia has `gift:true`). Indices 0-13 are the always-unlocked set (0 Stella … 11 Freya, **12 Chestnut/Suffolk Punch, 13 Saga/Icelandic**); 14 Ottilia (gift) … 24 Rosie.
-- `vetConcepts[]` — **116** concepts (77 original + 15 from the 2026-07 refresh + 24 year-update cases under `// ===== YEAR-UPDATE CASES`, 3 per new type, horses 0–14 only so every theme is always playable) `{ horseIdx, type, treatment, title, intro, cured, make }`; `make()` calls a builder (`Qlongmult/Qmoney/Qdiv/Qconvert/Qcompare/Qadd/Qsub/Qround/Qtens/Qhalb/Qestimate/Qtimecalc`). **Every horse has ≥2 concepts.**
+- `horses[]` — **35** objects: `name, breed, emoji, image, cardGradient, coat, temperament, story, facts[], questions[]`, plus reward horses have `unlockRank` (and Ottilia has `gift:true`). Indices 0-13 are the always-unlocked set (0 Stella … 11 Freya, **12 Chestnut/Suffolk Punch, 13 Saga/Icelandic**); 14 Ottilia (gift) … 24 Rosie; **25-34 = the 2026-07 additions (Merlin … Taki), unlockRank 16-25**.
+- `vetConcepts[]` — **136** concepts (77 original + 15 refresh + 24 year-update + 20 for the new reward horses under `// ===== NEW REWARD HORSES`, 2 per horse) `{ horseIdx, type, treatment, title, intro, cured, make }`; `make()` calls a builder (`Qlongmult/Qmoney/Qdiv/Qconvert/Qcompare/Qadd/Qsub/Qround/Qtens/Qhalb/Qestimate/Qtimecalc`). **Every horse has ≥2 concepts.**
 - `EXAM{}` — one MC entry per concept `{ q, correct, wrong:[2] }`, keyed by concept **title**.
 - `VET_TIERS[]`, `COLLECTIBLE_SETS[]`, `TREATMENTS{}`, `buildMathPool()`, `renderHorseGrid()`, `isHorseUnlocked()`.
 - **To add a reward horse:** append to `horses[]` with `unlockRank`; add ≥2 `vetConcepts` (`horseIdx` = its index); add a matching `EXAM` entry per concept title; source + resize a photo (below).
