@@ -1551,8 +1551,18 @@ function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + mi
 // ── number formatting & parsing (German style: comma decimal, € after the number) ──
 function fmtDec(n) { return (Math.round(n * 1000) / 1000).toString().replace('.', ','); }   // 3.5 -> "3,5"
 function fmtMoney(n) { return (Math.round(n * 100) / 100).toFixed(2).replace('.', ',') + ' €'; } // 5.6 -> "5,60 €"
-// accepts German number input: "50.000" (Tausenderpunkt) → 50000, "3 456" → 3456, "2,5" → 2.5
-function parseNum(v) { if (v == null) return NaN; return parseFloat(String(v).replace('€', '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.')); }
+// Parse a number the way a German 4th-grader might type it.
+//  dec = a DECIMAL answer is expected (money / unit conversion): a comma OR a dot is the decimal point,
+//        so "0,054" and "0.054" both give 0.054, and "27,00 €" → 27.
+//  otherwise a WHOLE number is expected (mult, add, round, …): dots and spaces are Tausenderpunkte and
+//        get stripped, so "50.000" and "50 000" → 50000.
+function parseNum(v, dec) {
+    if (v == null) return NaN;
+    let s = String(v).replace('€', '').replace(/\s/g, '');
+    if (s.indexOf(',') !== -1) s = s.replace(/\./g, '').replace(',', '.');   // comma present → comma is the decimal, dots are thousands
+    else if (!dec) s = s.replace(/\./g, '');                                 // whole number → any dots are thousands
+    return parseFloat(s);                                                    // decimal expected + no comma → keep the dot as the decimal point
+}
 function fmtTh(n) { return n.toLocaleString('de-DE'); }                            // 3456 → "3.456"
 function near(a, b) { return Math.abs(a - b) < 0.0005; }                           // decimal compare
 // Division: dividend sits just above an easily-divided round number, so the result
@@ -2096,7 +2106,7 @@ function checkMathAnswer() {
     switch (q.kind) {
         case 'longmult': return checkExactNum(q, fbEl, q.a * q.b, false);
         case 'money':    return checkExactNum(q, fbEl, q.cents * q.d / 100, true);
-        case 'convert':  return checkExactNum(q, fbEl, q.answer, true);
+        case 'convert':  return checkExactNum(q, fbEl, q.answer, !Number.isInteger(q.answer));   // decimal answers (kg/l/km) parse comma/dot; whole ml/g/m answers accept Tausenderpunkte
         case 'div':      return checkDivision(q, fbEl);
         case 'compare':  return checkCompare(q, fbEl);
         case 'add': case 'sub': case 'round': case 'tens': case 'halb': case 'estimate': case 'timecalc':
@@ -2106,7 +2116,7 @@ function checkMathAnswer() {
 
 // single-answer types: long multiplication, money multiplication, unit conversion
 function checkExactNum(q, fbEl, expect, isDec) {
-    const v = parseNum(document.getElementById('mAns').value);
+    const v = parseNum(document.getElementById('mAns').value, isDec);
     if (isNaN(v)) return needInput(fbEl, '✏️ Tippe zuerst deine Antwort ein!');
     const ok = isDec ? near(v, expect) : (v === expect);
     if (ok) mathCorrect(q, fbEl); else mathWrong(fbEl);
@@ -2131,6 +2141,7 @@ function checkDivision(q, fbEl) {
             document.getElementById('mInputs').innerHTML = calcField('mAns', 'Antwort', 'int') + calcField('mRem', 'Rest', 'int');
             attachMathInputs();
         } else {
+            mFirstTry = false; mPerfect = false;   // an off-target estimate breaks the perfect bonus too
             revealHelp();   // show her the division set-up so she can estimate from it
             fbEl.className = 'calc-feedback no';
             fbEl.textContent = '🤔 Noch nicht nah dran – runde die Zahl auf eine leichte, dann teile. Versuch es nochmal!';
@@ -2146,7 +2157,7 @@ function checkDivision(q, fbEl) {
 // compare two shops: work out both unit prices, then pick the dearer one
 function checkCompare(q, fbEl) {
     if (mDivPhase !== 'prices') return;
-    const pa = parseNum(document.getElementById('mPa').value), pb = parseNum(document.getElementById('mPb').value);
+    const pa = parseNum(document.getElementById('mPa').value, true), pb = parseNum(document.getElementById('mPb').value, true);
     if (isNaN(pa) || isNaN(pb)) return needInput(fbEl, '✏️ Rechne den Preis für eins in BEIDEN Läden aus!');
     if (near(pa, q.ua / 100) && near(pb, q.ub / 100)) {
         fbEl.className = 'calc-feedback ok';
@@ -2159,7 +2170,7 @@ function checkCompare(q, fbEl) {
             `<div class="cmp-btns"><button class="cmp-btn" onclick="answerCompare('A')">Laden A</button><button class="cmp-btn" onclick="answerCompare('B')">Laden B</button></div>`;
         document.getElementById('mMixBtn').classList.add('hidden');
     } else {
-        mFirstTry = false;
+        mFirstTry = false; mPerfect = false;   // a wrong price breaks the perfect-session bonus, like every other kind
         revealHelp();   // show the two shop bundles so she can re-check price ÷ Anzahl
         fbEl.className = 'calc-feedback no';
         fbEl.textContent = '❌ Prüf die zwei Preise nochmal – Preis ÷ Anzahl.';
@@ -2172,7 +2183,7 @@ function answerCompare(pick) {
     const q = mPool[mQ], fbEl = document.getElementById('mFeedback');
     const dearer = q.ua > q.ub ? 'A' : 'B';
     if (pick === dearer) mathCorrect(q, fbEl);
-    else { mFirstTry = false; fbEl.className = 'calc-feedback no'; fbEl.textContent = '❌ Nicht der – vergleiche die zwei Preise für EINS. Versuch es nochmal!'; }
+    else { mFirstTry = false; mPerfect = false; fbEl.className = 'calc-feedback no'; fbEl.textContent = '❌ Nicht der – vergleiche die zwei Preise für EINS. Versuch es nochmal!'; }
 }
 
 function mathCorrect(q, fbEl) {
