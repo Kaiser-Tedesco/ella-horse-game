@@ -5,7 +5,7 @@ Handover for a fresh session. This is Ella's horse website + learning games. One
 ## Who it's for
 - **Ella**, 9 years old, loves horses (especially small horses and ponies). German-speaking, also doing English at school. ADHD/dreamer attention profile, so the game leans on novelty, collecting, immediate feedback, and gentle (never punishing) mechanics.
 - Tone for her: fun, friendly, encouraging, emoji-rich, simple. She uses voice input (expect spelling variations).
-- **Maths focus (in the game):** long multiplication with carrying, money/decimals, comparing unit prices, unit conversion (length/weight/time/volume), division-with-remainder, estimation/rounding, times-table recall. German number format (comma decimal, € after the number, e.g. `5,60 €`, `3,5 km`).
+- **Maths focus (in the game, since the 2026-07 year update the FULL Grade-4 year):** written ×/+/− (with carrying/borrowing), big numbers to 1 000 000 (rounding), ×÷ by 10/100/1000, halbschriftlich, Überschlagen, money/decimals, unit-price compare, unit conversion (length/weight/time/volume incl. l/ml), time arithmetic, division-with-remainder, times-table recall (Blitz-Karten). Everything is presented as a **Sachaufgabe** (she picks the Rechen-Art herself; free Hilfe button reveals the set-up). German number format (comma decimal, € after the number, Tausenderpunkt accepted in input, e.g. `5,60 €`, `50.000`).
 - A separate **summer practice topic list** for Ella's teacher was drafted (Sommer-Übungsplan, German, includes written +/−, große Zahlen, ÷ by 10/100/1000, etc.). That list is broader than what the game currently drills; the GAME has not added written addition/subtraction.
 
 ## Where everything lives
@@ -36,10 +36,12 @@ Single page that shows/hides "screens" via a `hidden` class.
 6. **🔒 Grown-ups panel** — password **0101** → set vet points / feed plays, or reset to 0. Setting points here also sets the rank to match (no exam needed) and re-renders the grid.
 
 ## Vet Maths Game — how it works
-- A session = **4 questions**, weighted across skills, div appearing occasionally (~40%, at most once). Always 4 **different unlocked horses**.
+- A session = **5 questions** (year update 2026-07). **Q1 is ALWAYS `longmult`** (schriftliche Multiplikation 3×2-stellig). Q2–Q5 walk a fixed **13-theme cycle** (`TOPIC_CYCLE`: add, wt, div, money, sub, len, tens, compare, round, zeit, halb, vol, estimate) via a persistent pointer (`ellaTopicCycle`, +4 per session, so full coverage every ~3¼ sessions); display order of the 4 shuffled. Theme→concept matching in `themeMatches()` (convert families read from the make() source via `conceptFam()`). Different horses per question where possible (curriculum beats horse variety on fallback).
+- **Sachaufgaben mode:** every question starts as story-only (no operation shown, label says "Sachaufgabe"). A free **🖐 Hilfe button** (`revealHelp()`, `#mHelpBtn`) reveals `q.label` + `q.problemHTML`; the first wrong answer auto-reveals. Help costs nothing; only wrong answers break the perfect bonus. Multi-phase kinds (div step 2, compare pick) set `mHelpShown=true` so Hilfe can't overwrite their step labels.
 - **Choose-your-patient:** the **first** of the 4 is hers to choose — "🐴 Welches Pferd braucht dich?" offers 2-3 candidate horses (same maths type, distinct from the other 3). The other 3 are system-picked.
 - **All German.** Each question = a vet concept (with a sound-out aid for the technical term, e.g. *Hufabszess (Huf-aps-tsess)*) + a matching maths task.
-- **5 skill types:** `longmult` (3×2 digit, carry reminder), `money` (€ × single digit), `compare` (two shops, unit price then dearer), `convert` (km/m/cm, kg/g, hours→min, l/ml), `div` (estimate first, then exact **with remainder**).
+- **12 skill types:** `longmult` (3×2 digit), `money` (€ × single digit), `compare` (two shops, unit price then dearer), `convert` (fams len/wt/dist/time/**vol**), `div` (estimate first, then exact **with remainder**), plus year-update types `add` (4-digit, carry forced), `sub` (borrow forced), `round` (≥1000 up to 999 999, Zehner→Zehntausender), `tens` (×÷10/100/1000, mode fixed per concept), `halb` (1×3-digit, Hilfe shows the Zerlegung), `estimate` (canonical round-to-hundreds product), `timecalc` (h min + min → minutes). Builders `Qadd/Qsub/Qround/Qtens/Qhalb/Qestimate/Qtimecalc` sit right above `vetConcepts`; story-arg conventions documented in the comment there.
+- `parseNum` strips Tausenderpunkte: `"50.000"` → 50000 (dots are NEVER decimal separators; Ella types comma decimals).
 - Inputs accept a **comma decimal** (`parseNum`, compared with `near()`).
 - **Treatments (medicine step):** matched via the concept's `treatment` tag — `injection`💉 / `bucket`🪣 / `salve`🧴 (liquid fill), `bandage`🩹 (solid stack). Then drag the item onto the horse → "Geheilt!" cure card.
 - **Collectible drop:** ~1-in-4 per heal, shown on the cure card (see Collectibles).
@@ -68,13 +70,13 @@ Single page that shows/hides "screens" via a `hidden` class.
 
 ## Data model (in `index.html` `<script>`)
 - `horses[]` — **25** objects: `name, breed, emoji, image, cardGradient, coat, temperament, story, facts[], questions[]`, plus reward horses have `unlockRank` (and Ottilia has `gift:true`). Indices 0-13 are the always-unlocked set (0 Stella … 11 Freya, **12 Chestnut/Suffolk Punch, 13 Saga/Icelandic**); 14 Ottilia (gift) … 24 Rosie.
-- `vetConcepts[]` — **~92** concepts (77 original + 15 added in the 2026-07 refresh, appended under a `// ===== NEW CASES` marker; one per always-unlocked horse, balanced across the 5 skill types) `{ horseIdx, type, treatment, title, intro, cured, make }`; `make()` calls a builder (`Qlongmult/Qmoney/Qdiv/Qconvert/Qcompare`). **Every horse has ≥2 concepts.**
+- `vetConcepts[]` — **116** concepts (77 original + 15 from the 2026-07 refresh + 24 year-update cases under `// ===== YEAR-UPDATE CASES`, 3 per new type, horses 0–14 only so every theme is always playable) `{ horseIdx, type, treatment, title, intro, cured, make }`; `make()` calls a builder (`Qlongmult/Qmoney/Qdiv/Qconvert/Qcompare/Qadd/Qsub/Qround/Qtens/Qhalb/Qestimate/Qtimecalc`). **Every horse has ≥2 concepts.**
 - `EXAM{}` — one MC entry per concept `{ q, correct, wrong:[2] }`, keyed by concept **title**.
 - `VET_TIERS[]`, `COLLECTIBLE_SETS[]`, `TREATMENTS{}`, `buildMathPool()`, `renderHorseGrid()`, `isHorseUnlocked()`.
 - **To add a reward horse:** append to `horses[]` with `unlockRank`; add ≥2 `vetConcepts` (`horseIdx` = its index); add a matching `EXAM` entry per concept title; source + resize a photo (below).
 
 ## localStorage keys (per device + per browser — NOT in the files)
-`ellaVetPoints`, `ellaFeedTokens`, `ellaRankAchieved`, `ellaSeenConcepts`, `ellaNudgeOn`, `ellaCollectSet`, `ellaCollectProgress`, `ellaGifts`, `ellaHorseGifts`. Reset/set via Grown-ups panel (0101) or console.
+`ellaVetPoints`, `ellaFeedTokens`, `ellaRankAchieved`, `ellaSeenConcepts`, `ellaNudgeOn`, `ellaCollectSet`, `ellaCollectProgress`, `ellaGifts`, `ellaHorseGifts`, `ellaTopicCycle` (year-update theme-cycle pointer, 0–12). Reset/set via Grown-ups panel (0101) or console.
 - **Cross-device save (2026-07):** a self-contained module at the end of the main `<script>` monkey-patches `localStorage.setItem` to mirror every `ella*` progress key (except its own `ellaMagicWord` / `ellaSyncTs`) to a **Firebase Realtime Database** node `saves/<magic-word>`. Set the magic word once per computer in the Grown-ups panel (0101 → "☁️ Save across computers"); opening pulls the newer copy (timestamp-guarded), changes push back (~0.6 s debounce). **Not active until `FIREBASE_CONFIG` (currently `null`) is filled in** — see full setup steps + security rules in `Documents\Claude\Projects\ella-horse-game\phase3-firebase-sync-DRAFT.md`. Firebase SDK loaded via two compat `<script>` tags before `</head>`. A **manual backup** (copy/restore a base64 code) in the same panel works with no config and no internet.
 
 ## Assets / photos

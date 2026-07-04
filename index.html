@@ -466,12 +466,18 @@
     <!-- ════════════════ MATHS OPERATIONS EXPLAINER ════════════════ -->
     <section class="maths-info">
         <h2>🧮 Welche Rechen-Arten übst du im Tierarzt-Spiel?</h2>
-        <p class="maths-info-sub">Im 🩺 Tierarzt-Mathe-Spiel mischst du die Medizin, indem du Aufgaben löst. Das sind die Rechen-Arten, die vorkommen:</p>
+        <p class="maths-info-sub">Im 🩺 Tierarzt-Mathe-Spiel mischst du die Medizin, indem du Aufgaben löst. Jede Aufgabe ist eine Sachaufgabe: Lies die Geschichte und finde selbst heraus, welche Rechnung du brauchst! Wenn du nicht weiterkommst, hilft dir der 🖐 Hilfe-Knopf. Die erste Aufgabe ist immer eine große Mal-Aufgabe, danach kommen diese Rechen-Arten der Reihe nach dran:</p>
         <div class="maths-info-grid">
             <div class="maths-info-card"><div class="mi-emoji">✖️</div><h3>Große Mal-Aufgaben</h3><p>Eine große Zahl mal eine kleinere, schriftlich untereinander gerechnet. Denk an den Übertrag!</p></div>
+            <div class="maths-info-card"><div class="mi-emoji">➕</div><h3>Schriftlich plusrechnen</h3><p>Zwei große Zahlen untereinander zusammenzählen. Denk an den Übertrag!</p></div>
+            <div class="maths-info-card"><div class="mi-emoji">➖</div><h3>Schriftlich minusrechnen</h3><p>Eine große Zahl von einer anderen abziehen, mit Entbündeln (Borgen), wenn eine Stelle nicht reicht.</p></div>
+            <div class="maths-info-card"><div class="mi-emoji">🔢</div><h3>Große Zahlen runden</h3><p>Zahlen bis 1 000 000 runden, auf Zehner, Hunderter, Tausender oder Zehntausender.</p></div>
+            <div class="maths-info-card"><div class="mi-emoji">🔟</div><h3>Mal und geteilt mit 10, 100, 1000</h3><p>Verschiebe einfach die Stellen, dann geht es ganz schnell!</p></div>
+            <div class="maths-info-card"><div class="mi-emoji">✍️</div><h3>Halbschriftlich rechnen</h3><p>Zerlege die Zahl in Hunderter, Zehner und Einer und rechne Stück für Stück.</p></div>
+            <div class="maths-info-card"><div class="mi-emoji">🤔</div><h3>Überschlagen</h3><p>Runde zuerst und rechne dann ungefähr, so kannst du schnell planen.</p></div>
             <div class="maths-info-card"><div class="mi-emoji">💶</div><h3>Rechnen mit Geld</h3><p>Ein Preis mit Komma mal einer Anzahl, zum Beispiel 4,50 € × 3. Pass gut auf das Komma auf!</p></div>
             <div class="maths-info-card"><div class="mi-emoji">⚖️</div><h3>Preise vergleichen</h3><p>Zwei Läden, zwei Angebote. Rechne aus, was EIN Stück kostet, und vergleiche die Preise.</p></div>
-            <div class="maths-info-card"><div class="mi-emoji">📏</div><h3>Einheiten umrechnen</h3><p>Rechne um, zum Beispiel Kilometer in Meter, Kilo in Gramm oder Stunden in Minuten.</p></div>
+            <div class="maths-info-card"><div class="mi-emoji">📏</div><h3>Einheiten umrechnen</h3><p>Rechne um: Kilometer in Meter, Kilo in Gramm, Liter in Milliliter oder Stunden in Minuten. Manchmal zählst du auch Zeiten zusammen!</p></div>
             <div class="maths-info-card"><div class="mi-emoji">➗</div><h3>Teilen mit Rest</h3><p>Teile gerecht auf. Erst schätzen, dann genau rechnen, und manchmal bleibt ein Rest übrig!</p></div>
         </div>
         <p class="maths-info-note">⚡ Und bei den Blitz-Karten übst du das kleine Einmaleins, schnelle Mal-Aufgaben wie 7 × 8!</p>
@@ -590,6 +596,7 @@
         <div class="calc-card">
             <div class="calc-label" id="mCalcLabel">🧮 Deine Rechnung:</div>
             <div class="calc-problem" id="mProblem"></div>
+            <button class="mix-btn" id="mHelpBtn" onclick="revealHelp()" style="background:linear-gradient(135deg,#ffd66b,#ff9f68);font-size:0.95rem;">🖐 Hilfe – zeig mir die Rechnung!</button>
             <div class="calc-inputs" id="mInputs"></div>
             <button class="mix-btn" id="mMixBtn" onclick="checkMathAnswer()">✅ Dosis prüfen!</button>
             <div class="calc-feedback" id="mFeedback"></div>
@@ -1544,7 +1551,9 @@ function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + mi
 // ── number formatting & parsing (German style: comma decimal, € after the number) ──
 function fmtDec(n) { return (Math.round(n * 1000) / 1000).toString().replace('.', ','); }   // 3.5 -> "3,5"
 function fmtMoney(n) { return (Math.round(n * 100) / 100).toFixed(2).replace('.', ',') + ' €'; } // 5.6 -> "5,60 €"
-function parseNum(v) { if (v == null) return NaN; return parseFloat(String(v).replace('€', '').replace(/\s/g, '').replace(',', '.')); }
+// accepts German number input: "50.000" (Tausenderpunkt) → 50000, "3 456" → 3456, "2,5" → 2.5
+function parseNum(v) { if (v == null) return NaN; return parseFloat(String(v).replace('€', '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.')); }
+function fmtTh(n) { return n.toLocaleString('de-DE'); }                            // 3456 → "3.456"
 function near(a, b) { return Math.abs(a - b) < 0.0005; }                           // decimal compare
 // Division: dividend sits just above an easily-divided round number, so the result
 // is a round number (e.g. 720÷6 = 120) plus a small remainder (723÷6 = 120 R3).
@@ -1562,7 +1571,7 @@ function genDiv() {
 // ── Number generators + question builders (German number format: comma decimal, € after). ──
 function genConvert(fam) {
     if (fam === 'time') { const hrs = rnd(2, 8); return { big:'h', small:'min', f:60, disp:`${hrs} h`, answer:hrs*60, ansUnit:'min', problemHTML:`${hrs} h = ? min` }; }
-    const M = { len:{big:'m',small:'cm',f:100}, wt:{big:'kg',small:'g',f:1000}, dist:{big:'km',small:'m',f:1000} };
+    const M = { len:{big:'m',small:'cm',f:100}, wt:{big:'kg',small:'g',f:1000}, dist:{big:'km',small:'m',f:1000}, vol:{big:'l',small:'ml',f:1000} };
     const u = M[fam], form = rnd(1, 3); let disp, answer, ansUnit;
     if (form === 1) { const bp = rnd(1,4), sp = (u.f===1000 ? rnd(1,19)*50 : rnd(1,19)*5); disp = `${bp} ${u.big} ${sp} ${u.small}`; answer = bp + sp/u.f; ansUnit = u.big; }
     else if (form === 2) { const z = (u.f===1000 ? rnd(10,990) : rnd(10,95)); disp = `${z} ${u.small}`; answer = z/u.f; ansUnit = u.big; }
@@ -1599,7 +1608,75 @@ function Qcompare(story) {
         story: story(qa, ta, qb, tb) };
 }
 
-// ── 40 horse-vet concepts (German). Each = a vet idea (with sound-out term for the big word),
+// ── Year-update builders (2026-07): the rest of the Grade-4 curriculum. Same pattern as above —
+//    each takes a German story-function and returns a ready question object with q.answer.
+//    Story arg conventions (for content writers): Qadd/Qsub → (aDisp,bDisp) pre-formatted with
+//    Tausenderpunkt; Qround → (nDisp,placeName); Qtens(mode,story), mode 'mult'|'div' fixed per
+//    concept → (aDisp,fDisp); Qhalb → (d,n) raw; Qestimate → (n,d) raw; Qtimecalc → (startDisp,addMin). ──
+function hasCarry(a, b) { while (a > 0 || b > 0) { if (a % 10 + b % 10 >= 10) return true; a = Math.floor(a / 10); b = Math.floor(b / 10); } return false; }
+function needsBorrow(a, b) { while (b > 0) { if (a % 10 < b % 10) return true; a = Math.floor(a / 10); b = Math.floor(b / 10); } return false; }
+// schriftliche Addition: 4-stellig + 4-stellig, mindestens ein Übertrag garantiert
+function Qadd(story) {
+    let a, b;
+    do { a = rnd(1050, 7999); b = rnd(1050, 7999); } while (!hasCarry(a, b));
+    return { kind:'add', a, b, answer:a + b, label:'➕ Schriftlich plusrechnen – denk an den Übertrag! ⚠️',
+        problemHTML:`<div class="lm-stack"><div>${fmtTh(a)}</div><div>+ ${fmtTh(b)}</div><div class="lm-bar"></div><div>?</div></div><div class="carry-hint">⚠️ Übertrag nicht vergessen!</div>`,
+        story: story(fmtTh(a), fmtTh(b)) };
+}
+// schriftliche Subtraktion: Entbündeln garantiert, oft mit Nullen im Minuenden (z.B. 7003 − 2548)
+function Qsub(story) {
+    let a, b;
+    do {
+        a = Math.random() < 0.5 ? rnd(2, 9) * 1000 + rnd(3, 99) : rnd(2005, 9020);
+        b = rnd(1002, a - 500);
+    } while (!needsBorrow(a, b));
+    return { kind:'sub', a, b, answer:a - b, label:'➖ Schriftlich minusrechnen – denk ans Entbündeln! ⚠️',
+        problemHTML:`<div class="lm-stack"><div>${fmtTh(a)}</div><div>− ${fmtTh(b)}</div><div class="lm-bar"></div><div>?</div></div><div class="carry-hint">⚠️ Entbündeln (borgen) nicht vergessen!</div>`,
+        story: story(fmtTh(a), fmtTh(b)) };
+}
+// große Zahlen bis 1 000 000 runden (auf Zehner bis Zehntausender)
+function Qround(story) {
+    const places = [{ f:10, name:'Zehner' }, { f:100, name:'Hunderter' }, { f:1000, name:'Tausender' }, { f:10000, name:'Zehntausender' }];
+    const p = places[rnd(0, 3)];
+    let n; do { n = rnd(Math.max(p.f * 3, 1000), 999999); } while (n % p.f === 0 || n % p.f === p.f / 2);   // nie schon rund, nie genau die Mitte; ≥1000, damit die Story-Einheiten plausibel bleiben
+    const answer = Math.round(n / p.f) * p.f;
+    return { kind:'round', n, place:p.name, answer, label:`🔢 Runde auf ${p.name} – schau auf die Stelle direkt dahinter (0-4 ab, 5-9 auf)!`,
+        problemHTML:`Runde <b>${fmtTh(n)}</b> auf ${p.name}: ?`, story: story(fmtTh(n), p.name) };
+}
+// Multiplizieren/Teilen mit 10/100/1000 — mode ist pro Konzept fest ('mult' oder 'div')
+function Qtens(mode, story) {
+    const f = [10, 100, 1000][rnd(0, 2)];
+    let a, answer;
+    if (mode === 'mult') { a = rnd(3, 96); answer = a * f; } else { answer = rnd(3, 96); a = answer * f; }
+    const op = mode === 'mult' ? '×' : '÷';
+    return { kind:'tens', answer, label:'🔟 ' + (mode === 'mult' ? 'Malnehmen' : 'Teilen') + ' mit 10 / 100 / 1000 – verschiebe die Stellen!',
+        problemHTML:`${fmtTh(a)} ${op} ${fmtTh(f)} = ?`, story: story(fmtTh(a), fmtTh(f)) };
+}
+// halbschriftliches Rechnen: 1-stellig × 3-stellig, die Hilfe zeigt die Zerlegung
+function Qhalb(story) {
+    const d = rnd(3, 9), n = rnd(2, 9) * 100 + rnd(1, 9) * 10 + rnd(1, 9);
+    const h = Math.floor(n / 100) * 100, z = Math.floor(n / 10) % 10 * 10, e = n % 10;
+    return { kind:'halb', d, n, answer:d * n, label:`✍️ Halbschriftlich: zerlege ${n} in Hunderter, Zehner und Einer – und rechne jede Zahl mal ${d}!`,
+        problemHTML:`${d} × ${n} = ?<div class="carry-hint">${d} × ${h}  +  ${d} × ${z}  +  ${d} × ${e}</div>`,
+        story: story(d, n) };
+}
+// Überschlagen: runde den 3-stelligen Faktor auf Hunderter, dann mal – nur ungefähr!
+function Qestimate(story) {
+    const n = rnd(2, 8) * 100 + rnd(1, 9) * 10 + rnd(1, 9), d = rnd(3, 9);
+    const rounded = Math.round(n / 100) * 100, answer = rounded * d;
+    return { kind:'estimate', n, d, rounded, answer, label:`🤔 Überschlagen: runde ${n} auf Hunderter, dann mal ${d} – nur ungefähr, nicht genau!`,
+        problemHTML:`${n} × ${d} ≈ ?<div class="carry-hint">runde zuerst: ${n} ≈ ?00, dann mal ${d}</div>`,
+        story: story(n, d) };
+}
+// Zeit-Rechnen: h + min zusammenzählen, Antwort in Minuten
+function Qtimecalc(story) {
+    const h = rnd(1, 3), m = [0, 15, 30, 45][rnd(0, 3)], add = [15, 20, 30, 40, 45, 50][rnd(0, 5)];
+    const startDisp = m ? `${h} h ${m} min` : `${h} h`;
+    return { kind:'timecalc', answer:h * 60 + m + add, label:'⏰ Rechne alles in Minuten um (1 h = 60 min), dann zähle zusammen!',
+        problemHTML:`${startDisp} + ${add} min = ? min`, story: story(startDisp, add) };
+}
+
+// ── ~92 horse-vet concepts (German). Each = a vet idea (with sound-out term for the big word),
 //    a coherent maths task of a fixed skill type, and a matching treatment for the cure step. ──
 const vetConcepts = [
   // ===== LONG MULTIPLICATION =====
@@ -1735,29 +1812,77 @@ const vetConcepts = [
   { horseIdx:0, type:'convert', treatment:'bandage', title:"Stellas kühlende Tonerde", intro:"Stella ist eine Araberstute und rennt gern ganz schnell. Danach sind ihre Sehnen (Seh-nen) in den Beinen ganz warm. Du streichst eine kühlende Tonerde (Ton-er-de) auf die Beine und wickelst sie locker ein. Die kühle Packung muss eine Weile einwirken.", cured:"Nach der Kühlzeit sind Stellas Beine wieder schön kühl und sie tänzelt fröhlich über die Wiese! 💙", make:()=>Qconvert('time',(disp,unit)=>`Stellas kühlende Tonerde-Packung soll <b>${disp}</b> lang einwirken. Wie viel ist das in <b>${unit}</b>?`) },
   { horseIdx:5, type:'convert', treatment:'bucket', title:"Sunnys Gewichtsmaßband", intro:"Damit Sunny genau die richtige Menge Futter bekommt, legst du ein Gewichtsmaßband (Ge-wichts-maas-band) um ihren Bauch. Aus dem Bauchumfang (Bauch-um-fang) kann man ihr Gewicht schätzen, ohne eine große Waage zu brauchen. So weißt du, wie viel Mineralfutter in ihren Eimer darf.", cured:"Sunny hat genau die richtige Menge im Eimer und ist rundum gesund versorgt. Klasse gemessen! ☀️", make:()=>Qconvert('len',(disp,unit)=>`Das Gewichtsmaßband um Sunnys Bauch ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
   { horseIdx:6, type:'convert', treatment:'bucket', title:"Patches' dicke Beine", intro:"Patches hat lange in der Box gestanden und ihre Beine sind unten dick und weich – das nennt man angelaufene Beine (an-ge-lau-fe-ne Bei-ne). Weil sie sich zu wenig bewegt hat, staut sich Wasser in den Beinen. Bewegung ist hier die beste Medizin, darum führst du sie im Schritt spazieren.", cured:"Nach dem Spaziergang sind Patches' Beine wieder schön schlank und sie tänzelt fröhlich über die Wiese. 🌈", make:()=>Qconvert('dist',(disp,unit)=>`Du führst Patches heute <b>${disp}</b> weit im Schritt. Wie weit ist das in <b>${unit}</b>?`) },
+
+  // ===== YEAR-UPDATE CASES (2026-07): the 8 new Grade-4 maths types, 3 cases each, horses 0-14 =====
+  { horseIdx:0, type:'add', treatment:'bucket', title:"Stellas Heuboden für den Winter", intro:"Im Winter wächst draußen kein Gras, aber Stella braucht trotzdem jeden Tag Heu zum Fressen. Darum wird der Heuboden schon jetzt nach und nach aufgefüllt. Heute kommen zwei Lieferungen (Lie-fe-run-gen) Heu an, und du zählst zusammen, wie viel heute wirklich angekommen ist. 🌾", cured:"Der Heuboden wird immer voller, und Stella hat bald genug leckeres Heu für den ganzen Winter! 🐴🌾", make:()=>Qadd((a,b)=>`Am Morgen bringt der Bauer <b>${a} g</b> Heu für Stellas Heuboden. Am Nachmittag kommt noch eine zweite Lieferung mit <b>${b} g</b> an. Wie viel Gramm Heu sind heute zusammen angekommen?`) },
+  { horseIdx:7, type:'add', treatment:'bucket', title:"Cupcakes Trink-Protokoll", intro:"Ponys müssen jeden Tag genug Wasser trinken, sonst fühlen sie sich schlapp. Der Tierarzt möchte wissen, ob die kleine Cupcake genug trinkt. Darum misst du morgens und abends, wie viel Wasser aus dem Eimer getrunken wurde, und schreibst es in ein Trink-Protokoll (Pro-to-koll).", cured:"Der Tierarzt liest dein Trink-Protokoll und strahlt: Cupcake trinkt genau richtig, alles bestens! 💧", make:()=>Qadd((a,b)=>`Am Morgen trinkt Cupcake <b>${a} ml</b> Wasser aus ihrem Eimer, am Abend noch <b>${b} ml</b>. Du schreibst beides ins Protokoll. Wie viel Milliliter hat Cupcake heute zusammen getrunken?`) },
+  { horseIdx:2, type:'add', treatment:'bucket', title:"Thunders Herden-Müsli", intro:"Thunder und seine Herde bekommen heute ein selbst gemischtes Müsli aus zwei Zutaten: Haferflocken und Luzerne (Lu-zer-ne), einem getrockneten Futterkraut. Beide Zutaten werden erst gewogen und dann in die große Futtertonne zusammengeschüttet. So weißt du genau, wie viel Müsli die ganze Herde bekommt.", cured:"Thunder mampft zufrieden sein frisches Herden-Müsli und schnaubt vor Freude! 🐴💛", make:()=>Qadd((a,b)=>`Für das Herden-Müsli schüttest du <b>${a} g</b> Haferflocken und <b>${b} g</b> Luzerne in die große Futtertonne. Wie viel Gramm Müsli sind zusammen in der Tonne?`) },
+  { horseIdx:1, type:'sub', treatment:'bucket', title:"Biscuits Vorratskontrolle", intro:"Biscuit ist ein Clydesdale (Klaids-dehl), ein riesiges Kaltblut mit riesigem Hunger! Gute Stallhelfer machen darum eine Vorratskontrolle (Vor-rats-kon-trol-le): Sie rechnen aus, wie viel Futter noch im Sack ist, und bestellen rechtzeitig neues, damit der Trog nie leer bleibt.", cured:"Biscuit schmatzt zufrieden, und dank deiner Rechnung kommt der neue Futtersack genau rechtzeitig an! 🪣🐴", make:()=>Qsub((a,b)=>`Biscuits großer Futtersack war am Anfang prall gefüllt mit <b>${a} g</b>. Der große Kerl hat schon <b>${b} g</b> davon weggefuttert. Wie viel Gramm sind jetzt noch im Sack übrig?`) },
+  { horseIdx:5, type:'sub', treatment:'bucket', title:"Sunnys Tränke-Kontrolle", intro:"Pferde trinken jeden Tag viele Liter Wasser, auf der Weide in der Sonne sogar noch mehr. Darum steht dort eine Tränke (Trän-ke) mit einem Wassertank. Beim Weide-Check schaust du genau nach, wie viel Wasser noch für Sunny und ihre Freunde da ist.", cured:"Der Tank ist frisch aufgefüllt und Sunny schlabbert vergnügt ihr kühles Wasser! 🪣", make:()=>Qsub((a,b)=>`Heute Morgen waren <b>${a} ml</b> Wasser im Tank der Weide-Tränke. Sunny und ihre Pferde-Freunde haben schon <b>${b} ml</b> davon getrunken. Wie viele Milliliter Wasser sind noch im Tank?`) },
+  { horseIdx:6, type:'sub', treatment:'bandage', title:"Patches' Zaunband-Reparatur", intro:"Ein Weidezaun hält Patches sicher auf seiner Wiese. Wenn das Zaunband (Zaun-band) gerissen ist, könnte Patches weglaufen und sich wehtun. Darum flickst du die kaputte Stelle sofort mit einem Stück von der neuen Bandrolle. 🐴", cured:"Der Zaun ist wieder heil und Patches grast fröhlich auf seiner sicheren Weide! 🌿", make:()=>Qsub((a,b)=>`Auf der neuen Rolle sind <b>${a} cm</b> Zaunband. Für das kaputte Stück am Weidezaun schneidest du <b>${b} cm</b> ab. Wie viele Zentimeter Zaunband bleiben auf der Rolle übrig?`) },
+  { horseIdx:12, type:'round', treatment:'bucket', title:"Chestnuts Jahres-Heuplan", intro:"Chestnut ist ein Suffolk Punch (Saf-fock Pantsch), ein riesiges Zugpferd. So ein Riese frisst jeden Tag einen ganzen Berg Heu! Damit das Heu nie ausgeht, rechnet der Bauer die Menge für das ganze Jahr aus und rundet die Riesenzahl für den groben Vorrats-Plan.", cured:"Der Heuboden ist voll bis unters Dach, Chestnut hat das ganze Jahr genug zu mampfen! 🌾", make:()=>Qround((n,p)=>`Für Chestnuts Jahres-Plan wiegt der Bauer das Heu. Die große Waage zeigt <b>${n} g</b>! Runde die Zahl auf <b>${p}</b>, dann kann der Bauer grob planen.`) },
+  { horseIdx:3, type:'round', treatment:'bandage', title:"Dottys Schrittzähler", intro:"Bewegung hält Pferde fit und gesund! Deshalb trägt Dotty einen kleinen Schrittzähler (Schritt-zäh-ler) am Halfter, der jeden ihrer Schritte auf der Weide mitzählt. Für ihr Bewegungs-Tagebuch (Be-we-gungs-Ta-ge-buch) reicht eine gerundete Zahl, die kann man sich viel leichter merken. 🐴", cured:"Prima gerundet, das Tagebuch ist fertig und Dotty flitzt schon wieder munter über die Weide und sammelt neue Schritte! 🐎", make:()=>Qround((n,place)=>`Dottys Schrittzähler zeigt <b>${n} Schritte</b> für diese Woche an, so eine krumme Zahl! Runde sie für das Bewegungs-Tagebuch auf <b>${place}</b>.`) },
+  { horseIdx:4, type:'round', treatment:'bucket', title:"Midnights Wasser-Jahr", intro:"Pferde trinken richtig viel: jeden Tag 30 bis 50 Liter Wasser – das sind drei bis fünf große Eimer voll! An Midnights Tränke (Trän-ke) hängt ein Wasserzähler (Wasser-zäh-ler), der jeden Liter mitzählt. So kann man für die Stallplanung ausrechnen, wie viel Wasser im ganzen Jahr gebraucht wird.", cured:"Midnight schlürft zufrieden aus dem vollen Trog – der Wasservorrat für das ganze Jahr ist jetzt bestens geplant! 🪣", make:()=>Qround((n,p)=>`Der Wasserzähler an Midnights Tränke zeigt: <b>${n} Liter</b> sind schon durch die Tränke geflossen! Runde die Zahl für die Stallplanung auf <b>${p}</b>.`) },
+  { horseIdx:9, type:'tens', treatment:'bucket', title:"Lunas Tabletten-Vorrat", intro:"In jedem guten Stall gibt es eine Stall-Apotheke (Stall-A-po-te-ke) mit Medizin für die Pferde. Die Tierärztin zählt heute mit dir den Tabletten-Vorrat, damit immer genug da ist, wenn ein Pferd mal etwas braucht. Die Tabletten stecken ordentlich sortiert in Röhrchen.", cured:"Super gezählt! Lunas Stall-Apotheke ist jetzt bestens sortiert, und Luna schnaubt zufrieden. 🐴💊", make:()=>Qtens('mult',(a,f)=>`In Lunas Stall-Apotheke stehen <b>${a} Röhrchen</b>, in jedem stecken genau <b>${f} Tabletten</b>. Wie viele Tabletten sind insgesamt im Vorrat?`) },
+  { horseIdx:8, type:'tens', treatment:'bucket', title:"Brios Medizin-Flaschen", intro:"Brio bekommt ein Tonikum (To-ni-kum), das ist ein Stärkungs-Saft für Pferde. Der Tierarzt bringt ihn in einem großen Kanister (Ka-nis-ter). Wir füllen den Saft in kleine Flaschen um, damit jede Tages-Portion genau stimmt und nichts verschüttet wird.", cured:"Brio hat seinen Saft brav geschlürft und tänzelt schon wieder munter über die Koppel! 💪🐴", make:()=>Qtens('div',(a,f)=>`Der Tierarzt bringt einen großen Kanister mit <b>${a} ml</b> Tonikum für Brio. Du füllst den Saft in kleine Flaschen mit je <b>${f} ml</b> ab. Wie viele Flaschen werden voll?`) },
+  { horseIdx:11, type:'tens', treatment:'bucket', title:"Freyas Möhren-Wintervorrat", intro:"Möhren stecken voller Vitamine (Wi-ta-mi-ne) und sind ein gesunder Winter-Snack für Pferde. Im kühlen, dunklen Keller bleiben die Möhren lange frisch und knackig. Damit der Vorrat bis zum Frühling reicht, zählen wir genau, wie viele Möhren in den Kisten liegen.", cured:"Freya mampft glücklich ihre erste Möhre aus dem Wintervorrat und schnaubt zufrieden! 🥕", make:()=>Qtens('mult',(a,f)=>`Im Keller stapeln sich <b>${a} Kisten</b> mit je <b>${f} Möhren</b> für Freyas Wintervorrat. Wie viele Möhren sind es insgesamt?`) },
+  { horseIdx:10, type:'halb', treatment:'bucket', title:"Auroras Wasser-Ration", intro:"Aurora ist ein Akhal-Teke (Achal-Te-ke), ein echtes Wüstenpferd! An heißen Tagen schwitzt auch sie und verliert dabei viel Wasser. Darum füllst du eine extra Wasser-Ration (Was-ser-Ra-zi-on) in Flaschen ab, damit du Auroras Trink-Eimer auf der Weide immer wieder nachfüllen kannst.", cured:"Aurora schlürft ihr kühles Wasser und wiehert vergnügt in die Sonne! 💧🐴", make:()=>Qhalb((d,n)=>`An diesem heißen Tag füllst du <b>${d} Flaschen</b> mit je <b>${n} ml</b> kühlem Wasser für Aurora ab. Wie viel Milliliter Wasser sind das im Ganzen?`) },
+  { horseIdx:14, type:'halb', treatment:'bucket', title:"Ottilias Leckerli-Backtag", intro:"Ottilia ist ein Falabella (Fa-la-bel-la) und liebt Leckerli über alles. Selbst gebackene Leckerli aus Haferflocken und geriebenen Möhren haben viel weniger Zucker als gekaufte und sind darum viel gesünder für Pferde. Heute ist Backtag, und du backst gleich für alle Pferde im Stall!", cured:"Ottilia schnuppert am ersten warmen Leckerli und knabbert es glücklich auf! 🍪", make:()=>Qhalb((d,n)=>`Für die Pferde im Stall füllst du <b>${d} Backbleche</b> mit je <b>${n} g</b> gesunder Leckerli-Masse. Wie viel Gramm Leckerli-Masse brauchst du insgesamt?`) },
+  { horseIdx:13, type:'halb', treatment:'bucket', title:"Sagas Heunetze", intro:"Saga ist ein flauschiges Islandpferd und liebt Heu über alles! Aus einem Heunetz (Heu-netz) kann sie immer nur kleine Büschel zupfen. So frisst sie schön langsam, und das ist gesund für ihren Pferdebauch. 🌾", cured:"Saga zupft glücklich an ihren prall gefüllten Heunetzen, ganz gemütlich und langsam! 🐴💚", make:()=>Qhalb((d,n)=>`Du stopfst für Saga <b>${d} kleine Heunetze</b> mit je <b>${n} g</b> Heu. Wie viel Gramm Heu brauchst du im Ganzen?`) },
+  { horseIdx:4, type:'estimate', treatment:'bucket', title:"Midnights Urlaubs-Futterplan", intro:"Wenn die Familie in den Urlaub fährt, kümmert sich eine Pflegerin (Pfle-ge-rin) um Midnight. Sie bekommt einen Futterplan, damit Midnight jeden Tag genau die richtige Menge frisst. Vorher überschlägt (ü-ber-schlägt) die Familie grob, wie viel Futter für die ganze Zeit bereitstehen muss.", cured:"Die Futterkiste ist prall gefüllt und Midnight lässt es sich schmecken, bis alle wieder zu Hause sind! 🪣🐴", make:()=>Qestimate((n,d)=>`Midnight frisst jeden Tag ungefähr <b>${n} g</b> Müsli. Die Familie ist <b>${d} Tage</b> im Urlaub. Überschlage: Etwa wie viel Gramm Müsli musst du für die Pflegerin hinstellen?`) },
+  { horseIdx:8, type:'estimate', treatment:'bucket', title:"Brios Hustensaft-Vorrat", intro:"Brio hat einen leichten Husten, nur ein kleines Kratzen im Hals, nichts Schlimmes. Die Tierärztin empfiehlt einen milden Kräuter-Hustensaft mit Thymian (Tüh-mi-an), der den Hals schön beruhigt. Damit genug Saft im Vorrat ist, überschlägst du, wie viel Brio ungefähr braucht.", cured:"Brios Hals ist wieder frei und er wiehert fröhlich über die ganze Koppel! 🌿", make:()=>Qestimate((n,d)=>`Brio bekommt jeden Tag ungefähr <b>${n} ml</b> Kräuter-Hustensaft, und zwar <b>${d} Tage</b> lang. Überschlage: Etwa wie viel ml Saft brauchst du für alle Tage zusammen?`) },
+  { horseIdx:6, type:'estimate', treatment:'bucket', title:"Patches' Apfel-Vorrat", intro:"Äpfel sind für Pferde ein leckerer Snack voller Vitamine (Wi-ta-mi-ne). Aber zu viel Naschen tut dem Pferdebauch nicht gut, darum gibt es jeden Tag nur eine kleine Portion (Por-zi-on). Du schneidest die Äpfel in Stücke und packst einen Vorrat für mehrere Tage in den Eimer.", cured:"Patches mampft glücklich seine Apfelstücke, der Nasch-Vorrat ist genau richtig! 🍎", make:()=>Qestimate((n,d)=>`Du schneidest für Patches jeden Tag UNGEFÄHR <b>${n} g</b> Apfelstücke klein. Der Vorrat soll <b>${d} Tage</b> lang reichen. Überschlage: Etwa wie viel Gramm Apfelstücke brauchst du insgesamt?`) },
+  { horseIdx:11, type:'timecalc', treatment:'bucket', title:"Freyas Weide-Plan", intro:"Freya ist ein Fjordpferd (Fjord-pferd) und liebt es, draußen zu sein. 🌱 Frische Luft und Bewegung auf der Weide halten Pferde fit und gesund. Damit Freya jeden Tag genug draußen ist, zählst du ihre Weide-Minuten zusammen.", cured:"Freya schnaubt vergnügt und galoppiert mit wehender Mähne über die Weide! 🌞", make:()=>Qtimecalc((s,a)=>`Am Vormittag war Freya schon <b>${s}</b> auf der Weide. Am Nachmittag war sie noch <b>${a} min</b> extra draußen. Wie viele Minuten war Freya heute insgesamt auf der Weide?`) },
+  { horseIdx:0, type:'timecalc', treatment:'bandage', title:"Stellas Trainingsplan", intro:"Nach einer langen Pause müssen Stellas Muskeln erst ganz langsam wieder stark werden. Vor dem Training bekommt sie weiche Bandagen (Ban-da-schen) an die Beine, dann geht es los: erst lockeres Longieren (Lon-schie-ren) mit vielen Schritt-Pausen, dann Schritt führen. Du zählst die Minuten genau mit, damit es für den Anfang nicht zu viel wird.", cured:"Stella schnaubt nach dem Training ganz zufrieden und wird jeden Tag ein bisschen stärker! 🐴💪", make:()=>Qtimecalc((start,add)=>`Heute steht auf Stellas Trainingsplan: erst <b>${start}</b> lockeres Longieren mit Schritt-Pausen, danach führst du sie noch <b>${add} min</b> im Schritt. Wie viele Minuten trainiert Stella heute insgesamt?`) },
+  { horseIdx:14, type:'timecalc', treatment:'bucket', title:"Ottilias Sonnenbad", intro:"Sonnenlicht tut Ponys richtig gut: Die Haut bildet daraus Vitamin D (Wi-ta-min Deh), und das macht die Knochen stark. Ottilia darf ihr Sonnenbad deshalb auf der Weide nehmen: erst am Morgen, dann noch einmal am Nachmittag, dazu ein Eimer frisches Wasser. Die Tierärztin möchte genau wissen, wie viele Sonnen-Minuten zusammenkommen.", cured:"Ottilia blinzelt zufrieden in die Sonne und schlürft aus ihrem Wassereimer, was für ein herrliches Sonnenbad! ☀️", make:()=>Qtimecalc((start,add)=>`Am Morgen darf Ottilia <b>${start}</b> lang auf die Sonnenweide, am Nachmittag noch <b>${add} min</b> dazu. Wie viele Minuten Sonnenbad sind das insgesamt?`) },
+  { horseIdx:2, type:'convert', treatment:'bucket', title:"Thunders Wundspülung", intro:"Thunder hat sich beim Toben eine kleine Schürfwunde (Schürf-wun-de) am Bein geholt – halb so wild! Die Tierärztin spült sie ganz sanft mit Kochsalzlösung (Koch-salz-lö-sung) aus, damit aller Schmutz herausgespült wird und die Wunde sauber heilen kann. Dafür musst du genau die richtige Menge abmessen.", cured:"Die Wunde ist blitzblank und Thunder galoppiert schon wieder fröhlich über die Koppel! 🐎💚", make:()=>Qconvert('vol',(disp,unit)=>`Die Tierärztin sagt: Für Thunders Wundspülung brauchst du <b>${disp}</b> Kochsalzlösung (Koch-salz-lö-sung). Wie viel ist das in <b>${unit}</b>?`) },
+  { horseIdx:3, type:'convert', treatment:'bucket', title:"Dottys Leinöl-Kur", intro:"Leinöl (Lein-öl) ist ein gesundes Pflanzenöl, das Dottys geflecktes Fell herrlich glänzen lässt. Jeden Tag kommt nur ein kleiner Schluck davon übers Futter. Damit der Vorrat für viele Tage reicht, misst du das Öl mit dem Messbecher (Mess-be-cher) genau ab.", cured:"Dottys Tupfen-Fell glänzt jetzt in der Sonne, als hätte jemand lauter kleine Sterne darauf gemalt! ✨", make:()=>Qconvert('vol',(disp,unit)=>`Für Dottys Leinöl-Vorrat füllst du <b>${disp}</b> Leinöl in die große Vorratsflasche. Wie viel ist das in <b>${unit}</b>?`) },
+  { horseIdx:9, type:'convert', treatment:'bucket', title:"Lunas Bade-Tag", intro:"Morgen hat Luna einen großen Auftritt, heute ist Bade-Tag! Ihr schneeweißes Fell wird mit Pferdeshampoo (Pfer-de-scham-pu) gewaschen. Damit das Shampoo sanft zu Lunas Haut ist, mischst du es mit viel Wasser und misst das Waschwasser ganz genau ab.", cured:"Luna glänzt schneeweiß und ist bereit für ihren großen Auftritt! ✨", make:()=>Qconvert('vol',(disp,unit)=>`Für Lunas Schaumbad mischst du <b>${disp}</b> warmes Waschwasser mit einem Spritzer Pferdeshampoo an. Wie viel ist das in <b>${unit}</b>?`) },
 ];
 let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false, mPerfect = true;
-let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mTreat = null;
+let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mTreat = null, mHelpShown = false;
 let mChooseSlot = 0, mChooseCandidates = [], mChosen = false;   // Phase 1: one patient per session is hers to choose
 
-// A session is 4 fresh questions, weighted to the new skills (long ×, money ×, unit price,
-// unit conversion). Plain division with rounding shows up only occasionally. Each question
-// uses a different horse and a random vet concept, reshuffled every game.
+// A session is 5 fresh questions (year update 2026-07). Question 1 is ALWAYS schriftliche
+// Multiplikation (3-stellig × 2-stellig). The other 4 slots walk the 13-theme Grade-4 cycle
+// below via a persistent pointer (localStorage 'ellaTopicCycle', mirrored by the cloud sync),
+// so every theme comes up exactly once per 13 slots ≈ 3¼ sessions. Each question uses a
+// different horse where possible and a random vet concept, reshuffled every game.
+const TOPIC_CYCLE = ['add', 'wt', 'div', 'money', 'sub', 'len', 'tens', 'compare', 'round', 'zeit', 'halb', 'vol', 'estimate'];
+// convert concepts bake their family into make() — read it back out of the function source
+function conceptFam(c) { const m = String(c.make).match(/Qconvert\(\s*'(\w+)'/); return m ? m[1] : null; }
+function themeMatches(theme, c) {
+    switch (theme) {
+        case 'len':  return c.type === 'convert' && (conceptFam(c) === 'len' || conceptFam(c) === 'dist');
+        case 'wt':   return c.type === 'convert' && conceptFam(c) === 'wt';
+        case 'vol':  return c.type === 'convert' && conceptFam(c) === 'vol';
+        case 'zeit': return (c.type === 'convert' && conceptFam(c) === 'time') || c.type === 'timecalc';
+        default:     return c.type === theme;   // add, sub, div, money, tens, compare, round, halb, estimate
+    }
+}
+function getTopicPtr() { try { const v = parseInt(localStorage.getItem('ellaTopicCycle'), 10); return isNaN(v) ? 0 : ((v % TOPIC_CYCLE.length) + TOPIC_CYCLE.length) % TOPIC_CYCLE.length; } catch (e) { return 0; } }
+function setTopicPtr(n) { try { localStorage.setItem('ellaTopicCycle', String(n % TOPIC_CYCLE.length)); } catch (e) {} }
+
 function buildMathPool() {
-    let types = shuffle(['longmult', 'money', 'compare', 'convert']);
-    if (Math.random() < 0.4) types[rnd(0, 3)] = 'div';   // division appears occasionally, at most once
-    types = shuffle(types);
+    const ptr = getTopicPtr();
+    const themes = [0, 1, 2, 3].map(i => TOPIC_CYCLE[(ptr + i) % TOPIC_CYCLE.length]);
+    setTopicPtr(ptr + 4);   // this session consumes 4 themes
+    const order = ['longmult', ...shuffle(themes)];   // Q1 fixed, the 4 cycle themes in shuffled display order
     const usedHorse = new Set(), out = [];
-    for (const t of types) {
-        // a concept of this skill type on a horse not used yet this game; fall back to any free horse
-        let opts = shuffle(vetConcepts.filter(c => c.type === t && !usedHorse.has(c.horseIdx) && isHorseUnlocked(horses[c.horseIdx])));
-        let c = opts[0] || shuffle(vetConcepts.filter(c => !usedHorse.has(c.horseIdx) && isHorseUnlocked(horses[c.horseIdx])))[0];
+    for (const t of order) {
+        const match = t === 'longmult' ? (c => c.type === 'longmult') : (c => themeMatches(t, c));
+        // fallback order: theme + fresh horse → theme, horse reuse ok → any concept on a fresh horse.
+        // Maths curriculum beats horse variety: reusing a horse is better than swapping the skill.
+        let opts = shuffle(vetConcepts.filter(c => match(c) && !usedHorse.has(c.horseIdx) && isHorseUnlocked(horses[c.horseIdx])));
+        if (!opts.length) opts = shuffle(vetConcepts.filter(c => match(c) && isHorseUnlocked(horses[c.horseIdx])));
+        if (!opts.length) opts = shuffle(vetConcepts.filter(c => !usedHorse.has(c.horseIdx) && isHorseUnlocked(horses[c.horseIdx])));
+        const c = opts[0];
         usedHorse.add(c.horseIdx);
         out.push(Object.assign({ horseIdx: c.horseIdx, title: c.title, intro: c.intro, cured: c.cured, treatment: c.treatment }, c.make()));
     }
-    // Phase 1 — "Choose your patient": slot 0 is hers. Offer the auto-picked horse plus up to
-    // 2 other horses that have a concept of slot 0's maths type and aren't used by the other 3
-    // slots — so she influences only WHICH horse (not the maths), and favourites can't take over.
+    // "Choose your patient": slot 0 (always longmult) is hers. Offer the auto-picked horse plus up
+    // to 2 other horses that have a longmult concept and aren't used by the other slots — so she
+    // influences only WHICH horse (not the maths), and favourites can't take over.
     mChooseSlot = 0;
     const slotType = out[mChooseSlot].kind;
     const otherHorses = new Set(out.filter((q, i) => i !== mChooseSlot).map(q => q.horseIdx));
@@ -1935,16 +2060,31 @@ function attachMathInputs() {
 function renderProblem(q) {
     const inputs = document.getElementById('mInputs');
     const prob = document.getElementById('mProblem');
-    prob.style.display = '';
     prob.innerHTML = q.problemHTML;
-    document.getElementById('mCalcLabel').textContent = q.label;
+    // Sachaufgaben mode (year update): the story alone comes first — SHE picks the Rechen-Art.
+    // The written set-up + type hint wait behind the free Hilfe button (or the first wrong answer).
+    mHelpShown = false;
+    prob.style.display = 'none';
+    document.getElementById('mCalcLabel').textContent = '🕵️ Sachaufgabe: Lies die Geschichte oben – welche Rechnung brauchst du? Rechne und tippe deine Antwort!';
+    document.getElementById('mHelpBtn').classList.remove('hidden');
     mDivPhase = null;
     if (q.kind === 'div') { mDivPhase = 'estimate'; inputs.innerHTML = calcField('mEst', 'Ungefähr wie viel?', 'int'); }
     else if (q.kind === 'convert') { inputs.innerHTML = calcField('mAns', 'Antwort (' + q.ansUnit + ')', 'dec'); }
     else if (q.kind === 'money') { inputs.innerHTML = calcField('mAns', 'Antwort (€)', 'dec'); }
     else if (q.kind === 'compare') { mDivPhase = 'prices'; inputs.innerHTML = calcField('mPa', 'Laden A: eins =', 'dec') + calcField('mPb', 'Laden B: eins =', 'dec'); }
-    else { inputs.innerHTML = calcField('mAns', 'Antwort', 'int'); }   // longmult
+    else if (q.kind === 'timecalc') { inputs.innerHTML = calcField('mAns', 'Antwort (min)', 'int'); }
+    else if (q.kind === 'estimate') { inputs.innerHTML = calcField('mAns', 'Ungefähr wie viel?', 'int'); }
+    else { inputs.innerHTML = calcField('mAns', 'Antwort', 'int'); }   // longmult, add, sub, round, tens, halb
     attachMathInputs();
+}
+// free help — no points lost: reveals the written set-up and the type hint for this question
+function revealHelp() {
+    if (mHelpShown) return;
+    mHelpShown = true;
+    const q = mPool[mQ];
+    document.getElementById('mCalcLabel').textContent = q.label;
+    document.getElementById('mProblem').style.display = '';
+    document.getElementById('mHelpBtn').classList.add('hidden');
 }
 
 function needInput(fbEl, msg) { fbEl.className = 'calc-feedback no'; fbEl.textContent = msg; }
@@ -1959,6 +2099,8 @@ function checkMathAnswer() {
         case 'convert':  return checkExactNum(q, fbEl, q.answer, true);
         case 'div':      return checkDivision(q, fbEl);
         case 'compare':  return checkCompare(q, fbEl);
+        case 'add': case 'sub': case 'round': case 'tens': case 'halb': case 'estimate': case 'timecalc':
+                         return checkExactNum(q, fbEl, q.answer, false);   // year-update types: one exact whole number
     }
 }
 
@@ -1981,11 +2123,15 @@ function checkDivision(q, fbEl) {
             fbEl.className = 'calc-feedback ok';
             fbEl.textContent = `👍 Gut geschätzt! Es sind ungefähr ${quo}. Jetzt rechne genau.`;
             mDivPhase = 'exact';
+            mHelpShown = true;   // step 2 shows its own set-up; Hilfe must not overwrite it
+            document.getElementById('mProblem').style.display = '';
+            document.getElementById('mHelpBtn').classList.add('hidden');
             document.getElementById('mProblem').innerHTML = `${q.a} ÷ ${q.b} = ?  Rest ?`;
             document.getElementById('mCalcLabel').textContent = '✏️ Schritt 2 – jetzt genau rechnen, mit Rest:';
             document.getElementById('mInputs').innerHTML = calcField('mAns', 'Antwort', 'int') + calcField('mRem', 'Rest', 'int');
             attachMathInputs();
         } else {
+            revealHelp();   // show her the division set-up so she can estimate from it
             fbEl.className = 'calc-feedback no';
             fbEl.textContent = '🤔 Noch nicht nah dran – runde die Zahl auf eine leichte, dann teile. Versuch es nochmal!';
             const e = document.getElementById('mEst'); e.value = ''; e.focus();
@@ -2006,12 +2152,15 @@ function checkCompare(q, fbEl) {
         fbEl.className = 'calc-feedback ok';
         fbEl.textContent = '👍 Preise stimmen! Welcher Laden ist teurer pro Stück?';
         mDivPhase = 'pick';
+        mHelpShown = true;   // the pick step has its own label; Hilfe must not overwrite it
+        document.getElementById('mHelpBtn').classList.add('hidden');
         document.getElementById('mCalcLabel').textContent = '🤔 Welcher Laden ist TEURER pro Stück?';
         document.getElementById('mInputs').innerHTML =
             `<div class="cmp-btns"><button class="cmp-btn" onclick="answerCompare('A')">Laden A</button><button class="cmp-btn" onclick="answerCompare('B')">Laden B</button></div>`;
         document.getElementById('mMixBtn').classList.add('hidden');
     } else {
         mFirstTry = false;
+        revealHelp();   // show the two shop bundles so she can re-check price ÷ Anzahl
         fbEl.className = 'calc-feedback no';
         fbEl.textContent = '❌ Prüf die zwei Preise nochmal – Preis ÷ Anzahl.';
         document.getElementById('mPa').value = ''; document.getElementById('mPb').value = '';
@@ -2035,8 +2184,9 @@ function mathCorrect(q, fbEl) {
 }
 function mathWrong(fbEl) {
     mFirstTry = false; mPerfect = false;
+    revealHelp();   // after a first miss the written set-up opens by itself — gentle, never punishing
     fbEl.className = 'calc-feedback no';
-    fbEl.textContent = '❌ Nicht ganz – prüf deine Rechnung und versuch es nochmal!';
+    fbEl.textContent = '❌ Nicht ganz – schau dir die Rechnung an und versuch es nochmal!';
     const a = document.getElementById('mAns'); if (a) a.value = '';
     const r = document.getElementById('mRem'); if (r) r.value = '';
     if (a) a.focus();
@@ -2509,6 +2659,30 @@ const EXAM = {
   "Stellas kühlende Tonerde":       { q:"Warum bekommt Stella nach dem schnellen Ritt eine kühlende Tonerde-Packung?", correct:"Damit ihre warmen Sehnen sich beruhigen und abkühlen.", wrong:["Damit ihre Beine schön bunt aussehen.", "Damit sie noch schneller rennen kann."] },
   "Sunnys Gewichtsmaßband":         { q:"Wozu legt man Sunny ein Gewichtsmaßband um den Bauch?", correct:"Um ihr Gewicht zu schätzen und die richtige Futtermenge zu finden.", wrong:["Damit ihr Bauch schneller wächst.", "Damit ihr Fell goldener glänzt."] },
   "Patches' dicke Beine":           { q:"Warum führst du Patches mit dicken Beinen im Schritt spazieren?", correct:"Weil Bewegung das gestaute Wasser aus den Beinen pumpt.", wrong:["Damit ihr Fell mehr Flecken bekommt.", "Damit sie schneller galoppieren lernt."] },
+  "Stellas Heuboden für den Winter": { q:"Warum wird Stellas Heuboden schon vor dem Winter mit Heu aufgefüllt?", correct:"Weil im Winter kein Gras wächst und Stella trotzdem jeden Tag Heu zum Fressen braucht.", wrong:["Damit Stella im weichen Heu ein gemütliches Bett zum Schlafen hat.", "Damit der Stall im Winter schön nach Sommer duftet."] },
+  "Cupcakes Trink-Protokoll":       { q:"Warum schreibst du in ein Trink-Protokoll, wie viel Wasser Cupcake trinkt?", correct:"Damit der Tierarzt sieht, ob Cupcake genug Wasser trinkt.", wrong:["Damit der Eimer immer schön voll aussieht.", "Damit Cupcake das Wasser schneller trinkt."] },
+  "Thunders Herden-Müsli":          { q:"Warum werden die zwei Müsli-Zutaten vor dem Mischen gewogen?", correct:"Damit man genau weiß, wie viel Müsli die ganze Herde bekommt.", wrong:["Damit das Müsli schön bunt aussieht.", "Damit die Futtertonne nicht wegrollt."] },
+  "Biscuits Vorratskontrolle":      { q:"Warum rechnen gute Stallhelfer regelmäßig aus, wie viel Futter noch im Sack ist?", correct:"Damit sie rechtzeitig neues Futter bestellen können und der Trog nie leer bleibt.", wrong:["Damit der Futtersack ordentlich und hübsch aussieht.", "Weil das Futter vom Zählen besser schmeckt."] },
+  "Sunnys Tränke-Kontrolle":        { q:"Warum kontrollierst du den Wassertank an der Weide-Tränke?", correct:"Damit die Pferde immer genug frisches Wasser zum Trinken haben.", wrong:["Damit Sunny darin planschen und baden kann.", "Damit das Wasser wie Limonade sprudelt."] },
+  "Patches' Zaunband-Reparatur":    { q:"Warum muss ein gerissenes Zaunband schnell repariert werden?", correct:"Damit Patches sicher auf der Wiese bleibt und sich nicht wehtut.", wrong:["Damit der Zaun schöner glitzert.", "Damit die Schwalben eine Sitzstange haben."] },
+  "Chestnuts Jahres-Heuplan":       { q:"Warum plant der Bauer Chestnuts Heu-Menge für das ganze Jahr im Voraus?", correct:"Damit das Heu nie ausgeht und Chestnut immer genug zu fressen hat.", wrong:["Weil Chestnut nur ganz frisches Heu vom selben Tag mag.", "Damit das Heu auf dem Heuboden ordentlicher aussieht."] },
+  "Dottys Schrittzähler":           { q:"Warum trägt Dotty einen Schrittzähler am Halfter?", correct:"Damit man im Bewegungs-Tagebuch sehen kann, wie viel sich Dotty bewegt, denn Bewegung hält sie gesund.", wrong:["Damit das Halfter schwerer ist und besser am Kopf sitzt.", "Damit Dotty lernt, ihre Schritte selber zu zählen."] },
+  "Midnights Wasser-Jahr":          { q:"Wie viel Wasser trinkt ein Pferd ungefähr an einem Tag?", correct:"Etwa 30 bis 50 Liter – das sind drei bis fünf große Eimer voll.", wrong:["Nur eine kleine Tasse voll, Pferde trinken fast nie.", "Ungefähr 500 Liter, ein Pferd trinkt jeden Tag einen Pool leer."] },
+  "Lunas Tabletten-Vorrat":         { q:"Warum zählt die Tierärztin den Tabletten-Vorrat in der Stall-Apotheke?", correct:"Damit immer genug Medizin da ist, wenn ein Pferd sie braucht.", wrong:["Damit die Röhrchen im Regal hübscher aussehen.", "Damit Luna die Tabletten als Leckerli naschen kann."] },
+  "Brios Medizin-Flaschen":         { q:"Warum füllen wir Brios Medizin-Saft aus dem großen Kanister in kleine Flaschen um?", correct:"Damit jede Tages-Portion genau stimmt und nichts verschüttet wird.", wrong:["Damit der Saft in kleinen Flaschen süßer schmeckt.", "Weil Pferde nur aus kleinen Flaschen trinken mögen."] },
+  "Freyas Möhren-Wintervorrat":     { q:"Warum lagern wir Freyas Möhren-Vorrat im Keller?", correct:"Weil es dort kühl und dunkel ist und die Möhren lange frisch und knackig bleiben.", wrong:["Damit die Möhren im Keller weiterwachsen und größer werden.", "Weil Möhren im Dunkeln süßer schmecken."] },
+  "Auroras Wasser-Ration":          { q:"Warum muss Aurora an einem heißen Tag besonders viel trinken?", correct:"Weil sie beim Schwitzen viel Wasser verliert.", wrong:["Damit ihre Mähne schneller wächst.", "Damit sie schneller galoppieren kann."] },
+  "Ottilias Leckerli-Backtag":      { q:"Warum sind selbst gebackene Leckerli aus Haferflocken und Möhren gut für Pferde?", correct:"Weil sie viel weniger Zucker haben als gekaufte Leckerli.", wrong:["Damit die Mähne schneller wächst.", "Weil Pferde nur warme Sachen fressen mögen."] },
+  "Sagas Heunetze":                 { q:"Warum bekommt Saga ihr Heu aus einem Heunetz?", correct:"Damit sie nur kleine Büschel zupfen kann und schön langsam frisst, das ist gesund für ihren Bauch.", wrong:["Damit sie das Heu viel schneller auffressen kann.", "Damit das Heu schön nach Blumen duftet."] },
+  "Midnights Urlaubs-Futterplan":   { q:"Warum bekommt die Pflegerin einen Futterplan, wenn die Familie in den Urlaub fährt?", correct:"Damit sie weiß, wie viel Futter Midnight jeden Tag braucht.", wrong:["Damit Midnight im Urlaub doppelt so viel fressen darf.", "Damit Midnight sich sein Futter selbst aussuchen kann."] },
+  "Brios Hustensaft-Vorrat":        { q:"Warum bekommt Brio den Kräuter-Hustensaft?", correct:"Damit der Saft seinen kratzenden Hals beruhigt und der leichte Husten weggeht.", wrong:["Damit seine Mähne schneller wächst.", "Damit er im Winter nicht friert."] },
+  "Patches' Apfel-Vorrat":          { q:"Warum bekommt Patches jeden Tag nur eine kleine Portion Apfelstücke?", correct:"Weil zu viel Naschen dem Pferdebauch nicht guttut, kleine Portionen sind gesund.", wrong:["Damit das Fell nach Äpfeln duftet.", "Weil Äpfel das Pferd schneller galoppieren lassen."] },
+  "Freyas Weide-Plan":              { q:"Warum soll Freya jeden Tag lange auf die Weide?", correct:"Frische Luft und Bewegung halten sie fit und gesund.", wrong:["Damit ihre Mähne bunter wird.", "Weil sie drinnen zu viel Heu nascht."] },
+  "Stellas Trainingsplan":          { q:"Warum darf Stella nach ihrer langen Pause erst nur wenig trainieren?", correct:"Damit ihre Muskeln ganz langsam wieder stark werden.", wrong:["Damit ihre Hufe nicht zu groß werden.", "Weil sie sonst zu viel Hunger bekommt."] },
+  "Ottilias Sonnenbad":             { q:"Warum ist ein Sonnenbad gut für Ottilia?", correct:"Ihre Haut bildet aus Sonnenlicht Vitamin D, das macht die Knochen stark.", wrong:["Damit ihre Mähne schneller wächst.", "Damit sie nachts besser sehen kann."] },
+  "Thunders Wundspülung":           { q:"Warum spült die Tierärztin Thunders Schürfwunde mit Kochsalzlösung aus?", correct:"Damit aller Schmutz herausgespült wird und die Wunde sauber heilen kann.", wrong:["Damit das Fell an der Stelle schneller nachwächst.", "Damit Thunder das Salz danach ablecken kann."] },
+  "Dottys Leinöl-Kur":              { q:"Warum bekommt Dotty jeden Tag ein bisschen Leinöl übers Futter?", correct:"Damit ihr Fell schön gesund glänzt.", wrong:["Damit ihre Flecken bunter werden.", "Damit ihre Hufe schneller wachsen."] },
+  "Lunas Bade-Tag":                 { q:"Warum wird das Pferdeshampoo vor dem Baden mit viel Wasser gemischt?", correct:"Damit es sanft zu Lunas Haut ist.", wrong:["Damit Lunas Mähne schneller wächst.", "Damit das Fell bunt schimmert."] },
 };
 const EXAM_LEN = 5;
 let exQs = [], exIdx = 0, exRight = 0, exMissed = [];
@@ -2922,7 +3096,15 @@ renderFeedButton();
 //  in the Grown-ups panel. No config pasted / offline → local-only + manual code.
 // ═══════════════════════════════════════════════════════════
 // ⬇⬇ PASTE your Firebase web config object here (must include databaseURL). Leave null until then.
-const FIREBASE_CONFIG = null;
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAw4MZGwE5-o2QZm38XbCSeYu3WT5HCiDc",
+  authDomain: "ella-horse-game.firebaseapp.com",
+  databaseURL: "https://ella-horse-game-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "ella-horse-game",
+  storageBucket: "ella-horse-game.firebasestorage.app",
+  messagingSenderId: "840035841424",
+  appId: "1:840035841424:web:cea2c734d16dbbbdda6f15"
+};
 // ⬆⬆
 
 (function () {
