@@ -2,6 +2,17 @@
 
 Handover for a fresh session. This is Ella's horse website + learning games. One self-contained `index.html` (HTML + CSS + JS, no build step).
 
+## Current status (2026-07-04)
+- **Pushed 2026-07-04** (commit `0ea6e3b`), but the GitHub **Pages *deploy* step failed transiently** ("Deployment failed, try again later" — build succeeded, so content is fine). **The live site is NOT yet updated.** Fix: Actions tab → the failed run → **Re-run failed jobs** (or push any trivial commit). Confirm the live site actually shows the changes before assuming it's live.
+- **Shipped this session (all verified in the preview, 0 console errors):**
+  1. Renamed Heidi→**Margo**, Rani→**Rosie** (display names; image filenames unchanged). [Wölkchen was renamed Laeticia then reverted back to Wölkchen.]
+  2. Vet content: +15 refresh cases, then the **year update** — sessions went 4→**5 questions**, Q1 always `longmult`, a **13-theme cycle**, **7 new maths builders**, **Sachaufgaben + free Hilfe** mode, +24 year-update cases. Concepts total **136** (1:1 with `EXAM`).
+  3. **Cross-device save** (Firebase Realtime DB + manual backup). `FIREBASE_CONFIG` is still `null`, so cloud sync is **OFF** until Andrew does the ~15-min Firebase setup (steps in the Projects draft); the manual backup works now.
+  4. **Bug fixes:** mode-aware `parseNum`; perfect-bonus now breaks on every wrong answer; convert answers ≥1000 accept Tausenderpunkte.
+  5. **Mal-Quiz reward 5→3**; **+10 ranks (16-25)**; **+10 reward horses** (Merlin…Taki) with real Wikimedia photos.
+- **Open items / optional tweaks (none blocking):** swap the Dülmener (herd shot) + Knabstrupper (two people in frame) photos; decide if Überschlagen should also accept the exact product (it currently only accepts the rounded estimate); Domino's rounding case can show ~990k circus spectators and Blanca's ×-tens case a "1000 g tube" (cartoonish scale, accepted for now).
+- **Working docs** (in `C:\Users\User\Documents\Claude\Projects\ella-horse-game\`): `phase_log.md`, `plan_vetmaths_year_update.md`, `BACKUP_index_2026-07-04.html`, and DRAFTs `vet-refresh-DRAFT.md`, `vet-year-cases-DRAFT.md`, `phase3-firebase-sync-DRAFT.md`, `new-reward-horses-DRAFT.md`.
+
 ## Who it's for
 - **Ella**, 9 years old, loves horses (especially small horses and ponies). German-speaking, also doing English at school. ADHD/dreamer attention profile, so the game leans on novelty, collecting, immediate feedback, and gentle (never punishing) mechanics.
 - Tone for her: fun, friendly, encouraging, emoji-rich, simple. She uses voice input (expect spelling variations).
@@ -41,8 +52,7 @@ Single page that shows/hides "screens" via a `hidden` class.
 - **Choose-your-patient:** the **first** of the 4 is hers to choose — "🐴 Welches Pferd braucht dich?" offers 2-3 candidate horses (same maths type, distinct from the other 3). The other 3 are system-picked.
 - **All German.** Each question = a vet concept (with a sound-out aid for the technical term, e.g. *Hufabszess (Huf-aps-tsess)*) + a matching maths task.
 - **12 skill types:** `longmult` (3×2 digit), `money` (€ × single digit), `compare` (two shops, unit price then dearer), `convert` (fams len/wt/dist/time/**vol**), `div` (estimate first, then exact **with remainder**), plus year-update types `add` (4-digit, carry forced), `sub` (borrow forced), `round` (≥1000 up to 999 999, Zehner→Zehntausender), `tens` (×÷10/100/1000, mode fixed per concept), `halb` (1×3-digit, Hilfe shows the Zerlegung), `estimate` (canonical round-to-hundreds product), `timecalc` (h min + min → minutes). Builders `Qadd/Qsub/Qround/Qtens/Qhalb/Qestimate/Qtimecalc` sit right above `vetConcepts`; story-arg conventions documented in the comment there.
-- `parseNum` strips Tausenderpunkte: `"50.000"` → 50000 (dots are NEVER decimal separators; Ella types comma decimals).
-- Inputs accept a **comma decimal** (`parseNum`, compared with `near()`).
+- **`parseNum(v, dec)` is mode-aware** (do NOT revert it to stripping all dots — that broke dot-decimals like `0.054`): if a comma is present → comma is the decimal, dots are Tausenderpunkte; else for a **whole-number** answer (`dec` falsy) any dot is a Tausenderpunkt (`"50.000"`→50000); for a **decimal** answer (`dec` true) a lone dot **or** comma is the decimal point (`"0.054"` and `"0,054"`→0.054). `checkExactNum` gets `dec`; the **convert** case passes `!Number.isInteger(q.answer)` so whole ml/g/m answers accept Tausenderpunkte while kg/l/km decimals parse as decimals. Compared with `near()` for decimals, `===` for whole numbers.
 - **Treatments (medicine step):** matched via the concept's `treatment` tag — `injection`💉 / `bucket`🪣 / `salve`🧴 (liquid fill), `bandage`🩹 (solid stack). Then drag the item onto the horse → "Geheilt!" cure card.
 - **Collectible drop:** ~1-in-4 per heal, shown on the cure card (see Collectibles).
 - **Focus helpers** (toggle 🔔, on by default, key `ellaNudgeOn`): a gentle idle sound after 45s of no input (rotates `sndNudge1/2/3`, currently the 3 cure sounds at low volume — PLACEHOLDER, swap in real soft nickers) + a 10-minute **hourglass** that refills with a soft synth chime at 0.
@@ -57,9 +67,9 @@ Single page that shows/hides "screens" via a `hidden` class.
 ## Ranks & reward horses
 - **26 ranks** (`VET_TIERS`, every 30 pts): 🌱Apprentice(0) 🐴Junior(30) 🩺Full(60) ⭐Senior(90) 🌟Super(120) 🦸Super Hero(150) 💫Mega(180) 🚀Ultra(210) 🏆Legendary(240) 📖Herriot(270) 🐵Goodall(300) 🌍Attenborough(330) 🐊Irwin(360) 🦍Fossey(390) 🐧Durrell(420) 🐢Darwin(450) 🐬Cousteau(480) 🦋Carson(510) 🌲Muir(540) 🐛Wallace(570) 🗺️Humboldt(600) 🦓Grzimek(630) 🦁Adamson(660) 🦅Audubon(690) 🦴Leakey(720) 🌸Linnaeus(750). (Ranks 9-25 named after vets/naturalists; ranks 16-25 added 2026-07.)
 - **Rank model:** `getRankAchieved()` (key `ellaRankAchieved`); effective rank = `min(pointsTier, rankAchieved)`. **First run grandfathers** rankAchieved to `pointsTier − 1` (so the level her points just reached needs a test). **Grown-ups panel** sets it to the exact pointsTier (no test). `isHorseUnlocked(h)` = original (no `unlockRank`) OR `h.gift` OR `unlockRank ≤ rankAchieved`.
-- **Reward horses unlock one per rank 6-25:** Pebbles(6/Mega), Mausi(7), Laeticia(8), Keks(9), Flöckchen(10), Margo(11), Bonbon(12), Luzie(13), Pixie(14), Rosie(15/Darwin), then the 2026-07 additions: Merlin/Welsh Cob(16), Wicky/Dülmener(17), Perle/Caspian(18), Pixel/Pottok(19), Koni/Konik(20), Blanca/Camargue(21), Estrella/Lusitano(22), Balu/Shire(23), Domino/Knabstrupper(24), **Taki/Przewalski(25/Linnaeus)**. **Ottilia** is a **gift** (`gift:true`, unlocked from the start; she was Ella's "reached a level" present).
+- **Reward horses unlock one per rank 6-25:** Pebbles(6/Mega), Mausi(7), Wölkchen(8), Keks(9), Flöckchen(10), Margo(11), Bonbon(12), Luzie(13), Pixie(14), Rosie(15/Darwin), then the 2026-07 additions: Merlin/Welsh Cob(16), Wicky/Dülmener(17), Perle/Caspian(18), Pixel/Pottok(19), Koni/Konik(20), Blanca/Camargue(21), Estrella/Lusitano(22), Balu/Shire(23), Domino/Knabstrupper(24), **Taki/Przewalski(25/Linnaeus)**. **Ottilia** is a **gift** (`gift:true`, unlocked from the start; she was Ella's "reached a level" present).
   - The 10 new horses (indices 25-34) were sourced with real Wikimedia photos (in `horse-images/`, breed-slug filenames). Their vet cases were appended under `// ===== NEW REWARD HORSES` in `vetConcepts`/`EXAM`. **Flag for a future pass:** the Dülmener photo is a herd (with foal) not a single portrait, and the Knabstrupper photo has two people in the background — swap if desired.
-  - **Renamed 2026-07** (display name only): Wölkchen→**Laeticia**, Heidi→**Margo**, Rani→**Rosie**. Their **image filenames were left unchanged** (`woelkchen-connemara.jpg`, `heidi-fell.jpg`, `rani-marwari.jpg`), so don't be surprised the file stems don't match the new names. The renamed horses' concept titles + `EXAM` keys moved with them (still 1:1).
+  - **Renamed 2026-07** (display name only): Heidi→**Margo**, Rani→**Rosie**. Their **image filenames were left unchanged** (`heidi-fell.jpg`, `rani-marwari.jpg`), so the file stems don't match the display names. Concept titles + `EXAM` keys moved with them (still 1:1). (Wölkchen/idx 17 was briefly renamed Laeticia this session then reverted; its `woelkchen-connemara.jpg` matches.)
 
 ## Collectibles & gifting
 - Items come in **sets** (`COLLECTIBLE_SETS`, currently Set 1 + Set 2 of 9 hand-drawn inline-SVG items each; extensible — append more sets anytime). Lookup: `COLLECTIBLE_BY_ID`.
@@ -88,7 +98,9 @@ Single page that shows/hides "screens" via a `hidden` class.
 - Edit **`index.html` in the GitHub folder** only; user commits+pushes from GitHub Desktop. File is large, full of German + emoji (UTF-8) — prefer the Edit tool.
 - **`EXAM` coverage must stay 1:1 with concept titles** — a missing/typo'd key means that concept can't be examined. Verify after adding concepts.
 - **Locked reward horses are excluded** from the grid (silhouette), the vet maths pool, choose-your-patient, the guess-the-horse choices, and (via seen-tracking) the exam.
-- `preview_screenshot` unreliable; page reloads between eval calls.
+- `preview_screenshot` unreliable; page reloads between eval calls. Cross-eval `localStorage` also does **not** persist — set-then-check must be in ONE eval.
+- **Perfect-session bonus:** `mPerfect` (init/reset true, read only in `showMathEnd`) must be set `false` on EVERY wrong-answer path. When adding a multi-phase question type, clear it in each wrong branch — the compare price/pick and div-estimate branches were leaking the bonus (fixed 2026-07). `mFirstTry` is dead code (assigned, never read).
+- **When adding vet cases via an agent/workflow:** it sometimes returns `makeArrow` as the *full* builder call (`Qround((n,p)=>…)`) instead of just the arrow, which then gets double-wrapped into `Qround(Qround(…))` and crashes that question. Verify each `make()` actually runs after merging (loop `c.make()` in a preview eval).
 
 ## Possible next steps Ella might ask for
 - More collectible sets; bigger unlock celebrations.

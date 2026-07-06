@@ -1099,12 +1099,12 @@ const horses = [
     ]
   },
   {
-    name: "Laeticia", breed: "Connemara Pony", emoji: "🐴", unlockRank: 8,
+    name: "Wölkchen", breed: "Connemara Pony", emoji: "🐴", unlockRank: 8,
     image: "horse-images/woelkchen-connemara.jpg",
     cardGradient: "linear-gradient(135deg, #b8c2cf, #6b7a8c)",
     coat: "Dappled silver-grey, with soft spots that look like little clouds, and a flowing pale mane",
     temperament: "Gentle, clever and very athletic, she loves to leap and gallop across the green fields.",
-    story: "Laeticia is a Connemara Pony from the rocky west of Ireland, Ireland's only native pony breed. Her dappled grey coat looks just like soft clouds in the sky. She is famous for being a wonderful jumper and adores bounding over logs and streams, then galloping across the emerald fields.",
+    story: "Wölkchen is a Connemara Pony from the rocky west of Ireland, Ireland's only native pony breed. Her name means 'little cloud', because her dappled grey coat looks just like soft clouds in the sky. She is famous for being a wonderful jumper and adores bounding over logs and streams, then galloping across the emerald fields.",
     facts: [
       "🍀 The Connemara is Ireland's only native pony breed.",
       "🦘 They are famous all over the world for being brilliant, brave jumpers.",
@@ -1112,7 +1112,7 @@ const horses = [
       "💪 Growing up on rocky Irish ground makes them strong and very sure-footed."
     ],
     questions: [
-      { label: "🌟 Story Clue",       text: "My dappled coat looks just like little clouds, and I love to leap and gallop across the green fields of Ireland! ☁️" },
+      { label: "🌟 Story Clue",       text: "My name means 'little cloud', and I love to leap and gallop across the green fields of Ireland! ☁️" },
       { label: "🐴 Breed Question",   text: "I am a Connemara Pony, Ireland's ONLY native pony breed, and I am famous for being a brilliant jumper! Which horse am I? 🍀" },
       { label: "🎨 Coat Question",    text: "I am dappled silver-grey, with soft spots that look like little clouds, and a flowing pale mane. Which horse am I? ☁️" },
       { label: "💝 Personality",      text: "I am gentle, clever and very athletic, and I absolutely LOVE to jump! Which horse am I? 🦘" },
@@ -1984,9 +1984,9 @@ const vetConcepts = [
   { horseIdx:16, type:'longmult', treatment:'bucket', title:"Mausi im Moor-Winter", intro:"Mausi lebt das ganze Jahr draußen auf dem Moor (Moor). Im kalten Winter braucht sie mehr Heu, damit ihr Körper von innen warm bleibt.", cured:"Mausi ist satt und warm und trabt fröhlich über das Moor. ❄️", make:()=>Qlongmult((a,b)=>`Mausi bekommt im Winter <b>${a} g</b> Heu pro Portion, <b>${b} Portionen</b> am Tag. Wie viele Gramm insgesamt?`) },
   { horseIdx:16, type:'div', treatment:'salve', title:"Mausis Zeckenschutz", intro:"Auf der Weide können sich Zecken (Ze-cken) an Mausis Haut festsaugen. Du teilst ein Schutzmittel gleichmäßig auf mehrere Stellen auf.", cured:"Mausi ist gut geschützt und fühlt sich wohl. 🌿", make:()=>Qdiv((a,b)=>`Du teilst <b>${a} ml</b> Zeckenschutz gleichmäßig auf <b>${b} Stellen</b> auf. Schätze zuerst, dann genau: wie viel pro Stelle – und wie viel bleibt übrig?`) },
 
-  // ── Laeticia (Connemara Pony) ──
-  { horseIdx:17, type:'convert', treatment:'bandage', title:"Laeticias Spring-Verband", intro:"Laeticia liebt das Springen. Nach einem hohen Sprung ist ihre Sehne (Zeh-ne) warm, darum bekommt sie einen stützenden Verband.", cured:"Laeticias Bein ist gestützt und sie springt wieder leichtfüßig. ☁️", make:()=>Qconvert('len',(disp,unit)=>`Laeticias Stützverband ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
-  { horseIdx:17, type:'money', treatment:'bucket', title:"Laeticias gutes Heu", intro:"Laeticia ist sehr sportlich und springt gern. Dafür braucht sie gutes Heu mit vielen Nährstoffen (Nähr-schtof-fe).", cured:"Laeticia ist gestärkt und galoppiert über die grüne Wiese. ☁️", make:()=>Qmoney((cents,d)=>`Ein Ballen gutes Heu kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Ballen</b>. Wie viel kostet das zusammen?`) },
+  // ── Wölkchen (Connemara Pony) ──
+  { horseIdx:17, type:'convert', treatment:'bandage', title:"Wölkchens Spring-Verband", intro:"Wölkchen liebt das Springen. Nach einem hohen Sprung ist ihre Sehne (Zeh-ne) warm, darum bekommt sie einen stützenden Verband.", cured:"Wölkchens Bein ist gestützt und sie springt wieder leichtfüßig. ☁️", make:()=>Qconvert('len',(disp,unit)=>`Wölkchens Stützverband ist <b>${disp}</b> lang. Wie viel ist das in <b>${unit}</b>?`) },
+  { horseIdx:17, type:'money', treatment:'bucket', title:"Wölkchens gutes Heu", intro:"Wölkchen ist sehr sportlich und springt gern. Dafür braucht sie gutes Heu mit vielen Nährstoffen (Nähr-schtof-fe).", cured:"Wölkchen ist gestärkt und galoppiert über die grüne Wiese. ☁️", make:()=>Qmoney((cents,d)=>`Ein Ballen gutes Heu kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Ballen</b>. Wie viel kostet das zusammen?`) },
 
   // ── Keks (Exmoor Pony) ──
   { horseIdx:18, type:'money', treatment:'salve', title:"Keks' Fliegenschutz", intro:"Im Sommer krabbeln Fliegen (Flie-gen) in Keks' Augen und Ohren. Das stört sie und kann Krankheiten übertragen. Du kaufst ein schützendes Fliegen-Gel.", cured:"Keks ist die Fliegen los und schaut wieder klar in die Welt. ☀️", make:()=>Qmoney((cents,d)=>`Eine Tube Fliegen-Gel kostet <b>${fmtMoney(cents/100)}</b>. Du kaufst <b>${d} Tuben</b>. Wie viel kostet das zusammen?`) },
@@ -2880,8 +2880,8 @@ const EXAM = {
   "Pebbles darf nicht zu viel Gras":{ q:"Was kann passieren, wenn ein Pony zu viel saftiges Gras frisst?", correct:"Es kann Hufrehe bekommen, eine schmerzhafte Huf-Entzündung.", wrong:["Es wird sofort viel größer.", "Seine Mähne wird länger."] },
   "Mausi im Moor-Winter":           { q:"Wie hält sich ein Pony, das draußen lebt, im Winter warm?", correct:"Mit einem dicken Winterfell und viel Heu zum Fressen.", wrong:["Mit einer Sonnenbrille.", "Indem es den ganzen Tag schläft."] },
   "Mausis Zeckenschutz":            { q:"Was sind Zecken, die ein Pony auf der Weide bekommen kann?", correct:"Kleine Tierchen, die sich an der Haut festsaugen.", wrong:["Eine besondere Futtersorte.", "Kleine bunte Hufeisen."] },
-  "Laeticias Spring-Verband":       { q:"Warum bekommt ein Spring-Pony nach dem Springen manchmal einen Stützverband?", correct:"Damit die Sehne im Bein Halt hat und sich erholen kann.", wrong:["Damit es noch höher springen kann.", "Damit das Bein bunt aussieht."] },
-  "Laeticias gutes Heu":            { q:"Warum braucht ein sportliches Pony besonders gutes Futter?", correct:"Weil es für Springen und Galopp viel Energie braucht.", wrong:["Damit sein Fell bunter wird.", "Damit es leiser wiehert."] },
+  "Wölkchens Spring-Verband":       { q:"Warum bekommt ein Spring-Pony nach dem Springen manchmal einen Stützverband?", correct:"Damit die Sehne im Bein Halt hat und sich erholen kann.", wrong:["Damit es noch höher springen kann.", "Damit das Bein bunt aussieht."] },
+  "Wölkchens gutes Heu":            { q:"Warum braucht ein sportliches Pony besonders gutes Futter?", correct:"Weil es für Springen und Galopp viel Energie braucht.", wrong:["Damit sein Fell bunter wird.", "Damit es leiser wiehert."] },
   "Keks' Fliegenschutz":            { q:"Warum stören Fliegen ein Pferd besonders?", correct:"Sie krabbeln in Augen und Ohren und können Krankheiten übertragen.", wrong:["Sie machen das Fell bunt.", "Sie fressen das ganze Heu weg."] },
   "Keks' Mineralfutter":            { q:"Wofür braucht ein Pferd Mineralfutter?", correct:"Damit es alle wichtigen Mineralstoffe für einen gesunden Körper bekommt.", wrong:["Damit es schneller laufen kann.", "Damit sein Fell bunt wird."] },
   "Flöckchens schwere Last":        { q:"Wofür sind Highland-Ponys bekannt?", correct:"Sie sind sehr stark und können schwere Lasten über Berge tragen.", wrong:["Sie sind die schnellsten Rennpferde der Welt.", "Sie sind winzig wie ein kleiner Hund."] },
