@@ -3,14 +3,14 @@
 Handover for a fresh session. This is Ella's horse website + learning games. One self-contained `index.html` (HTML + CSS + JS, no build step).
 
 ## Current status (2026-07-04)
-- **Pushed 2026-07-04** (commit `0ea6e3b`), but the GitHub **Pages *deploy* step failed transiently** ("Deployment failed, try again later" — build succeeded, so content is fine). **The live site is NOT yet updated.** Fix: Actions tab → the failed run → **Re-run failed jobs** (or push any trivial commit). Confirm the live site actually shows the changes before assuming it's live.
+- **Deploy status (READ FIRST):** the last GitHub commit `0ea6e3b` **failed at the Pages *deploy* step** (transient "Deployment failed, try again later"; the build was fine). **AND further local edits were made afterwards that are not yet committed/pushed** (Wölkchen revert + the rounding fix). So the **live site is well behind local** and still shows an old version. **Next step: commit + push the current local `index.html` via GitHub Desktop** — that makes a fresh commit and re-triggers build+deploy, bringing everything live in one go (a bare "re-run" of the old failed run would only ship `0ea6e3b` and miss the newest fixes). Then hard-refresh and confirm the live site actually updated.
 - **Shipped this session (all verified in the preview, 0 console errors):**
   1. Renamed Heidi→**Margo**, Rani→**Rosie** (display names; image filenames unchanged). [Wölkchen was renamed Laeticia then reverted back to Wölkchen.]
   2. Vet content: +15 refresh cases, then the **year update** — sessions went 4→**5 questions**, Q1 always `longmult`, a **13-theme cycle**, **7 new maths builders**, **Sachaufgaben + free Hilfe** mode, +24 year-update cases. Concepts total **136** (1:1 with `EXAM`).
   3. **Cross-device save** (Firebase Realtime DB + manual backup). `FIREBASE_CONFIG` is still `null`, so cloud sync is **OFF** until Andrew does the ~15-min Firebase setup (steps in the Projects draft); the manual backup works now.
-  4. **Bug fixes:** mode-aware `parseNum`; perfect-bonus now breaks on every wrong answer; convert answers ≥1000 accept Tausenderpunkte.
+  4. **Bug fixes:** mode-aware `parseNum`; perfect-bonus now breaks on every wrong answer; convert answers ≥1000 accept Tausenderpunkte; **`Qround` sizes the number to the place** (always rounds to a clean 1–10× the place, never 0, never a place bigger than the number — e.g. 830→Tausender=1000).
   5. **Mal-Quiz reward 5→3**; **+10 ranks (16-25)**; **+10 reward horses** (Merlin…Taki) with real Wikimedia photos.
-- **Open items / optional tweaks (none blocking):** swap the Dülmener (herd shot) + Knabstrupper (two people in frame) photos; decide if Überschlagen should also accept the exact product (it currently only accepts the rounded estimate); Domino's rounding case can show ~990k circus spectators and Blanca's ×-tens case a "1000 g tube" (cartoonish scale, accepted for now).
+- **Open items / optional tweaks (none blocking):** swap the Dülmener (herd shot) + Knabstrupper (two people in frame) photos; decide if Überschlagen should also accept the exact product (it currently only accepts the rounded estimate); Blanca's ×-tens case can show a "1000 g tube" (cartoonish scale, accepted for now).
 - **Working docs** (in `C:\Users\User\Documents\Claude\Projects\ella-horse-game\`): `phase_log.md`, `plan_vetmaths_year_update.md`, `BACKUP_index_2026-07-04.html`, and DRAFTs `vet-refresh-DRAFT.md`, `vet-year-cases-DRAFT.md`, `phase3-firebase-sync-DRAFT.md`, `new-reward-horses-DRAFT.md`.
 
 ## Who it's for
