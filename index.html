@@ -1858,7 +1858,9 @@ function Qsub(story) {
 function Qround(story) {
     const places = [{ f:10, name:'Zehner' }, { f:100, name:'Hunderter' }, { f:1000, name:'Tausender' }, { f:10000, name:'Zehntausender' }];
     const p = places[rnd(0, 3)];
-    let n; do { n = rnd(Math.max(p.f * 3, 1000), 999999); } while (n % p.f === 0 || n % p.f === p.f / 2);   // nie schon rund, nie genau die Mitte; ≥1000, damit die Story-Einheiten plausibel bleiben
+    // number sits ~0.6–9.6× the place, so it ALWAYS rounds to a clean 1..10× the place — never 0, and
+    // never rounded to a place bigger than itself (e.g. 830→Tausender=1000, 837→Hunderter=800, 8300→Zehntausender=10000).
+    let n; do { n = rnd(Math.round(p.f * 0.6), Math.round(p.f * 9.6)); } while (n % p.f === 0 || n % p.f === p.f / 2);   // never already round, never an exact half
     const answer = Math.round(n / p.f) * p.f;
     return { kind:'round', n, place:p.name, answer, label:`🔢 Runde auf ${p.name} – schau auf die Stelle direkt dahinter (0-4 ab, 5-9 auf)!`,
         problemHTML:`Runde <b>${fmtTh(n)}</b> auf ${p.name}: ?`, story: story(fmtTh(n), p.name) };
