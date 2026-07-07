@@ -546,26 +546,21 @@
             <input id="adminPts" type="number" inputmode="numeric" class="admin-input">
             <label class="admin-label">Feed Kitchen plays</label>
             <input id="adminFeed" type="number" inputmode="numeric" class="admin-input">
+            <label class="admin-label">Trinkets in her collection</label>
+            <input id="adminTrinkets" type="number" inputmode="numeric" class="admin-input">
             <div id="adminMsg" class="admin-msg"></div>
             <div class="admin-btns">
                 <button class="mix-btn" onclick="adminApply()">Save</button>
                 <button class="admin-cancel" onclick="adminReset0()">Reset to 0</button>
                 <button class="admin-cancel" onclick="closeAdmin()">Close</button>
             </div>
-            <div class="admin-btns" style="margin-top:8px;">
-                <button class="mix-btn" onclick="adminGrantCollection()">🎁 Alle Sammlungen freischalten</button>
-            </div>
             <hr style="border:none;border-top:1px solid #eadff5;margin:16px 0 10px;">
-            <div class="admin-title" style="font-size:1rem;">☁️ Save across computers</div>
-            <label class="admin-label">Magic word (use the SAME word on every computer)</label>
-            <input id="adminMagic" class="admin-input" placeholder="e.g. ella-pony-7431" autocomplete="off">
-            <div class="admin-btns"><button class="mix-btn" onclick="syncConnect()">Connect</button></div>
-            <div id="adminSyncMsg" class="admin-msg"></div>
-            <label class="admin-label" style="margin-top:6px;">Force sync (this computer ↔ cloud)</label>
+            <div class="admin-title" style="font-size:1rem;">☁️ Cloud (this computer ↔ saved copy)</div>
             <div class="admin-btns">
-                <button class="mix-btn" onclick="forceSaveToCloud()">⬆ Save to cloud (master)</button>
+                <button class="mix-btn" onclick="forceSaveToCloud()">⬆ Save to cloud</button>
                 <button class="admin-cancel" onclick="forceLoadFromCloud()">⬇ Load from cloud</button>
             </div>
+            <div id="adminSyncMsg" class="admin-msg"></div>
             <details style="margin-top:8px;">
                 <summary style="cursor:pointer;color:#7a5a9e;">Manual backup (no internet setup needed)</summary>
                 <div class="admin-btns" style="margin-top:6px;">
@@ -3391,7 +3386,7 @@ function adminCheckPw() {
         document.getElementById('adminStep2').classList.remove('hidden');
         document.getElementById('adminPts').value = getVetPoints();
         document.getElementById('adminFeed').value = getFeedTokens();
-        document.getElementById('adminMagic').value = getMagicWord();
+        document.getElementById('adminTrinkets').value = getTrinketCount();
     } else {
         const m = document.getElementById('adminPwMsg'); m.style.color = '#e74c3c'; m.textContent = 'Wrong password.';
     }
@@ -3399,29 +3394,29 @@ function adminCheckPw() {
 function adminApply() {
     const p = parseInt(document.getElementById('adminPts').value, 10);
     const f = parseInt(document.getElementById('adminFeed').value, 10);
+    const t = parseInt(document.getElementById('adminTrinkets').value, 10);
     if (!isNaN(p)) { const pts = Math.max(0, p); setVetPoints(pts); setRankAchieved(vetTierIndex(pts)); }  // rank matches points, no test needed
     if (!isNaN(f)) setFeedTokens(Math.max(0, f));
+    if (!isNaN(t)) setTrinketCount(Math.max(0, t));
     renderVetCard(); renderFeedButton(); renderHorseGrid();
     const m = document.getElementById('adminMsg'); m.style.color = '#27ae60';
-    m.textContent = `Saved! ${getVetPoints()} points, ${getFeedTokens()} feed plays, ${VET_TIERS[getRankAchieved()].name}.`;
+    m.textContent = `Saved! ${getVetPoints()} points, ${getFeedTokens()} feed plays, ${getTrinketCount()} trinkets, ${VET_TIERS[getRankAchieved()].name}.`;
 }
 function adminReset0() {
     setVetPoints(0); setFeedTokens(0); setRankAchieved(0);
+    localStorage.setItem('ellaCollectSet', '0'); localStorage.setItem('ellaCollectProgress', '[]'); localStorage.setItem('ellaGifts', '[]');
     document.getElementById('adminPts').value = 0;
     document.getElementById('adminFeed').value = 0;
-    renderVetCard(); renderFeedButton(); renderHorseGrid();
+    document.getElementById('adminTrinkets').value = 0;
+    renderVetCard(); renderFeedButton(); renderHorseGrid(); renderCollection();
     const m = document.getElementById('adminMsg'); m.style.color = '#27ae60'; m.textContent = 'Reset to zero. ✅';
 }
-function adminGrantCollection() {
-    try {
-        var all = [];
-        COLLECTIBLE_SETS.forEach(function (s) { s.forEach(function (it) { all.push(it.id); }); });
-        localStorage.setItem('ellaCollectSet', String(COLLECTIBLE_SETS.length));   // every set discovered
-        localStorage.setItem('ellaCollectProgress', '[]');
-        localStorage.setItem('ellaGifts', JSON.stringify(all));                     // one of every trinket to give away
-        renderCollection();
-        const m = document.getElementById('adminMsg'); if (m) { m.style.color = '#27ae60'; m.textContent = 'Sammlung komplett! 🎁 ' + all.length + ' Geschenke zum Verschenken.'; }
-    } catch (e) { const m = document.getElementById('adminMsg'); if (m) { m.style.color = '#e74c3c'; m.textContent = 'Fehler beim Freischalten.'; } }
+function getTrinketCount() { try { return (JSON.parse(localStorage.getItem('ellaGifts') || '[]') || []).length; } catch (e) { return 0; } }
+function setTrinketCount(n) {   // put n giftable trinkets in her tray (cycles the 27-item pool if n is larger)
+    var all = []; COLLECTIBLE_SETS.forEach(function (s) { s.forEach(function (it) { all.push(it.id); }); });
+    var gifts = []; for (var i = 0; i < n && all.length; i++) gifts.push(all[i % all.length]);
+    localStorage.setItem('ellaGifts', JSON.stringify(gifts));
+    renderCollection();
 }
 
 // ═══════════════════════════════════════════════════════════
