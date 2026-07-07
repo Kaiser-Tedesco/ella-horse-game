@@ -125,6 +125,30 @@
         .gift-toast .gt-svg svg { width:34px; height:34px; vertical-align:middle; }
         .gift-toast .gt-text { font-weight:800; color:#b4881a; font-size:0.95rem; }
 
+        /* ── player picker ("Wer spielt gerade?") ── */
+        .player-bar { max-width:1100px; margin:14px auto 0; padding:0 18px; display:flex; justify-content:flex-end; }
+        .player-chip { display:inline-flex; align-items:center; gap:7px; background:#fff; border:2px solid #ffd93d; border-radius:30px; padding:6px 14px 6px 8px; font-family:'Nunito',sans-serif; font-weight:800; font-size:0.9rem; color:#7a5a9e; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,.1); transition:transform .12s, box-shadow .12s; }
+        .player-chip:hover { transform:translateY(-1px); box-shadow:0 6px 16px rgba(123,77,255,.2); }
+        .player-chip .pc-av { width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,#ffe3f1,#ffd0e6); display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+        .player-chip .pc-caret { color:#c9a8ff; font-size:0.7rem; }
+        .player-card { background:#fff; border-radius:24px; padding:24px 22px; box-shadow:0 14px 40px rgba(0,0,0,.25); border:3px solid #ffd93d; max-width:460px; width:100%; text-align:center; }
+        .player-card h2 { font-family:'Fredoka One',cursive; font-size:1.5rem; color:#b06ab3; margin:0 0 4px; }
+        .player-card .pp-sub { font-size:0.85rem; color:#9a8fb0; font-weight:700; margin:0 0 18px; }
+        .player-tiles { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+        .player-tile { width:118px; border-radius:20px; padding:16px 8px 12px; text-align:center; cursor:pointer; background:#faf7ff; border:2px solid #eee0fb; transition:transform .12s, box-shadow .12s, border-color .12s; }
+        .player-tile:hover { transform:translateY(-4px); box-shadow:0 10px 22px rgba(123,77,255,.18); border-color:#c9a8ff; }
+        .player-tile.current { border-color:#38c172; box-shadow:0 0 0 3px rgba(56,193,114,.18); }
+        .player-tile .pt-av { width:70px; height:70px; margin:0 auto 8px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2.2rem; background:linear-gradient(135deg,#ffe3f1,#ffd0e6); }
+        .player-tile.add .pt-av { background:linear-gradient(135deg,#f3ecff,#e7dbff); color:#7b4dff; }
+        .player-tile .pt-name { font-weight:800; font-size:0.92rem; color:#4a3b63; word-break:break-word; }
+        .player-tile .pt-note { font-size:0.68rem; color:#38c172; font-weight:800; margin-top:5px; }
+        .player-tile.add .pt-note { color:#a99cc2; }
+        .pp-newrow { margin-top:18px; display:none; gap:8px; justify-content:center; align-items:center; flex-wrap:wrap; }
+        .pp-newrow.show { display:flex; }
+        .pp-newrow input { border:2px solid #eee0fb; border-radius:12px; padding:9px 12px; font-size:1rem; font-family:'Nunito',sans-serif; font-weight:700; width:150px; }
+        .pp-msg { margin-top:10px; font-weight:700; font-size:0.82rem; min-height:1em; }
+        .pp-close { margin-top:14px; background:none; border:none; color:#9a8fb0; font-weight:800; cursor:pointer; font-size:0.9rem; }
+
         /* ── TIERARZT-PRÜFUNG EXAM (Phase 4) ── */
         .exam-btn { display:block; margin:16px auto 0; font-family:'Fredoka One',cursive; font-size:1.15rem; padding:14px 30px; border:none; border-radius:40px; cursor:pointer; color:white; background:linear-gradient(135deg,#7b4dff,#b06ab3); box-shadow:0 6px 20px rgba(123,77,255,.35); animation:examPulse 1.6s ease-in-out infinite; }
         @keyframes examPulse { 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.05);} }
@@ -431,6 +455,7 @@
         <h1>🐎 Gallop &amp; Friends 🐎</h1>
         <p>Click on a horse to learn all about them! 🌈</p>
     </header>
+    <div class="player-bar"><button class="player-chip" id="playerChip" onclick="openPlayerPicker()"><span class="pc-av" id="playerChipAv">👧</span><span id="playerChipName">Ella</span><span class="pc-caret">▾</span></button></div>
     <div class="horse-grid" id="horseGrid"></div>
     <div class="vet-card" id="vetCard">
         <div class="vc-emoji" id="vcEmoji">🌱</div>
@@ -485,6 +510,21 @@
     <footer class="rainbow-bg">
         <p>Made with 💖 especially for Ella &nbsp;·&nbsp; Gallop &amp; Friends 🐴✨</p>
     </footer>
+</div>
+
+<!-- ════════════════ WHO'S PLAYING? PLAYER PICKER ════════════════ -->
+<div class="cure-overlay" id="playerOverlay" onclick="if(event.target===this)closePlayerPicker()">
+    <div class="player-card">
+        <h2>🐴 Wer spielt gerade?</h2>
+        <p class="pp-sub">Tippe auf deinen Namen — deine Pferde laden automatisch.</p>
+        <div class="player-tiles" id="playerTiles"></div>
+        <div class="pp-newrow" id="playerNewRow">
+            <input id="playerNewName" placeholder="Dein Name" maxlength="16" autocomplete="off" onkeydown="if(event.key==='Enter')confirmNewPlayer()">
+            <button class="mix-btn" onclick="confirmNewPlayer()">Los! 🎉</button>
+        </div>
+        <div class="pp-msg" id="playerMsg"></div>
+        <button class="pp-close" onclick="closePlayerPicker()">Schließen</button>
+    </div>
 </div>
 
 <!-- ════════════════ GROWN-UPS RESET PANEL (password 0101) ════════════════ -->
@@ -3404,7 +3444,7 @@ const FIREBASE_CONFIG = {
 // ⬆⬆
 
 (function () {
-  const SKIP = { ellaMagicWord: 1, ellaSyncTs: 1 };
+  const SKIP = { ellaMagicWord: 1, ellaSyncTs: 1, ellaPlayers: 1 };
   const isProgressKey = k => !!k && k.indexOf('ella') === 0 && !SKIP[k];
   const rawSet = localStorage.setItem.bind(localStorage);
   const setRaw = (k, v) => rawSet(k, v);
@@ -3417,7 +3457,7 @@ const FIREBASE_CONFIG = {
   }
   let applying = false;
   function applyKeys(keys) { applying = true; try { Object.keys(keys || {}).forEach(k => { if (isProgressKey(k)) setRaw(k, keys[k]); }); } finally { applying = false; } }
-  function refreshAll() { try { renderVetCard(); } catch (e) {} try { renderFeedButton(); } catch (e) {} try { renderHorseGrid(); } catch (e) {} try { renderCollection(); } catch (e) {} }
+  function refreshAll() { try { renderVetCard(); } catch (e) {} try { renderFeedButton(); } catch (e) {} try { renderHorseGrid(); } catch (e) {} try { renderCollection(); } catch (e) {} try { renderPlayerChip(); } catch (e) {} }
 
   let dbRef = null;
   const fbReady = () => !!(FIREBASE_CONFIG && window.firebase && getMagicWord());
@@ -3464,7 +3504,88 @@ const FIREBASE_CONFIG = {
     catch (e) { if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'That code did not work.'; } }
   };
 
-  // on open: if word + config present, pull the cloud copy
+  // ══ Players: friendly "Wer spielt gerade?" layer over the magic-word identity ══
+  function slugName(s){ return String(s||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,24); }
+  function prettyName(s){ s = String(s||'').replace(/-/g,' ').trim(); return s ? s.charAt(0).toUpperCase()+s.slice(1) : 'Spieler'; }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function getPlayers(){ try { return JSON.parse(localStorage.getItem('ellaPlayers')||'[]'); } catch(e){ return []; } }
+  function savePlayers(a){ try { setRaw('ellaPlayers', JSON.stringify(a)); } catch(e){} }
+  function registerPlayer(key,name){ var ps=getPlayers(); if(!ps.some(function(x){return x.key===key;})){ ps.push({key:key,name:name||prettyName(key)}); savePlayers(ps); } }
+  function playerName(key){ var p=getPlayers().find(function(x){return x.key===key;}); return p?p.name:prettyName(key); }
+  function avatarFor(key){ return key==='ella' ? '👧' : '🧒'; }
+  function clearProgress(){ var rm=[]; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(isProgressKey(k)) rm.push(k); } rm.forEach(function(k){ localStorage.removeItem(k); }); }
+
+  // deliberate switch: load THIS player's cloud save onto this computer (identity only changes on success)
+  function switchToPlayer(key,name,cb){
+    key=slugName(key); if(!key){ cb&&cb(false,false); return; }
+    var prevKey=getMagicWord();
+    if(!(FIREBASE_CONFIG && window.firebase)){                 // no cloud configured → local-only switch
+      if(name) registerPlayer(key,name);
+      if(prevKey!==key){ setRaw('ellaMagicWord',key); clearProgress(); setRaw('ellaSyncTs',String(Date.now())); refreshAll(); }
+      renderPlayerChip(); cb&&cb(true,false); return;
+    }
+    if(dbRef){ try{ dbRef.set(snapshot()); }catch(e){} }         // flush current player before switching
+    var tref;
+    try{ if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG); tref=firebase.database().ref('saves/'+key.replace(/[^a-zA-Z0-9_-]/g,'_')); }
+    catch(e){ cb&&cb(false,false); return; }
+    tref.once('value').then(function(snap){
+      var cloud=snap.val();
+      if(name) registerPlayer(key,name);
+      setRaw('ellaMagicWord',key); dbRef=tref;
+      clearProgress();
+      if(cloud && cloud.keys){ applyKeys(cloud.keys); setRaw('ellaSyncTs',String(cloud.ts||Date.now())); }
+      else { setRaw('ellaSyncTs',String(Date.now())); try{ tref.set(snapshot()); }catch(e){} }   // claim a fresh node
+      refreshAll(); renderPlayerChip(); cb&&cb(true, !!(cloud && cloud.keys));
+    }).catch(function(e){ console.warn('player switch failed', e); cb&&cb(false,false); });      // identity unchanged on failure
+  }
+
+  function renderPlayerChip(){
+    var nEl=document.getElementById('playerChipName'), aEl=document.getElementById('playerChipAv');
+    if(!nEl) return; var key=getMagicWord();
+    nEl.textContent = key ? playerName(key) : 'Spieler wählen';
+    if(aEl) aEl.textContent = key ? avatarFor(key) : '➕';
+  }
+  window.renderPlayerChip = renderPlayerChip;
+  window.openPlayerPicker = function(){
+    var tiles=document.getElementById('playerTiles'); if(!tiles) return;
+    var ps=getPlayers(), cur=getMagicWord();
+    tiles.innerHTML = ps.map(function(p){
+      var isCur=p.key===cur;
+      return '<div class="player-tile'+(isCur?' current':'')+'" onclick="pickPlayer(\''+p.key+'\')"><div class="pt-av">'+avatarFor(p.key)+'</div><div class="pt-name">'+escapeHtml(p.name)+'</div>'+(isCur?'<div class="pt-note">✓ dieser PC</div>':'')+'</div>';
+    }).join('') + '<div class="player-tile add" onclick="showNewPlayer()"><div class="pt-av">＋</div><div class="pt-name">Neuer Spieler</div><div class="pt-note">eigener Fortschritt</div></div>';
+    document.getElementById('playerNewRow').classList.remove('show');
+    document.getElementById('playerMsg').textContent='';
+    document.getElementById('playerOverlay').classList.add('active');
+  };
+  window.closePlayerPicker = function(){ document.getElementById('playerOverlay').classList.remove('active'); };
+  window.showNewPlayer = function(){ document.getElementById('playerNewRow').classList.add('show'); var i=document.getElementById('playerNewName'); i.value=''; i.focus(); };
+  window.pickPlayer = function(key){
+    if(key===getMagicWord()){ closePlayerPicker(); return; }
+    var msg=document.getElementById('playerMsg'); if(msg){ msg.style.color='#7a5a9e'; msg.textContent='Lädt…'; }
+    switchToPlayer(key,null,function(ok){ if(ok){ closePlayerPicker(); } else if(msg){ msg.style.color='#e67e22'; msg.textContent='Kein Internet — konnte nicht wechseln.'; } });
+  };
+  window.confirmNewPlayer = function(){
+    var i=document.getElementById('playerNewName'), msg=document.getElementById('playerMsg');
+    var raw=(i&&i.value)||'', key=slugName(raw);
+    if(!key){ if(msg){ msg.style.color='#e74c3c'; msg.textContent='Bitte einen Namen eingeben.'; } return; }
+    if(getPlayers().some(function(x){return x.key===key;})){ window.pickPlayer(key); return; }
+    if(msg){ msg.style.color='#7a5a9e'; msg.textContent='Neuer Spieler…'; }
+    switchToPlayer(key, prettyName(raw), function(ok){ if(ok){ closePlayerPicker(); } else if(msg){ msg.style.color='#e67e22'; msg.textContent='Kein Internet — bitte nochmal versuchen.'; } });
+  };
+
+  // one-time migration into the players model (never clears existing progress)
+  function migratePlayers(){
+    if(getPlayers().length) return;
+    var key=getMagicWord();
+    if(key){ registerPlayer(key, prettyName(key)); return; }        // had a magic word → seed the registry
+    setRaw('ellaMagicWord','ella'); registerPlayer('ella','Ella');   // adopt current local progress as "Ella"
+    setRaw('ellaSyncTs', String(Date.now()));                        // local wins → pushed up, never overwritten
+  }
+
+  // ── init ──
+  migratePlayers();
+  try { renderPlayerChip(); } catch(e){}
+  // on open: pull the newer cloud copy for the active player (timestamp-guarded)
   if (fbInit()) pullOnce();
 })();
 </script>
