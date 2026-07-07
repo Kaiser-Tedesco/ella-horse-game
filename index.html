@@ -3459,6 +3459,16 @@ const FIREBASE_CONFIG = {
   function applyKeys(keys) { applying = true; try { Object.keys(keys || {}).forEach(k => { if (isProgressKey(k)) setRaw(k, keys[k]); }); } finally { applying = false; } }
   function refreshAll() { try { renderVetCard(); } catch (e) {} try { renderFeedButton(); } catch (e) {} try { renderHorseGrid(); } catch (e) {} try { renderCollection(); } catch (e) {} try { renderPlayerChip(); } catch (e) {} }
 
+  // "real progress" = signals only created by actually playing; ignores first-run defaults (ellaFeedTokens, ellaRankAchieved)
+  function keysHaveProgress(keys){
+    if(!keys) return false;
+    function n(k){ return parseInt(keys[k]||'0',10)||0; }
+    function len(k){ try{ var a=JSON.parse(keys[k]||'[]'); return (a&&a.length)||0; }catch(e){ return 0; } }
+    function ob(k){ try{ var o=JSON.parse(keys[k]||'{}'); return o?Object.keys(o).length:0; }catch(e){ return 0; } }
+    return n('ellaVetPoints')>0 || len('ellaSeenConcepts')>0 || len('ellaCollectProgress')>0 || len('ellaGifts')>0 || ob('ellaHorseGifts')>0 || n('ellaCollectSet')>0;
+  }
+  function hasRealProgress(){ return keysHaveProgress(snapshot().keys); }
+
   let dbRef = null;
   const fbReady = () => !!(FIREBASE_CONFIG && window.firebase && getMagicWord());
   function fbInit() {
@@ -3476,7 +3486,7 @@ const FIREBASE_CONFIG = {
     dbRef.once('value').then(snap => {
       const cloud = snap.val();
       const localTs = Number(localStorage.getItem('ellaSyncTs') || 0);
-      if (cloud && cloud.keys && Number(cloud.ts || 0) >= localTs) {
+      if (cloud && cloud.keys && Number(cloud.ts || 0) >= localTs && (keysHaveProgress(cloud.keys) || !hasRealProgress())) {
         applyKeys(cloud.keys); setRaw('ellaSyncTs', String(cloud.ts || Date.now())); refreshAll(); after && after(true);
       } else { try { dbRef.set(snapshot()); } catch (e) {} after && after(false); }
     }).catch(e => { console.warn('cloud pull failed', e); after && after(false); });
@@ -3573,20 +3583,25 @@ const FIREBASE_CONFIG = {
     switchToPlayer(key, prettyName(raw), function(ok){ if(ok){ closePlayerPicker(); } else if(msg){ msg.style.color='#e67e22'; msg.textContent='Kein Internet — bitte nochmal versuchen.'; } });
   };
 
-  // one-time migration into the players model (never clears existing progress)
+  // one-time migration into the players model (never clears progress, never clobbers the cloud)
   function migratePlayers(){
-    if(getPlayers().length) return;
+    if(getPlayers().length) return 'ready';                             // already migrated
     var key=getMagicWord();
-    if(key){ registerPlayer(key, prettyName(key)); return; }        // had a magic word → seed the registry
-    setRaw('ellaMagicWord','ella'); registerPlayer('ella','Ella');   // adopt current local progress as "Ella"
-    setRaw('ellaSyncTs', String(Date.now()));                        // local wins → pushed up, never overwritten
+    if(key){ registerPlayer(key, prettyName(key)); return 'ready'; }    // had a magic word → seed the registry
+    if(hasRealProgress()){                                              // THIS device holds her real save → adopt + upload
+      setRaw('ellaMagicWord','ella'); registerPlayer('ella','Ella'); setRaw('ellaSyncTs', String(Date.now()));
+      return 'adopt';
+    }
+    return 'fresh';                                                     // empty device → stay unsigned so nothing is pushed; user picks a name to download a save
   }
 
   // ── init ──
-  migratePlayers();
+  var migMode = migratePlayers();
   try { renderPlayerChip(); } catch(e){}
-  // on open: pull the newer cloud copy for the active player (timestamp-guarded)
-  if (fbInit()) pullOnce();
+  if (fbInit()) {
+    if (migMode === 'adopt') { try { dbRef.set(snapshot()); } catch(e){} }   // local is the source of truth → upload it
+    else pullOnce();                                                          // otherwise take the newer/real cloud copy (an empty cloud can't overwrite real local)
+  }
 })();
 </script>
 </body>
