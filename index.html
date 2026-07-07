@@ -552,6 +552,9 @@
                 <button class="admin-cancel" onclick="adminReset0()">Reset to 0</button>
                 <button class="admin-cancel" onclick="closeAdmin()">Close</button>
             </div>
+            <div class="admin-btns" style="margin-top:8px;">
+                <button class="mix-btn" onclick="adminGrantCollection()">🎁 Alle Sammlungen freischalten</button>
+            </div>
             <hr style="border:none;border-top:1px solid #eadff5;margin:16px 0 10px;">
             <div class="admin-title" style="font-size:1rem;">☁️ Save across computers</div>
             <label class="admin-label">Magic word (use the SAME word on every computer)</label>
@@ -3409,6 +3412,17 @@ function adminReset0() {
     renderVetCard(); renderFeedButton(); renderHorseGrid();
     const m = document.getElementById('adminMsg'); m.style.color = '#27ae60'; m.textContent = 'Reset to zero. ✅';
 }
+function adminGrantCollection() {
+    try {
+        var all = [];
+        COLLECTIBLE_SETS.forEach(function (s) { s.forEach(function (it) { all.push(it.id); }); });
+        localStorage.setItem('ellaCollectSet', String(COLLECTIBLE_SETS.length));   // every set discovered
+        localStorage.setItem('ellaCollectProgress', '[]');
+        localStorage.setItem('ellaGifts', JSON.stringify(all));                     // one of every trinket to give away
+        renderCollection();
+        const m = document.getElementById('adminMsg'); if (m) { m.style.color = '#27ae60'; m.textContent = 'Sammlung komplett! 🎁 ' + all.length + ' Geschenke zum Verschenken.'; }
+    } catch (e) { const m = document.getElementById('adminMsg'); if (m) { m.style.color = '#e74c3c'; m.textContent = 'Fehler beim Freischalten.'; } }
+}
 
 // ═══════════════════════════════════════════════════════════
 //  SPARKLE STARS IN HEADER
@@ -3480,7 +3494,7 @@ const FIREBASE_CONFIG = {
     if (!fbReady()) return false;
     try {
       if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-      dbRef = firebase.database().ref('saves/' + getMagicWord().replace(/[^a-zA-Z0-9_-]/g, '_'));
+      dbRef = firebase.database().ref('saves/' + getMagicWord().toLowerCase().replace(/[^a-z0-9_-]/g, '_'));
       return true;
     } catch (e) { console.warn('Firebase init failed', e); dbRef = null; return false; }
   }
@@ -3527,7 +3541,7 @@ const FIREBASE_CONFIG = {
     const el = document.getElementById('adminMagic'), msg = document.getElementById('adminSyncMsg');
     const word = ((el && el.value) || '').trim();
     if (!word) { if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'Please enter a magic word.'; } return; }
-    setRaw('ellaMagicWord', word);
+    var wkey = slugName(word); setRaw('ellaMagicWord', wkey); registerPlayer(wkey, niceName(word));
     if (!FIREBASE_CONFIG) { if (msg) { msg.style.color = '#e67e22'; msg.textContent = 'Saved. Cloud sync starts once the Firebase config is added; manual backup works now.'; } return; }
     if (msg) { msg.style.color = '#7a5a9e'; msg.textContent = 'Connecting…'; }
     if (fbInit()) pullOnce(pulled => { if (msg) { msg.style.color = '#27ae60'; msg.textContent = pulled ? ('☁️ Connected as "' + word + '" — progress loaded.') : ('☁️ Connected as "' + word + '" — this computer is now the saved copy.'); } });
@@ -3584,7 +3598,7 @@ const FIREBASE_CONFIG = {
     }
     if(dbRef){ try{ dbRef.set(snapshot()); }catch(e){} }         // flush current player before switching
     var tref;
-    try{ if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG); tref=firebase.database().ref('saves/'+key.replace(/[^a-zA-Z0-9_-]/g,'_')); }
+    try{ if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG); tref=firebase.database().ref('saves/'+key.toLowerCase().replace(/[^a-z0-9_-]/g,'_')); }
     catch(e){ cb&&cb(false,false); return; }
     tref.once('value').then(function(snap){
       var cloud=snap.val();
@@ -3644,6 +3658,7 @@ const FIREBASE_CONFIG = {
   }
 
   // ── init ──
+  (function(){ var mw=getMagicWord(); if(mw){ var s=slugName(mw); if(s && s!==mw) setRaw('ellaMagicWord', s); } })();   // consolidate any old mixed-case identity → one lowercase key
   var migMode = migratePlayers();
   try { renderPlayerChip(); } catch(e){}
   if (fbInit()) {
