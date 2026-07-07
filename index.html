@@ -519,7 +519,7 @@
         <p class="pp-sub">Tippe auf deinen Namen — deine Pferde laden automatisch.</p>
         <div class="player-tiles" id="playerTiles"></div>
         <div class="pp-newrow" id="playerNewRow">
-            <input id="playerNewName" placeholder="Dein Name" maxlength="16" autocomplete="off" onkeydown="if(event.key==='Enter')confirmNewPlayer()">
+            <input id="playerNewName" placeholder="Dein Name" maxlength="16" autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')confirmNewPlayer()">
             <button class="mix-btn" onclick="confirmNewPlayer()">Los! 🎉</button>
         </div>
         <div class="pp-msg" id="playerMsg"></div>
@@ -558,6 +558,11 @@
             <input id="adminMagic" class="admin-input" placeholder="e.g. ella-pony-7431" autocomplete="off">
             <div class="admin-btns"><button class="mix-btn" onclick="syncConnect()">Connect</button></div>
             <div id="adminSyncMsg" class="admin-msg"></div>
+            <label class="admin-label" style="margin-top:6px;">Force sync (this computer ↔ cloud)</label>
+            <div class="admin-btns">
+                <button class="mix-btn" onclick="forceSaveToCloud()">⬆ Save to cloud (master)</button>
+                <button class="admin-cancel" onclick="forceLoadFromCloud()">⬇ Load from cloud</button>
+            </div>
             <details style="margin-top:8px;">
                 <summary style="cursor:pointer;color:#7a5a9e;">Manual backup (no internet setup needed)</summary>
                 <div class="admin-btns" style="margin-top:6px;">
@@ -3479,18 +3484,39 @@ const FIREBASE_CONFIG = {
       return true;
     } catch (e) { console.warn('Firebase init failed', e); dbRef = null; return false; }
   }
-  let pushTimer = null;
-  function schedulePush() { if (!dbRef) return; clearTimeout(pushTimer); pushTimer = setTimeout(() => { try { dbRef.set(snapshot()); } catch (e) {} }, 600); }
-  function pullOnce(after) {
-    if (!dbRef) { after && after(false); return; }
-    dbRef.once('value').then(snap => {
-      const cloud = snap.val();
-      const localTs = Number(localStorage.getItem('ellaSyncTs') || 0);
-      if (cloud && cloud.keys && Number(cloud.ts || 0) >= localTs && (keysHaveProgress(cloud.keys) || !hasRealProgress())) {
-        applyKeys(cloud.keys); setRaw('ellaSyncTs', String(cloud.ts || Date.now())); refreshAll(); after && after(true);
-      } else { try { dbRef.set(snapshot()); } catch (e) {} after && after(false); }
-    }).catch(e => { console.warn('cloud pull failed', e); after && after(false); });
+  // merge two key-sets so PROGRESS NEVER GOES BACKWARD: max of points/rank/set, union of seen-concepts + horse-gifts; consumables/prefs take the newer side
+  function mergeKeys(a, b, cloudNewer) {
+    a = a || {}; b = b || {}; var out = {};
+    function numv(o,k){ return o[k]==null ? null : (parseInt(o[k],10)||0); }
+    function maxKey(k){ var x=numv(a,k), y=numv(b,k); if(x==null&&y==null) return; out[k]=String(Math.max(x==null?-Infinity:x, y==null?-Infinity:y)); }
+    function unionArr(k){ if(a[k]==null&&b[k]==null) return; var seen={}, res=[]; [a,b].forEach(function(o){ try{ (JSON.parse(o[k]||'[]')||[]).forEach(function(x){ if(!seen[x]){ seen[x]=1; res.push(x); } }); }catch(e){} }); out[k]=JSON.stringify(res); }
+    function unionMap(k){ if(a[k]==null&&b[k]==null) return; function p(o){ try{ return JSON.parse(o[k]||'{}')||{}; }catch(e){ return {}; } } var res={}; [p(a),p(b)].forEach(function(o){ Object.keys(o).forEach(function(h){ var seen={}; res[h]=res[h]||[]; res[h].forEach(function(x){seen[x]=1;}); (o[h]||[]).forEach(function(x){ if(!seen[x]){ seen[x]=1; res[h].push(x); } }); }); }); out[k]=JSON.stringify(res); }
+    function newest(k){ if(a[k]==null&&b[k]==null) return; out[k] = cloudNewer ? (b[k]!=null?b[k]:a[k]) : (a[k]!=null?a[k]:b[k]); }
+    ['ellaVetPoints','ellaRankAchieved','ellaCollectSet'].forEach(maxKey);
+    unionArr('ellaSeenConcepts'); unionMap('ellaHorseGifts');
+    ['ellaFeedTokens','ellaGifts','ellaCollectProgress','ellaTopicCycle','ellaNudgeOn','ellaCollection'].forEach(newest);
+    [a,b].forEach(function(o){ Object.keys(o).forEach(function(k){ if(!(k in out)) newest(k); }); });   // any other progress key → newer wins
+    return out;
   }
+  // one monotonic reconcile with the cloud (atomic transaction) — used on open AND on every change (debounced)
+  function syncMerge(after) {
+    if (!dbRef) { after && after(false); return; }
+    var localKeys = snapshot().keys;
+    dbRef.transaction(function (current) {
+      var cloudKeys = (current && current.keys) || {};
+      var cloudTs = current ? Number(current.ts || 0) : 0;
+      var localTs = Number(localStorage.getItem('ellaSyncTs') || 0);
+      return { keys: mergeKeys(localKeys, cloudKeys, cloudTs > localTs), ts: Math.max(cloudTs, localTs, Date.now()) };
+    }, function (err, committed, snap) {
+      if (err) { console.warn('sync merge failed', err); after && after(false); return; }
+      var val = snap && snap.val();
+      if (val && val.keys) { applyKeys(val.keys); setRaw('ellaSyncTs', String(val.ts || Date.now())); refreshAll(); }
+      after && after(true);
+    }, false);
+  }
+  let pushTimer = null;
+  function schedulePush() { if (!dbRef) return; clearTimeout(pushTimer); pushTimer = setTimeout(function () { syncMerge(); }, 600); }
+  function pullOnce(after) { syncMerge(after); }
 
   // capture every progress change and mirror it to the cloud (debounced)
   localStorage.setItem = function (k, v) { rawSet(k, v); if (!applying && isProgressKey(k)) { setRaw('ellaSyncTs', String(Date.now())); schedulePush(); } };
@@ -3513,10 +3539,32 @@ const FIREBASE_CONFIG = {
     try { const keys = JSON.parse(decodeURIComponent(escape(atob(((ta && ta.value) || '').trim())))); applyKeys(keys); setRaw('ellaSyncTs', String(Date.now())); refreshAll(); schedulePush(); if (msg) { msg.style.color = '#27ae60'; msg.textContent = 'Restored from code. ✅'; } }
     catch (e) { if (msg) { msg.style.color = '#e74c3c'; msg.textContent = 'That code did not work.'; } }
   };
+  function syncMsg(color, text){ var m=document.getElementById('adminSyncMsg'); if(m){ m.style.color=color; m.textContent=text; } }
+  // ⬆ force THIS computer's save to become the cloud master (bypasses the merge — the only way to intentionally lower/reset)
+  window.forceSaveToCloud = function(){
+    if(!getMagicWord()){ syncMsg('#e74c3c','Erst oben einen Spieler wählen.'); return; }
+    if(!fbInit() || !dbRef){ syncMsg('#e74c3c','Keine Cloud-Verbindung.'); return; }
+    var ts = Date.now(); setRaw('ellaSyncTs', String(ts));
+    try { dbRef.set({ keys: snapshot().keys, ts: ts }); syncMsg('#27ae60','⬆ In Cloud gespeichert — dieser PC ist jetzt der Master. ✅'); }
+    catch(e){ syncMsg('#e74c3c','Speichern fehlgeschlagen.'); }
+  };
+  // ⬇ overwrite THIS computer with the cloud copy exactly
+  window.forceLoadFromCloud = function(){
+    if(!getMagicWord()){ syncMsg('#e74c3c','Erst oben einen Spieler wählen.'); return; }
+    if(!fbInit() || !dbRef){ syncMsg('#e74c3c','Keine Cloud-Verbindung.'); return; }
+    syncMsg('#7a5a9e','Lädt…');
+    dbRef.once('value').then(function(snap){
+      var cloud = snap.val();
+      if(cloud && cloud.keys){ clearProgress(); applyKeys(cloud.keys); setRaw('ellaSyncTs', String(cloud.ts||Date.now())); refreshAll(); syncMsg('#27ae60','⬇ Aus Cloud geladen. ✅'); }
+      else { syncMsg('#e67e22','Nichts in der Cloud gespeichert.'); }
+    }).catch(function(e){ syncMsg('#e74c3c','Laden fehlgeschlagen — Internet?'); });
+  };
 
   // ══ Players: friendly "Wer spielt gerade?" layer over the magic-word identity ══
   function slugName(s){ return String(s||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,24); }
   function prettyName(s){ s = String(s||'').replace(/-/g,' ').trim(); return s ? s.charAt(0).toUpperCase()+s.slice(1) : 'Spieler'; }
+  // keep a typed name EXACTLY as entered (all capitals preserved), just capitalise the start of each word if it was lowercase
+  function niceName(s){ return String(s||'').trim().replace(/\s+/g,' ').replace(/(^|[\s-])([a-zà-öø-ÿ])/g, function(m,p,c){ return p+c.toUpperCase(); }).slice(0,24); }
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function getPlayers(){ try { return JSON.parse(localStorage.getItem('ellaPlayers')||'[]'); } catch(e){ return []; } }
   function savePlayers(a){ try { setRaw('ellaPlayers', JSON.stringify(a)); } catch(e){} }
@@ -3580,7 +3628,7 @@ const FIREBASE_CONFIG = {
     if(!key){ if(msg){ msg.style.color='#e74c3c'; msg.textContent='Bitte einen Namen eingeben.'; } return; }
     if(getPlayers().some(function(x){return x.key===key;})){ window.pickPlayer(key); return; }
     if(msg){ msg.style.color='#7a5a9e'; msg.textContent='Neuer Spieler…'; }
-    switchToPlayer(key, prettyName(raw), function(ok){ if(ok){ closePlayerPicker(); } else if(msg){ msg.style.color='#e67e22'; msg.textContent='Kein Internet — bitte nochmal versuchen.'; } });
+    switchToPlayer(key, niceName(raw), function(ok){ if(ok){ closePlayerPicker(); } else if(msg){ msg.style.color='#e67e22'; msg.textContent='Kein Internet — bitte nochmal versuchen.'; } });
   };
 
   // one-time migration into the players model (never clears progress, never clobbers the cloud)
