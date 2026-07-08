@@ -3299,6 +3299,9 @@ function feedAgain() {
 //  Finish 12 to earn +5 vet points and 1 extra Feed Kitchen play.
 // ═══════════════════════════════════════════════════════════
 const FLASH_TOTAL = 12;
+// the multiplication facts kids actually find hard — no ×1/×2/×5/×10 (those she already knows cold)
+const FLASH_HARD = [[3,7],[3,8],[3,9],[4,6],[4,7],[4,8],[4,9],[6,6],[6,7],[6,8],[6,9],[7,7],[7,8],[7,9],[8,8],[8,9],[9,9]];
+const FLASH_TENS = 3;   // ~1/4 of the 12 cards are a hard fact with one factor ×10 (e.g. 3 × 70) — place-value practice
 let flashIdx = 0, flashRight = 0, flashBusy = false, flashA = 0, flashB = 0, flashDeck = [];
 
 function showFlashGame() {
@@ -3308,9 +3311,16 @@ function showFlashGame() {
 }
 function startFlash() {
     flashIdx = 0; flashRight = 0; flashBusy = false;
-    // every round always includes her tricky ones (4×7 and 4×8); the rest are hard tables 2–9 (no ×1/×10)
+    // every round always includes her two tricky ones (4×7, 4×8); the rest are drawn ONLY from the hard facts
     flashDeck = [[4, 7], [4, 8]];
-    while (flashDeck.length < FLASH_TOTAL) flashDeck.push([rnd(2, 9), rnd(2, 9)]);
+    for (let i = 0; i < FLASH_TENS; i++) {                          // ~1/4 of the round: same hard facts, one factor ×10 (3 × 70)
+        const f = FLASH_HARD[rnd(0, FLASH_HARD.length - 1)];
+        flashDeck.push(rnd(0, 1) ? [f[0], f[1] * 10] : [f[0] * 10, f[1]]);
+    }
+    while (flashDeck.length < FLASH_TOTAL) {
+        const f = FLASH_HARD[rnd(0, FLASH_HARD.length - 1)];
+        flashDeck.push(rnd(0, 1) ? [f[0], f[1]] : [f[1], f[0]]);   // flip half the time so she sees 7×4 as well as 4×7
+    }
     flashDeck = shuffle(flashDeck);
     document.getElementById('flashTotal').textContent = FLASH_TOTAL;
     showFlashCard();
@@ -3341,6 +3351,9 @@ function checkFlash() {
         flashBusy = true; flashRight++;
         document.getElementById('flashRight').textContent = flashRight;
         fb.className = 'calc-feedback ok'; fb.textContent = '✅ Richtig!';
+        const a = document.getElementById('flashAns');                    // clear + lock the old answer before the next card shows,
+        if (a) { a.value = ''; a.disabled = true; a.blur(); }             // so stray keystrokes during the pause can't land in it
+        const nb = document.getElementById('flashBtn'); if (nb) nb.disabled = true;
         setTimeout(() => { flashIdx++; showFlashCard(); }, 650);
     } else {
         fb.className = 'calc-feedback no'; fb.textContent = '❌ Fast! Versuch es nochmal.';
