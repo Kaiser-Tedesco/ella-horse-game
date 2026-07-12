@@ -3471,7 +3471,7 @@ const FIREBASE_CONFIG = {
 // ⬆⬆
 
 (function () {
-  const SKIP = { ellaMagicWord: 1, ellaSyncTs: 1, ellaPlayers: 1 };
+  const SKIP = { ellaMagicWord: 1, ellaSyncTs: 1, ellaPlayers: 1, ellaReclaimedCase: 1 };
   const isProgressKey = k => !!k && k.indexOf('ella') === 0 && !SKIP[k];
   const rawSet = localStorage.setItem.bind(localStorage);
   const setRaw = (k, v) => rawSet(k, v);
@@ -3665,6 +3665,26 @@ const FIREBASE_CONFIG = {
     return 'fresh';                                                     // empty device → stay unsigned so nothing is pushed; user picks a name to download a save
   }
 
+  // one-time: pull a save stranded under an old capital-case node (e.g. saves/Ella) into the lowercase node the app now uses
+  function reclaimOldCaseNode(){
+    try {
+      if(localStorage.getItem('ellaReclaimedCase')) return;
+      var key=getMagicWord();
+      if(!key || !(FIREBASE_CONFIG && window.firebase)) return;
+      var cap = key.charAt(0).toUpperCase() + key.slice(1);
+      if(cap === key){ setRaw('ellaReclaimedCase','1'); return; }
+      if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+      firebase.database().ref('saves/' + cap.replace(/[^a-zA-Z0-9_-]/g,'_')).once('value').then(function(snap){
+        setRaw('ellaReclaimedCase','1');
+        var old = snap.val();
+        if(old && old.keys && keysHaveProgress(old.keys)){
+          applyKeys(mergeKeys(snapshot().keys, old.keys, true));            // combine the old-case save into local (progress only goes up)
+          setRaw('ellaSyncTs', String(Date.now())); refreshAll(); schedulePush();   // push the merged result up to the lowercase node
+        }
+      }).catch(function(){});
+    } catch(e){}
+  }
+
   // ── init ──
   (function(){ var mw=getMagicWord(); if(mw){ var s=slugName(mw); if(s && s!==mw) setRaw('ellaMagicWord', s); } })();   // consolidate any old mixed-case identity → one lowercase key
   var migMode = migratePlayers();
@@ -3672,6 +3692,7 @@ const FIREBASE_CONFIG = {
   if (fbInit()) {
     if (migMode === 'adopt') { try { dbRef.set(snapshot()); } catch(e){} }   // local is the source of truth → upload it
     else pullOnce();                                                          // otherwise take the newer/real cloud copy (an empty cloud can't overwrite real local)
+    reclaimOldCaseNode();                                                     // fold in any save left under an old capital-case node
   }
 })();
 </script>
