@@ -2126,7 +2126,7 @@ const vetConcepts = [
   { horseIdx:34, type:'add', treatment:'bucket', title:"Takis geschützte Steppen-Weide", intro:"Damit Wildpferde wie Taki sicher und frei leben können, gibt es in der Mongolei ein großes Schutzgebiet (Schutz-ge-biet) nur für sie. Die Ranger (Ren-ger), die Beschützer der Wildpferde, messen die Grasflächen aus, damit die ganze Herde genug zu fressen findet. Heute rechnest du zwei Weide-Stücke zusammen. 🌾", cured:"Taki senkt zufrieden den Kopf ins hohe Gras ihrer geschützten Weide. 🐴", make:()=>Qadd((a,b)=>`Der Ranger misst für Takis Herde ein erstes Weide-Stück mit <b>${a} m²</b> Gras aus und gleich daneben ein zweites mit <b>${b} m²</b>. Wie viele Quadratmeter Gras hat die Herde zusammen?`) },
 ];
 let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false, mPerfect = true;
-let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mTreat = null, mHelpShown = false;
+let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mTreat = null, mHelpShown = false, mTried = false;
 let mChooseSlot = 0, mChooseCandidates = [], mChosen = false;   // Phase 1: one patient per session is hers to choose
 
 // A session is 5 fresh questions (year update 2026-07). Question 1 is ALWAYS schriftliche
@@ -2350,6 +2350,7 @@ function renderProblem(q) {
     // Sachaufgaben mode (year update): the story alone comes first — SHE picks the Rechen-Art.
     // The written set-up + type hint wait behind the free Hilfe button (or the first wrong answer).
     mHelpShown = false;
+    mTried = false;
     prob.style.display = 'none';
     document.getElementById('mCalcLabel').textContent = '🕵️ Sachaufgabe: Lies die Geschichte oben – welche Rechnung brauchst du? Rechne und tippe deine Antwort!';
     document.getElementById('mHelpBtn').classList.remove('hidden');
@@ -2364,8 +2365,14 @@ function renderProblem(q) {
     attachMathInputs();
 }
 // free help — no points lost: reveals the written set-up and the type hint for this question
-function revealHelp() {
+function revealHelp(auto) {
     if (mHelpShown) return;
+    if (!auto && !mTried) {   // she must try the problem at least once before the written Rechnung is shown
+        const fb = document.getElementById('mFeedback');
+        fb.className = 'calc-feedback no';
+        fb.textContent = '🤔 Probier zuerst selbst! Tippe eine Antwort ein, dann zeige ich dir die Rechnung.';
+        return;
+    }
     mHelpShown = true;
     const q = mPool[mQ];
     document.getElementById('mCalcLabel').textContent = q.label;
@@ -2394,6 +2401,7 @@ function checkMathAnswer() {
 function checkExactNum(q, fbEl, expect, isDec) {
     const v = parseNum(document.getElementById('mAns').value, isDec);
     if (isNaN(v)) return needInput(fbEl, '✏️ Tippe zuerst deine Antwort ein!');
+    mTried = true;   // she has made a real attempt → the Hilfe reveal is now allowed
     const ok = isDec ? near(v, expect) : (v === expect);
     if (ok) mathCorrect(q, fbEl); else mathWrong(fbEl);
 }
@@ -2418,7 +2426,7 @@ function checkDivision(q, fbEl) {
             attachMathInputs();
         } else {
             mFirstTry = false; mPerfect = false;   // an off-target estimate breaks the perfect bonus too
-            revealHelp();   // show her the division set-up so she can estimate from it
+            revealHelp(true);   // show her the division set-up so she can estimate from it
             fbEl.className = 'calc-feedback no';
             fbEl.textContent = '🤔 Noch nicht nah dran – runde die Zahl auf eine leichte, dann teile. Versuch es nochmal!';
             const e = document.getElementById('mEst'); e.value = ''; e.focus();
@@ -2447,7 +2455,7 @@ function checkCompare(q, fbEl) {
         document.getElementById('mMixBtn').classList.add('hidden');
     } else {
         mFirstTry = false; mPerfect = false;   // a wrong price breaks the perfect-session bonus, like every other kind
-        revealHelp();   // show the two shop bundles so she can re-check price ÷ Anzahl
+        revealHelp(true);   // show the two shop bundles so she can re-check price ÷ Anzahl
         fbEl.className = 'calc-feedback no';
         fbEl.textContent = '❌ Prüf die zwei Preise nochmal – Preis ÷ Anzahl.';
         document.getElementById('mPa').value = ''; document.getElementById('mPb').value = '';
@@ -2471,7 +2479,7 @@ function mathCorrect(q, fbEl) {
 }
 function mathWrong(fbEl) {
     mFirstTry = false; mPerfect = false;
-    revealHelp();   // after a first miss the written set-up opens by itself — gentle, never punishing
+    revealHelp(true);   // after a first miss the written set-up opens by itself — gentle, never punishing
     fbEl.className = 'calc-feedback no';
     fbEl.textContent = '❌ Nicht ganz – schau dir die Rechnung an und versuch es nochmal!';
     const a = document.getElementById('mAns'); if (a) a.value = '';
@@ -2854,6 +2862,8 @@ const VET_TIERS = [
     { name: 'Leakey Vet',      emoji: '🦴', min: 720 },
     { name: 'Linnaeus Vet',    emoji: '🌸', min: 750 }
 ];
+const VET_LEVEL_STEP = 40;                                            // points per horse level (was 30). Paired with the Mal-Quiz +5 reward.
+VET_TIERS.forEach(function (t, i) { t.min = i * VET_LEVEL_STEP; });   // re-step the thresholds uniformly; names/emojis unchanged
 function getVetPoints() { try { var v = parseInt(localStorage.getItem('ellaVetPoints'), 10); return isNaN(v) ? 0 : v; } catch (e) { return 0; } }
 function setVetPoints(p) { try { localStorage.setItem('ellaVetPoints', String(p)); } catch (e) {} }
 function vetTierIndex(points) { var idx = 0; for (var i = 0; i < VET_TIERS.length; i++) if (points >= VET_TIERS[i].min) idx = i; return idx; }
@@ -3364,8 +3374,8 @@ function flashDone() {
     document.getElementById('flashProgress').style.width = '100%';
     document.getElementById('flashRight').textContent = flashRight;
     document.getElementById('flashNum').textContent = FLASH_TOTAL;
-    const before = getVetPoints();                    // reward: +3 vet points and +1 feed play
-    setVetPoints(before + 3);
+    const before = getVetPoints();                    // reward: +5 vet points and +1 feed play
+    setVetPoints(before + 5);
     setFeedTokens(getFeedTokens() + 1);
     renderVetCard(); renderFeedButton();
     const leveledUp = vetTierIndex(getVetPoints()) > vetTierIndex(before);
@@ -3373,7 +3383,7 @@ function flashDone() {
     document.getElementById('flashProblem').textContent = '🏆';
     document.getElementById('flashBtn').classList.add('hidden');
     document.getElementById('flashFeedback').textContent = '';
-    let msg = `<div class="ev-earned">🎖️ +3 Punkte und 🥕 +1 Fütterung!</div>`;
+    let msg = `<div class="ev-earned">🎖️ +5 Punkte und 🥕 +1 Fütterung!</div>`;
     if (examAvailable()) { const t = VET_TIERS[getRankAchieved() + 1]; msg += `<div class="ev-levelup">🎓 Prüfung freigeschaltet! Mach die Tierarzt-Prüfung auf der Startseite, um ${t.name} zu werden! ${t.emoji}</div>`; }
     msg += `<div class="ev-total">Insgesamt: ${getVetPoints()} Punkte</div>`;
     document.getElementById('flashInputs').innerHTML = msg +
