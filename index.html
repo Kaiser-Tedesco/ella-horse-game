@@ -3108,6 +3108,9 @@ function finishExam() {
 }
 
 function renderVetCard() {
+    // keep points consistent with her earned rank (e.g. after the level-spacing change) so "next level" is always an achievable gap
+    var _ach = getRankAchieved(), _floor = (VET_TIERS[_ach] && VET_TIERS[_ach].min) || 0;
+    if (getVetPoints() < _floor) setVetPoints(_floor);
     var pts = getVetPoints(), eff = effectiveTier(), tier = VET_TIERS[eff], ach = getRankAchieved();
     document.getElementById('vcEmoji').textContent = tier.emoji;
     document.getElementById('vcTier').textContent = tier.name;
