@@ -2042,14 +2042,24 @@ function genDiv() {
 }
 
 // ── Number generators + question builders (German number format: comma decimal, € after). ──
+// step-1 scaffold for ml→l style conversions: show the whole number with its (implied) comma.
+// A whole number's comma sits right after the last digit → 370 becomes 370,0. Two mis-placements as distractors.
+function commaOptions(z) {
+    const D = String(z);
+    const correct = D + ',0';
+    const wrong = [];
+    for (let i = 1; i < D.length; i++) wrong.push(D.slice(0, i) + ',' + D.slice(i));   // 3,70 · 37,0
+    wrong.push('0,' + D);                                                               // 0,370
+    return { options: shuffle([correct, ...shuffle(wrong).slice(0, 2)]), correct };
+}
 function genConvert(fam) {
     if (fam === 'time') { const hrs = rnd(2, 8); return { big:'h', small:'min', f:60, disp:`${hrs} h`, answer:hrs*60, ansUnit:'min', problemHTML:`${hrs} h = ? min` }; }
     const M = { len:{big:'m',small:'cm',f:100}, wt:{big:'kg',small:'g',f:1000}, dist:{big:'km',small:'m',f:1000}, vol:{big:'l',small:'ml',f:1000} };
-    const u = M[fam], form = rnd(1, 3); let disp, answer, ansUnit;
+    const u = M[fam], form = rnd(1, 3); let disp, answer, ansUnit, comma = null;
     if (form === 1) { const bp = rnd(1,4), sp = (u.f===1000 ? rnd(1,19)*50 : rnd(1,19)*5); disp = `${bp} ${u.big} ${sp} ${u.small}`; answer = bp + sp/u.f; ansUnit = u.big; }
-    else if (form === 2) { const z = (u.f===1000 ? rnd(10,990) : rnd(10,95)); disp = `${z} ${u.small}`; answer = z/u.f; ansUnit = u.big; }
+    else if (form === 2) { const z = (u.f===1000 ? rnd(10,990) : rnd(10,95)); disp = `${z} ${u.small}`; answer = z/u.f; ansUnit = u.big; comma = commaOptions(z); }
     else { const cents = (u.f===1000 ? rnd(105,485) : rnd(110,480)), dq = cents/100; disp = `${fmtDec(dq)} ${u.big}`; answer = Math.round(dq*u.f); ansUnit = u.small; }
-    return { big:u.big, small:u.small, f:u.f, disp, answer, ansUnit, problemHTML:`${disp} = ? ${ansUnit}` };
+    return { big:u.big, small:u.small, f:u.f, disp, answer, ansUnit, comma, problemHTML:`${disp} = ? ${ansUnit}` };
 }
 // each builder takes a German story-function and returns a ready question object
 function Qlongmult(story) {
@@ -2070,7 +2080,7 @@ function Qdiv(story) {
 }
 function Qconvert(fam, story) {
     const c = genConvert(fam);
-    return { kind:'convert', answer:c.answer, ansUnit:c.ansUnit, label:`📏 Einheiten umrechnen – denk dran: 1 ${c.big} = ${c.f} ${c.small}!`,
+    return { kind:'convert', answer:c.answer, ansUnit:c.ansUnit, comma:c.comma, label:`📏 Einheiten umrechnen – denk dran: 1 ${c.big} = ${c.f} ${c.small}!`,
         problemHTML:c.problemHTML, story: story(c.disp, c.ansUnit) };
 }
 function Qcompare(story) {
@@ -2358,7 +2368,7 @@ const vetConcepts = [
   { horseIdx:44, type:'convert', treatment:'bucket', title:"Djangos Hafer abwiegen", intro:"Django bekommt sein Kraftfutter genau abgewogen, damit er für die langen, ruhigen Ausritte genug Kraft (Kraft) hat. Die Pflegerin wiegt seinen Hafer.", cured:"Django ist gestärkt und nickt zufrieden mit dem Kopf im Takt! 😌", make:()=>Qconvert('wt',(disp,unit)=>`Django bekommt heute <b>${disp}</b> Hafer. Wie viel ist das in <b>${unit}</b>?`) },
 ];
 let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false, mPerfect = true;
-let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mTreat = null, mHelpShown = false, mTried = false;
+let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mConvPhase = null, mTreat = null, mHelpShown = false, mTried = false;
 let mChooseSlot = 0, mChooseCandidates = [], mChosen = false;   // Phase 1: one patient per session is hers to choose
 
 // A session is 5 fresh questions (year update 2026-07). Question 1 is ALWAYS schriftliche
@@ -2560,6 +2570,7 @@ function showMathQuestion() {
     fbEl.textContent = ''; fbEl.className = 'calc-feedback';
     const btn = document.getElementById('mMixBtn');
     btn.classList.remove('hidden'); btn.disabled = false; btn.textContent = '✅ Dosis prüfen!';
+    if (mConvPhase === 'comma') { btn.classList.add('hidden'); document.getElementById('mHelpBtn').classList.add('hidden'); }   // step ① is tap-only
 
     resetIdle();   // re-arm the gentle idle nudge for this new question
 }
@@ -2587,8 +2598,19 @@ function renderProblem(q) {
     document.getElementById('mCalcLabel').textContent = '🕵️ Sachaufgabe: Lies die Geschichte oben – welche Rechnung brauchst du? Rechne und tippe deine Antwort!';
     document.getElementById('mHelpBtn').classList.remove('hidden');
     mDivPhase = null;
+    mConvPhase = null;
     if (q.kind === 'div') { mDivPhase = 'estimate'; inputs.innerHTML = calcField('mEst', 'Ungefähr wie viel?', 'int'); }
-    else if (q.kind === 'convert') { inputs.innerHTML = calcField('mAns', 'Antwort (' + q.ansUnit + ')', 'dec'); }
+    else if (q.kind === 'convert') {
+        if (q.comma) {   // ml→l style: step ① place the comma in the whole number, then convert on step ②
+            mConvPhase = 'comma';
+            inputs.innerHTML = '<div class="cmp-btns">' +
+                q.comma.options.map(o => `<button class="cmp-btn" onclick="answerComma('${o}')">${o}</button>`).join('') +
+                '</div>';
+            document.getElementById('mCalcLabel').textContent = '① Wo gehört das Komma hin? Bei einer ganzen Zahl steht es ganz hinten, direkt hinter der Einheit.';
+        } else {
+            inputs.innerHTML = calcField('mAns', 'Antwort (' + q.ansUnit + ')', 'dec');
+        }
+    }
     else if (q.kind === 'money') { inputs.innerHTML = calcField('mAns', 'Antwort (€)', 'dec'); }
     else if (q.kind === 'compare') { mDivPhase = 'prices'; inputs.innerHTML = calcField('mPa', 'Laden A: eins =', 'dec') + calcField('mPb', 'Laden B: eins =', 'dec'); }
     else if (q.kind === 'timecalc') { inputs.innerHTML = calcField('mAns', 'Antwort (min)', 'int'); }
@@ -2700,6 +2722,27 @@ function answerCompare(pick) {
     const dearer = q.ua > q.ub ? 'A' : 'B';
     if (pick === dearer) mathCorrect(q, fbEl);
     else { mFirstTry = false; mPerfect = false; fbEl.className = 'calc-feedback no'; fbEl.textContent = '❌ Nicht der – vergleiche die zwei Preise für EINS. Versuch es nochmal!'; }
+}
+
+// convert step ①: she taps where the comma sits in the whole number (370 → 370,0), then step ② converts.
+// A wrong tap is low-stakes (no perfect-bonus penalty) — it's a brand-new learning step.
+function answerComma(pick) {
+    if (mBusy || mConvPhase !== 'comma') return;
+    const q = mPool[mQ], fbEl = document.getElementById('mFeedback');
+    if (pick === q.comma.correct) {
+        mConvPhase = 'convert';
+        fbEl.className = 'calc-feedback ok';
+        fbEl.textContent = `👍 Genau, ${q.comma.correct}! Jetzt schiebe das Komma und rechne um.`;
+        document.getElementById('mInputs').innerHTML = calcField('mAns', 'Antwort (' + q.ansUnit + ')', 'dec');
+        attachMathInputs();
+        document.getElementById('mCalcLabel').textContent = '② Jetzt umrechnen – schiebe das Komma und tippe deine Antwort!';
+        const btn = document.getElementById('mMixBtn');
+        btn.classList.remove('hidden'); btn.disabled = false; btn.textContent = '✅ Dosis prüfen!';
+        document.getElementById('mHelpBtn').classList.remove('hidden');   // Hilfe now available for the conversion itself
+    } else {
+        fbEl.className = 'calc-feedback no';
+        fbEl.textContent = '🤔 Noch nicht. Bei einer ganzen Zahl steht das Komma ganz hinten, direkt hinter der Einheit. Versuch es nochmal!';
+    }
 }
 
 function mathCorrect(q, fbEl) {
@@ -3819,6 +3862,12 @@ const FIREBASE_CONFIG = {
   // capture every progress change and mirror it to the cloud (debounced)
   localStorage.setItem = function (k, v) { rawSet(k, v); if (!applying && isProgressKey(k)) { setRaw('ellaSyncTs', String(Date.now())); schedulePush(); } };
 
+  // flush a pending (debounced) push at the last reliable moment — iOS especially freezes/kills backgrounded
+  // tabs, and the web SDK doesn't persist queued writes, so without this the iPad's latest progress can be lost.
+  function flushPush(){ if (dbRef && pushTimer){ clearTimeout(pushTimer); pushTimer = null; syncMerge(); } }
+  document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'hidden') flushPush(); });
+  window.addEventListener('pagehide', flushPush);
+
   // Grown-ups panel handlers
   window.getMagicWord = getMagicWord;
   window.syncConnect = function () {
@@ -3843,8 +3892,12 @@ const FIREBASE_CONFIG = {
     if(!getMagicWord()){ syncMsg('#e74c3c','Erst oben einen Spieler wählen.'); return; }
     if(!fbInit() || !dbRef){ syncMsg('#e74c3c','Keine Cloud-Verbindung.'); return; }
     var ts = Date.now(); setRaw('ellaSyncTs', String(ts));
-    try { dbRef.set({ keys: snapshot().keys, ts: ts }); syncMsg('#27ae60','⬆ In Cloud gespeichert — dieser PC ist jetzt der Master. ✅'); }
-    catch(e){ syncMsg('#e74c3c','Speichern fehlgeschlagen.'); }
+    syncMsg('#7a5a9e','Speichert…');
+    try {
+      dbRef.set({ keys: snapshot().keys, ts: ts })
+        .then(function(){ syncMsg('#27ae60','⬆ In Cloud gespeichert — dieser PC ist jetzt der Master. ✅'); })
+        .catch(function(){ syncMsg('#e74c3c','Speichern fehlgeschlagen — Internet? Nochmal versuchen.'); });   // confirm only after the write commits (was reporting ✅ synchronously → false success on flaky iPad)
+    } catch(e){ syncMsg('#e74c3c','Speichern fehlgeschlagen.'); }
   };
   // ⬇ overwrite THIS computer with the cloud copy exactly
   window.forceLoadFromCloud = function(){
