@@ -2533,7 +2533,7 @@ function startFocus() {
 }
 // per-question timer: budget resets each question; depletes ONLY while focus is ON (toggling off freezes it, no sound/penalty).
 function startQuestionTimer(kind) {
-    mTimerBudget = (kind === 'longmult') ? 300 : 150;   // 5 min for the big written multiplication, 2.5 min for everything else
+    mTimerBudget = (kind === 'longmult' || kind === 'compare') ? 300 : 150;   // 5 min for the big written multiplication AND the two-shop price compare (double calc); 2.5 min for everything else
     mTimerLeft = mTimerBudget; mTimerRunning = true; mQStartMs = Date.now();
     renderFocus();
 }
