@@ -96,7 +96,7 @@
         .time-pop-msg { font-family:'Fredoka One',cursive; color:#b4881a; font-size:1.25rem; margin-top:10px; }
         @keyframes timePopIn { from{transform:scale(.6);opacity:0} to{transform:scale(1);opacity:1} }
         /* Grown-ups stats view */
-        .stats-card { text-align:left; max-width:440px; max-height:86vh; overflow:auto; }
+        .cure-card.stats-card { text-align:left; width:min(94vw,560px); max-width:none; max-height:90vh; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding:22px 20px 20px; }
         .stats-summary { background:#f6f2fb; border-radius:12px; padding:10px 12px; font-size:.82rem; color:#5a4a70; line-height:1.7; margin-bottom:6px; }
         .stats-chart { margin:14px 0; }
         .stats-h { font-family:'Fredoka One',cursive; font-size:.92rem; color:#7a5a9e; margin-bottom:4px; }
@@ -110,6 +110,10 @@
         .stat-trend.down { background:#e3f7ee; color:#1f9d6b; }
         .stat-trend.up { background:#fdeede; color:#d98a2b; }
         .stat-trend.flat { background:#eee; color:#999; }
+        .stat-rows { display:flex; flex-direction:column; gap:4px; }
+        .stat-row { display:flex; align-items:center; justify-content:space-between; gap:8px; background:#faf8fd; border:1px solid #eee3f5; border-radius:8px; padding:5px 8px; }
+        .stat-row-t { font-size:.74rem; color:#5a4a70; }
+        .stat-del { border:none; background:#fbeaea; color:#c0392b; border-radius:7px; padding:2px 9px; cursor:pointer; font-size:.85rem; flex:none; }
 
         /* ── COLLECTIBLES (Phase 3) ── */
         .collection-card { max-width:440px; margin:30px auto 0; background:white; border-radius:22px; padding:18px 22px 22px; box-shadow:0 8px 26px rgba(0,0,0,0.12); border:3px solid #ffd93d; text-align:center; }
@@ -602,7 +606,7 @@
     <div class="cure-card stats-card">
         <div class="admin-title">📊 Ellas Mathe-Fortschritt</div>
         <div id="statsBody"></div>
-        <div class="admin-btns" style="margin-top:12px;"><button class="admin-cancel" onclick="closeStats()">Schließen</button></div>
+        <div class="admin-btns" style="margin-top:12px;"><button class="admin-cancel" onclick="clearGameLog()" style="font-size:.78rem;">🗑 Verlauf löschen</button><button class="admin-cancel" onclick="closeStats()">Schließen</button></div>
     </div>
 </div>
 
@@ -3791,28 +3795,23 @@ function recordGameLog() {
 }
 const STAT_TYPE_LABEL = { longmult:'Schriftlich ×', div:'Teilen ÷', add:'Plus +', sub:'Minus −', money:'Geld €', compare:'Preisvergleich', round:'Runden', tens:'×÷ 10/100', halb:'Halbschriftlich', estimate:'Überschlagen', timecalc:'Zeit ⏰', convert:'Einheiten' };
 function statFmtTime(s) { s = Math.round(s); return s >= 60 ? Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' min' : s + 's'; }
-function lineChart(vals, color, fmt) {
-    const w = 330, h = 118, padL = 40, padR = 8, padT = 12, padB = 14, n = vals.length;
+function statDate(ts) { try { const d = new Date(ts), p = n => String(n).padStart(2, '0'); return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '. ' + p(d.getHours()) + ':' + p(d.getMinutes()); } catch (e) { return ''; } }
+function barChart(vals, color, fmt) {
+    const w = 330, h = 122, padL = 40, padR = 8, padT = 12, padB = 16, n = vals.length;
     if (!n) return '';
-    const max = Math.max(...vals), min = Math.min(...vals), span = (max - min) || 1;
-    const plotW = w - padL - padR, plotH = h - padT - padB;
-    const X = i => padL + (n === 1 ? plotW / 2 : plotW * i / (n - 1));
-    const Y = v => padT + plotH * (1 - (v - min) / span);
-    const pts = vals.map((v, i) => X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ');
-    let s = `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="#e5ddef"/><line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="#e5ddef"/>`;
-    s += `<text x="${padL - 4}" y="${padT + 4}" font-size="9" text-anchor="end" fill="#a99">${fmt(max)}</text><text x="${padL - 4}" y="${h - padB}" font-size="9" text-anchor="end" fill="#a99">${fmt(min)}</text>`;
-    s += `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
-    s += vals.map((v, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="2.4" fill="${color}"><title>#${i + 1}: ${fmt(v)}</title></circle>`).join('');
-    return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:360px">${s}</svg>`;
+    const max = Math.max(...vals, 1), plotW = w - padL - padR, plotH = h - padT - padB, bw = plotW / n;
+    let s = `<line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="#e5ddef"/>`;
+    s += `<text x="${padL - 4}" y="${padT + 4}" font-size="9" text-anchor="end" fill="#a99">${fmt(max)}</text><text x="${padL - 4}" y="${h - padB}" font-size="9" text-anchor="end" fill="#a99">0</text>`;
+    vals.forEach((v, i) => { const bh = plotH * (v / max), x = padL + i * bw, y = h - padB - bh; s += `<rect x="${(x + 1).toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(1, bw - 2).toFixed(1)}" height="${bh.toFixed(1)}" rx="1.5" fill="${color}"><title>Spiel ${i + 1}: ${fmt(v)}</title></rect>`; });
+    return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="display:block">${s}</svg>`;
 }
-function sparkline(vals, color) {
-    const w = 148, h = 40, pad = 4, n = vals.length;
+function miniBar(vals, color) {
+    const w = 150, h = 46, padT = 4, padB = 2, n = vals.length;
     if (!n) return '';
-    const max = Math.max(...vals), min = Math.min(...vals), span = (max - min) || 1;
-    const X = i => pad + (n === 1 ? (w - 2 * pad) / 2 : (w - 2 * pad) * i / (n - 1));
-    const Y = v => pad + (h - 2 * pad) * (1 - (v - min) / span);
-    const pts = vals.map((v, i) => X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ');
-    return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:160px"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(n - 1).toFixed(1)}" cy="${Y(vals[n - 1]).toFixed(1)}" r="2.4" fill="${color}"/></svg>`;
+    const max = Math.max(...vals, 1), bw = w / n;
+    let s = '';
+    vals.forEach((v, i) => { const bh = (h - padT - padB) * (v / max), x = i * bw, y = h - padB - bh; s += `<rect x="${(x + 0.5).toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(1, bw - 1).toFixed(1)}" height="${bh.toFixed(1)}" fill="${color}"><title>${statFmtTime(v)}</title></rect>`; });
+    return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="display:block">${s}</svg>`;
 }
 function trendBadge(vals) {
     if (vals.length < 3) return '<span class="stat-trend flat">→</span>';
@@ -3828,21 +3827,22 @@ function showStats() {
     const ov = document.getElementById('statsOverlay'), body = document.getElementById('statsBody');
     if (!log.length) { body.innerHTML = '<p class="admin-p">Noch keine Spiele aufgezeichnet. Sobald Ella ein 🩺 Mathe-Spiel beendet, erscheint hier ihr Fortschritt. 🐴</p>'; ov.classList.add('active'); return; }
     log = log.slice().sort((a, b) => (a.ts || 0) - (b.ts || 0));   // chronological → left = older, right = newer
-    const recent = log.slice(-30);
-    const avgTotal = log.reduce((a, g) => a + (g.total || 0), 0) / log.length;
-    const avgWrong = (log.reduce((a, g) => a + (g.wrong || 0), 0) / log.length).toFixed(1);
+    const recent = log.slice(-24);
     const totalBonus = log.reduce((a, g) => a + (g.bonus || 0), 0);
-    let html = `<div class="stats-summary">🎮 <b>${log.length}</b> Spiele &nbsp;·&nbsp; ⏱️ Ø <b>${statFmtTime(avgTotal)}</b> pro Spiel &nbsp;·&nbsp; ❌ Ø <b>${avgWrong}</b> erste Fehler &nbsp;·&nbsp; 🏅 <b>${totalBonus}</b> Zeit-Boni</div>`;
-    html += `<div class="stats-chart"><div class="stats-h">⏱️ Gesamtzeit pro Spiel (Verlauf)</div>${lineChart(recent.map(g => g.total || 0), '#5b8def', statFmtTime)}<div class="stats-axis"><span>← älter</span><span>neuer →</span></div></div>`;
+    let html = `<div class="stats-summary">🎮 <b>${log.length}</b> Spiele gespielt &nbsp;·&nbsp; 🏅 <b>${totalBonus}</b> Zeit-Boni &nbsp;·&nbsp; jeder Balken = ein Spiel</div>`;
+    html += `<div class="stats-chart"><div class="stats-h">⏱️ Gesamtzeit pro Spiel</div>${barChart(recent.map(g => g.total || 0), '#5b8def', statFmtTime)}<div class="stats-axis"><span>← älter</span><span>neuer →</span></div></div>`;
     const types = {}; log.forEach(g => (g.q || []).forEach(e => { (types[e.k] = types[e.k] || []).push(e.s || 0); }));
     const typeKeys = Object.keys(types).sort((a, b) => types[b].length - types[a].length);
     let cards = '';
     typeKeys.forEach(k => {
-        const series = types[k].slice(-30);
-        cards += `<div class="stat-mini"><div class="stat-mini-top"><span class="stat-mini-label">${STAT_TYPE_LABEL[k] || k}</span>${trendBadge(series)}</div>${sparkline(series, '#37bd8c')}<div class="stat-mini-foot">Ø ${statFmtTime(series.reduce((a, v) => a + v, 0) / series.length)} · zuletzt ${statFmtTime(series[series.length - 1])} · ${series.length}×</div></div>`;
+        const series = types[k].slice(-24);
+        cards += `<div class="stat-mini"><div class="stat-mini-top"><span class="stat-mini-label">${STAT_TYPE_LABEL[k] || k}</span>${trendBadge(series)}</div>${miniBar(series, '#37bd8c')}<div class="stat-mini-foot">zuletzt ${statFmtTime(series[series.length - 1])} · ${series.length}×</div></div>`;
     });
-    html += `<div class="stats-chart"><div class="stats-h">📚 Zeit je Aufgabentyp (Verlauf)</div><div class="stat-mini-grid">${cards}</div></div>`;
-    html += `<div class="stats-chart"><div class="stats-h">❌ Erste Fehler pro Spiel (Verlauf)</div>${lineChart(recent.map(g => g.wrong || 0), '#f0a93b', v => String(Math.round(v)))}<div class="stats-axis"><span>← älter</span><span>neuer →</span></div></div>`;
+    html += `<div class="stats-chart"><div class="stats-h">📚 Zeit je Aufgabentyp — pro Spiel</div><div class="stat-mini-grid">${cards}</div></div>`;
+    html += `<div class="stats-chart"><div class="stats-h">❌ Erste Fehler pro Spiel (von 5)</div>${barChart(recent.map(g => g.wrong || 0), '#f0a93b', v => String(Math.round(v)))}<div class="stats-axis"><span>← älter</span><span>neuer →</span></div></div>`;
+    let rows = '';
+    log.forEach((g, i) => { rows += `<div class="stat-row"><span class="stat-row-t">Spiel ${i + 1} · ${statDate(g.ts)} · ⏱️ ${statFmtTime(g.total || 0)}${g.wrong ? ` · ${g.wrong}❌` : ''}${g.bonus ? ` · 🏅${g.bonus}` : ''}</span><button class="stat-del" title="Dieses Spiel löschen" onclick="deleteGameRecord('${g.id}')">🗑</button></div>`; });
+    html += `<div class="stats-chart"><div class="stats-h">🗂️ Einzelne Spiele (zum Löschen)</div><div class="stat-rows">${rows}</div></div>`;
     body.innerHTML = html;
     ov.classList.add('active');
 }
@@ -4045,6 +4045,25 @@ const FIREBASE_CONFIG = {
       if(cloud && cloud.keys){ clearProgress(); applyKeys(cloud.keys); setRaw('ellaSyncTs', String(cloud.ts||Date.now())); refreshAll(); syncMsg('#27ae60','⬇ Aus Cloud geladen. ✅'); }
       else { syncMsg('#e67e22','Nichts in der Cloud gespeichert.'); }
     }).catch(function(e){ syncMsg('#e74c3c','Laden fehlgeschlagen — Internet?'); });
+  };
+  // write a game-history array both locally (rawSet, no re-mirror) AND directly in the cloud (bypasses the union-merge so a delete can't be resynced)
+  function writeGameLog(json){
+    try { setRaw('ellaGameLog', json); } catch(e){}
+    try { if(getMagicWord() && fbInit() && dbRef){ dbRef.child('keys/ellaGameLog').set(json); } } catch(e){}
+  }
+  // wipe the whole history
+  window.clearGameLog = function(){
+    if(!confirm('Ellas GANZEN Spiel-Verlauf (Diagramme) wirklich löschen? Ihre Punkte und Ränge bleiben erhalten.')) return;
+    writeGameLog('[]');
+    try { showStats(); } catch(e){}
+  };
+  // delete ONE game by id (e.g. a test run) — keeps the rest
+  window.deleteGameRecord = function(id){
+    if(!confirm('Dieses eine Spiel aus dem Verlauf löschen?')) return;
+    var log=[]; try{ log=JSON.parse(localStorage.getItem('ellaGameLog')||'[]'); }catch(e){}
+    if(!Array.isArray(log)) log=[];
+    writeGameLog(JSON.stringify(log.filter(function(g){ return g && String(g.id)!==String(id); })));
+    try { showStats(); } catch(e){}
   };
 
   // ══ Players: friendly "Wer spielt gerade?" layer over the magic-word identity ══
