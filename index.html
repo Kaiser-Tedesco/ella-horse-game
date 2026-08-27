@@ -78,15 +78,38 @@
         .choose-horse .ch-name { font-family:'Fredoka One',cursive; font-size:1.12rem; color:#2d2d2d; padding:9px 6px 1px; }
         .choose-horse .ch-breed { color:#999; font-weight:700; font-size:0.8rem; padding:0 6px 12px; }
 
-        /* ── FOCUS STRIP: idle-sound toggle + 10-min hourglass (vet game) ── */
+        /* ── FOCUS STRIP: idle-sound toggle + calm per-question timer bar (vet game) ── */
         .focus-strip { max-width:680px; margin:8px auto 0; padding:0 24px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; }
         .focus-toggle { font-family:'Fredoka One',cursive; font-size:0.95rem; padding:6px 16px; border:none; border-radius:30px; background:#eef1f6; color:#888; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.08); transition:background .2s; }
         .focus-toggle.on { background:#fff3c4; color:#b4881a; }
-        .hourglass { display:flex; align-items:center; gap:8px; font-weight:800; color:#6a3fb5; font-size:1rem; }
-        .hourglass.off { opacity:.35; }
-        .hg-time { font-variant-numeric:tabular-nums; min-width:48px; }
-        .hg-bar { width:120px; height:9px; border-radius:6px; background:#e6e0f3; overflow:hidden; }
-        .hg-bar-fill { height:100%; width:100%; background:linear-gradient(90deg,#c77dff,#6a3fb5); transition:width 1s linear; }
+        .qtimer { display:flex; align-items:center; gap:10px; transition:opacity .2s; }
+        .qtimer.off { opacity:.4; }
+        .qtimer-icon { font-size:1.05rem; }
+        .qtimer-bar { width:240px; max-width:52vw; height:12px; border-radius:8px; background:#e9edf3; overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,0.08); }
+        .qtimer-fill { height:100%; width:100%; border-radius:8px; background:linear-gradient(90deg,#5ad1a6,#37bd8c); transition:width 1s linear, background .8s ease; }
+        .qtimer-fill.low { background:linear-gradient(90deg,#f7cf6b,#f0ab3c); }   /* gentle amber near the end — never red, no alarm */
+        /* beat-the-clock reward pop */
+        .time-pop { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:140; pointer-events:none; }
+        .time-pop.hidden { display:none; }
+        .time-pop-inner { background:#fff; border:5px solid #ffd93d; border-radius:26px; padding:14px 14px 8px; box-shadow:0 16px 50px rgba(0,0,0,0.35); text-align:center; max-width:min(82vw,360px); animation:timePopIn .35s cubic-bezier(.2,1.3,.4,1); }
+        .time-pop-inner img { width:100%; max-height:280px; object-fit:cover; border-radius:16px; display:block; }
+        .time-pop-msg { font-family:'Fredoka One',cursive; color:#b4881a; font-size:1.25rem; margin-top:10px; }
+        @keyframes timePopIn { from{transform:scale(.6);opacity:0} to{transform:scale(1);opacity:1} }
+        /* Grown-ups stats view */
+        .stats-card { text-align:left; max-width:440px; max-height:86vh; overflow:auto; }
+        .stats-summary { background:#f6f2fb; border-radius:12px; padding:10px 12px; font-size:.82rem; color:#5a4a70; line-height:1.7; margin-bottom:6px; }
+        .stats-chart { margin:14px 0; }
+        .stats-h { font-family:'Fredoka One',cursive; font-size:.92rem; color:#7a5a9e; margin-bottom:4px; }
+        .stats-axis { display:flex; justify-content:space-between; font-size:9px; color:#b3a9c4; margin-top:1px; padding:0 6px; }
+        .stat-mini-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .stat-mini { background:#faf8fd; border:1px solid #eee3f5; border-radius:10px; padding:6px 8px; }
+        .stat-mini-top { display:flex; justify-content:space-between; align-items:center; gap:4px; }
+        .stat-mini-label { font-weight:800; font-size:.76rem; color:#5a4a70; }
+        .stat-mini-foot { font-size:.64rem; color:#999; margin-top:1px; }
+        .stat-trend { font-size:.6rem; font-weight:800; padding:1px 5px; border-radius:8px; white-space:nowrap; }
+        .stat-trend.down { background:#e3f7ee; color:#1f9d6b; }
+        .stat-trend.up { background:#fdeede; color:#d98a2b; }
+        .stat-trend.flat { background:#eee; color:#999; }
 
         /* ── COLLECTIBLES (Phase 3) ── */
         .collection-card { max-width:440px; margin:30px auto 0; background:white; border-radius:22px; padding:18px 22px 22px; box-shadow:0 8px 26px rgba(0,0,0,0.12); border:3px solid #ffd93d; text-align:center; }
@@ -479,6 +502,7 @@
         <button class="play-btn flash-btn" onclick="showFlashGame()">⚡ Mal-Quiz: Blitz-Karten!</button>
         <p style="margin-top:12px;color:#999;font-weight:700;font-size:0.95rem;">12 Karten richtig = +5 Punkte und 1 Extra-Fütterung! 🥕</p>
         <div style="margin-top:6px"><button class="admin-link" onclick="openAdmin()">🔒 Grown-ups</button></div>
+        <div style="margin-top:4px"><button class="admin-link" onclick="showStats()">📊 Ellas Fortschritt</button></div>
     </div>
     <!-- ════════════════ COLLECTION ALBUM (Phase 3) ════════════════ -->
     <div class="collection-card" id="collectionCard">
@@ -573,6 +597,15 @@
     </div>
 </div>
 
+<!-- ════════════════ STATS (Grown-ups → progress charts) ════════════════ -->
+<div class="cure-overlay" id="statsOverlay" onclick="if(event.target===this)closeStats()">
+    <div class="cure-card stats-card">
+        <div class="admin-title">📊 Ellas Mathe-Fortschritt</div>
+        <div id="statsBody"></div>
+        <div class="admin-btns" style="margin-top:12px;"><button class="admin-cancel" onclick="closeStats()">Schließen</button></div>
+    </div>
+</div>
+
 <!-- ════════════════ GAME PAGE ════════════════ -->
 <div id="gamePage" class="hidden">
     <div class="game-nav">
@@ -616,10 +649,16 @@
     </div>
     <div class="focus-strip" id="mFocusStrip">
         <button class="focus-toggle on" id="mFocusToggle" onclick="toggleFocus()">🔔 Fokus</button>
-        <div class="hourglass" id="mHourglass">
-            <span id="mHgIcon">⏳</span>
-            <span class="hg-time" id="mHgTime">10:00</span>
-            <div class="hg-bar"><div class="hg-bar-fill" id="mHgFill"></div></div>
+        <div class="qtimer" id="mQTimerWrap">
+            <span class="qtimer-icon">⏱️</span>
+            <div class="qtimer-bar"><div class="qtimer-fill" id="mQTimerFill"></div></div>
+        </div>
+    </div>
+
+    <div id="mTimePop" class="time-pop hidden" aria-hidden="true">
+        <div class="time-pop-inner">
+            <img id="mTimePopImg" alt="Schnell geschafft!">
+            <div class="time-pop-msg">Schnell geschafft! ⏱️ <b>+1</b> ✨</div>
         </div>
     </div>
 
@@ -2374,9 +2413,9 @@ let mChooseSlot = 0, mChooseCandidates = [], mChosen = false;   // Phase 1: one 
 // A session is 5 fresh questions (year update 2026-07). Question 1 is ALWAYS schriftliche
 // Multiplikation (3-stellig × 2-stellig). The other 4 slots walk the 13-theme Grade-4 cycle
 // below via a persistent pointer (localStorage 'ellaTopicCycle', mirrored by the cloud sync),
-// so every theme comes up exactly once per 13 slots ≈ 3¼ sessions. Each question uses a
+// so every theme comes up exactly once per 12 slots ≈ 4 sessions. Each question uses a
 // different horse where possible and a random vet concept, reshuffled every game.
-const TOPIC_CYCLE = ['add', 'wt', 'div', 'money', 'sub', 'len', 'tens', 'compare', 'round', 'zeit', 'halb', 'vol', 'estimate'];
+const TOPIC_CYCLE = ['add', 'wt', 'money', 'sub', 'len', 'tens', 'compare', 'round', 'zeit', 'halb', 'vol', 'estimate'];   // 12 rotating themes; 'longmult' AND 'div' are pinned into every game (see buildMathPool)
 // convert concepts bake their family into make() — read it back out of the function source
 function conceptFam(c) { const m = String(c.make).match(/Qconvert\(\s*'(\w+)'/); return m ? m[1] : null; }
 function themeMatches(theme, c) {
@@ -2393,9 +2432,9 @@ function setTopicPtr(n) { try { localStorage.setItem('ellaTopicCycle', String(n 
 
 function buildMathPool() {
     const ptr = getTopicPtr();
-    const themes = [0, 1, 2, 3].map(i => TOPIC_CYCLE[(ptr + i) % TOPIC_CYCLE.length]);
-    setTopicPtr(ptr + 4);   // this session consumes 4 themes
-    const order = shuffle(['longmult', ...themes]);   // longmult is ALWAYS in the line-up, but at a random slot (no longer pinned to Q1); plus the 4 cycle themes
+    const themes = [0, 1, 2].map(i => TOPIC_CYCLE[(ptr + i) % TOPIC_CYCLE.length]);
+    setTopicPtr(ptr + 3);   // this session consumes 3 cycle themes
+    const order = shuffle(['longmult', 'div', ...themes]);   // longmult AND div are ALWAYS in the line-up (random slots); plus 3 rotating cycle themes
     const usedHorse = new Set(), out = [];
     for (const t of order) {
         const match = t === 'longmult' ? (c => c.type === 'longmult') : (c => themeMatches(t, c));
@@ -2425,10 +2464,10 @@ function showMathGame() {
     document.getElementById('mainPage').classList.add('hidden');
     document.getElementById('mathGamePage').classList.remove('hidden');
     startMathGame();
-    mHgLeft = 600; startFocus();   // fresh 10-minute hourglass each time she enters
+    startFocus();   // set up the idle nudge + the per-question timer loop
 }
 function startMathGame() {
-    mScore = 0; mQ = 0; mBusy = false; mPerfect = true; mChosen = false;
+    mScore = 0; mQ = 0; mBusy = false; mPerfect = true; mChosen = false; mTimeBonus = 0; mSessionQ = [];
     mPool = buildMathPool();
     document.getElementById('mQTotal').textContent = mPool.length;
     showMathQuestion();
@@ -2467,18 +2506,18 @@ function choosePatient(idx) {
     showMathQuestion();
 }
 
-// ── Phase 2: focus helpers — toggleable gentle idle nudge (45s) + a 10-minute hourglass ──
-let mFocusOn = true, mHgLeft = 600, mHgTimer = null, mIdleTimer = null, mNudgeIdx = 0, mFocusInit = false, mAudioCtx = null;
+// ── Phase 2: focus helpers — toggleable idle nudge (45s sound) + a calm per-question timer bar ──
+let mFocusOn = true, mIdleTimer = null, mNudgeIdx = 0, mFocusInit = false, mAudioCtx = null;
+let mTimerBudget = 150, mTimerLeft = 150, mTimerRunning = false, mTimerTick = null, mTimeBonus = 0, mQStartMs = 0, mSessionQ = [], mTimePopTimer = null;
 const mNudgeClips = ['sndNudge1', 'sndNudge2', 'sndNudge3'];
-function fmtClock(s) { const m = Math.floor(s / 60), ss = s % 60; return m + ':' + String(ss).padStart(2, '0'); }
+function fmtClock(s) { s = Math.max(0, Math.round(s)); const m = Math.floor(s / 60), ss = s % 60; return m + ':' + String(ss).padStart(2, '0'); }
 function renderFocus() {
-    const tog = document.getElementById('mFocusToggle'), hg = document.getElementById('mHourglass');
+    const tog = document.getElementById('mFocusToggle'), wrap = document.getElementById('mQTimerWrap'), fill = document.getElementById('mQTimerFill');
     if (!tog) return;
     tog.classList.toggle('on', mFocusOn);
     tog.textContent = (mFocusOn ? '🔔' : '🔕') + ' Fokus';
-    hg.classList.toggle('off', !mFocusOn);
-    document.getElementById('mHgTime').textContent = fmtClock(mHgLeft);
-    document.getElementById('mHgFill').style.width = (mHgLeft / 600 * 100) + '%';
+    if (wrap) wrap.classList.toggle('off', !mFocusOn);
+    if (fill) { const pct = mTimerBudget ? Math.max(0, mTimerLeft / mTimerBudget * 100) : 0; fill.style.width = pct + '%'; fill.classList.toggle('low', pct <= 25); }
 }
 function startFocus() {
     mFocusOn = localStorage.getItem('ellaNudgeOn') !== '0';   // default ON
@@ -2488,29 +2527,43 @@ function startFocus() {
         page.addEventListener('keydown', resetIdle, true);
         mFocusInit = true;
     }
+    if (!mTimerTick) tickStart();   // the 1s loop; it only decrements while a question timer is running AND focus is on
     renderFocus();
-    if (mHgTimer) return;                 // already running (stays continuous across sessions)
-    if (mFocusOn) tickStart();
     resetIdle();
 }
+// per-question timer: budget resets each question; depletes ONLY while focus is ON (toggling off freezes it, no sound/penalty).
+function startQuestionTimer(kind) {
+    mTimerBudget = (kind === 'longmult') ? 300 : 150;   // 5 min for the big written multiplication, 2.5 min for everything else
+    mTimerLeft = mTimerBudget; mTimerRunning = true; mQStartMs = Date.now();
+    renderFocus();
+}
+function stopQuestionTimer() { mTimerRunning = false; }
 function tickStart() {
-    if (mHgTimer) clearInterval(mHgTimer);
-    mHgTimer = setInterval(() => {
-        mHgLeft--;
-        if (mHgLeft <= 0) { mHgLeft = 600; softChime(); }    // refill + soft chime
-        renderFocus();
+    if (mTimerTick) clearInterval(mTimerTick);
+    mTimerTick = setInterval(() => {
+        if (mTimerRunning && mFocusOn && mTimerLeft > 0) { mTimerLeft--; renderFocus(); }   // depletes only while ON; pausing (off) freezes; no sound/penalty at 0
     }, 1000);
 }
 function stopFocus() {
-    if (mHgTimer) { clearInterval(mHgTimer); mHgTimer = null; }
+    if (mTimerTick) { clearInterval(mTimerTick); mTimerTick = null; }
     if (mIdleTimer) { clearTimeout(mIdleTimer); mIdleTimer = null; }
+    mTimerRunning = false;
 }
 function toggleFocus() {
     mFocusOn = !mFocusOn;
     localStorage.setItem('ellaNudgeOn', mFocusOn ? '1' : '0');
     renderFocus();
-    if (mFocusOn) { tickStart(); resetIdle(); }
-    else { if (mHgTimer) { clearInterval(mHgTimer); mHgTimer = null; } if (mIdleTimer) { clearTimeout(mIdleTimer); mIdleTimer = null; } }
+    resetIdle();   // re-arm (or clear) the 45s idle nudge; timer pause/resume is handled by the tick guard on mFocusOn
+}
+const FUNNY_HORSES = ['horse-images/funny-horse-1.jpg', 'horse-images/funny-horse-2.jpg', 'horse-images/funny-horse-3.jpg', 'horse-images/funny-horse-4.jpg', 'horse-images/funny-horse-5.jpg'];
+function showTimePop() {
+    const pop = document.getElementById('mTimePop'), img = document.getElementById('mTimePopImg');
+    if (!pop || !img) return;
+    img.style.display = ''; img.onerror = function () { this.style.display = 'none'; };
+    img.src = FUNNY_HORSES[Math.floor(Math.random() * FUNNY_HORSES.length)];
+    pop.classList.remove('hidden');
+    clearTimeout(mTimePopTimer);
+    mTimePopTimer = setTimeout(() => pop.classList.add('hidden'), 4400);
 }
 function resetIdle() {
     if (mIdleTimer) { clearTimeout(mIdleTimer); mIdleTimer = null; }
@@ -2573,6 +2626,7 @@ function showMathQuestion() {
     if (mConvPhase === 'comma') { btn.classList.add('hidden'); document.getElementById('mHelpBtn').classList.add('hidden'); }   // step ① is tap-only
 
     resetIdle();   // re-arm the gentle idle nudge for this new question
+    startQuestionTimer(q.kind);   // fresh per-question countdown (paused-safe, gentle)
 }
 
 function calcField(id, label, mode) {
@@ -2748,6 +2802,11 @@ function answerComma(pick) {
 function mathCorrect(q, fbEl) {
     mBusy = true;
     mScore++; document.getElementById('mScoreVal').textContent = mScore;   // healed once she gets it right (even after a retry)
+    stopQuestionTimer();
+    const sec = Math.max(0, Math.round((Date.now() - mQStartMs) / 1000));
+    const gotBonus = mTimerLeft > 0;   // beat the clock: bar not empty (pausing preserves it, so a pause still lets her earn it)
+    if (gotBonus) { mTimeBonus++; showTimePop(); }
+    mSessionQ.push({ kind: q.kind, sec: sec, wrong: mFirstTry ? 0 : 1, bonus: gotBonus ? 1 : 0 });
     fbEl.className = 'calc-feedback ok';
     fbEl.textContent = '✅ Richtige Dosis! Jetzt mach die Medizin selbst! 🧪';
     startMixPhase(q);
@@ -3454,16 +3513,19 @@ function showMathEnd() {
     document.getElementById('mEndScore').textContent = `You healed ${mScore} of ${total} patients! 🎊`;
     document.getElementById('mEndMsg').textContent = msg;
 
-    // ── award persistent vet points: full points for healing them all, +5 bonus for a perfect (no-mistake) round ──
-    const earned = mPerfect ? 15 : 10;
+    // ── award persistent vet points: full for healing them all, +5 for a perfect round, +1 per beat-the-clock answer ──
+    const base = mPerfect ? 15 : 10;
+    const earned = base + mTimeBonus;
     const before = getVetPoints(), after = before + earned;
     setVetPoints(after);
     const eff = effectiveTier(), tier = VET_TIERS[eff], ach = getRankAchieved();
 
     // earning points also unlocks 2 plays of the just-for-fun Feed Kitchen
     setFeedTokens(getFeedTokens() + 2); renderFeedButton();
+    recordGameLog();   // log this game's per-question timings + first-try errors for the Grown-ups stats view
 
     let html = `<div class="ev-earned">🎖️ +${earned} vet points!${mPerfect ? ' (perfect bonus +5! ✨)' : ''}</div>`;
+    if (mTimeBonus > 0) html += `<div class="ev-feed">⏱️ +${mTimeBonus} Zeit-Bonus für schnelle Antworten! 🐴</div>`;
     html += `<div class="ev-feed">🥕 +2 Feed Kitchen plays unlocked!</div>`;
     if (examAvailable()) html += `<div class="ev-levelup">🎓 Exam unlocked! Take the Tierarzt-Prüfung on the main page to level up! ${VET_TIERS[ach + 1].emoji}</div>`;
     html += `<div class="ev-total">Total: ${after} vet points</div>`;
@@ -3712,6 +3774,79 @@ function openAdmin() {
     setTimeout(() => document.getElementById('adminPw').focus(), 60);
 }
 function closeAdmin() { document.getElementById('adminOverlay').classList.remove('active'); }
+
+// ── Grown-ups stats: per-game history (synced) + hand-drawn inline-SVG charts ──
+function recordGameLog() {
+    try {
+        const q = (mSessionQ || []).map(e => ({ k: e.kind, s: e.sec, w: e.wrong, b: e.bonus }));
+        const total = q.reduce((a, e) => a + (e.s || 0), 0);
+        const wrong = q.reduce((a, e) => a + (e.w || 0), 0);
+        const rec = { id: Date.now() + '-' + Math.floor(Math.random() * 100000), ts: Date.now(), total: total, wrong: wrong, bonus: mTimeBonus || 0, perfect: mPerfect ? 1 : 0, q: q };
+        let log = [];
+        try { log = JSON.parse(localStorage.getItem('ellaGameLog') || '[]'); } catch (e) {}
+        if (!Array.isArray(log)) log = [];
+        log.push(rec);
+        localStorage.setItem('ellaGameLog', JSON.stringify(log.slice(-100)));   // keep last ~100; mirrored to the cloud via the append-merge
+    } catch (e) {}
+}
+const STAT_TYPE_LABEL = { longmult:'Schriftlich ×', div:'Teilen ÷', add:'Plus +', sub:'Minus −', money:'Geld €', compare:'Preisvergleich', round:'Runden', tens:'×÷ 10/100', halb:'Halbschriftlich', estimate:'Überschlagen', timecalc:'Zeit ⏰', convert:'Einheiten' };
+function statFmtTime(s) { s = Math.round(s); return s >= 60 ? Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' min' : s + 's'; }
+function lineChart(vals, color, fmt) {
+    const w = 330, h = 118, padL = 40, padR = 8, padT = 12, padB = 14, n = vals.length;
+    if (!n) return '';
+    const max = Math.max(...vals), min = Math.min(...vals), span = (max - min) || 1;
+    const plotW = w - padL - padR, plotH = h - padT - padB;
+    const X = i => padL + (n === 1 ? plotW / 2 : plotW * i / (n - 1));
+    const Y = v => padT + plotH * (1 - (v - min) / span);
+    const pts = vals.map((v, i) => X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ');
+    let s = `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h - padB}" stroke="#e5ddef"/><line x1="${padL}" y1="${h - padB}" x2="${w - padR}" y2="${h - padB}" stroke="#e5ddef"/>`;
+    s += `<text x="${padL - 4}" y="${padT + 4}" font-size="9" text-anchor="end" fill="#a99">${fmt(max)}</text><text x="${padL - 4}" y="${h - padB}" font-size="9" text-anchor="end" fill="#a99">${fmt(min)}</text>`;
+    s += `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    s += vals.map((v, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="2.4" fill="${color}"><title>#${i + 1}: ${fmt(v)}</title></circle>`).join('');
+    return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:360px">${s}</svg>`;
+}
+function sparkline(vals, color) {
+    const w = 148, h = 40, pad = 4, n = vals.length;
+    if (!n) return '';
+    const max = Math.max(...vals), min = Math.min(...vals), span = (max - min) || 1;
+    const X = i => pad + (n === 1 ? (w - 2 * pad) / 2 : (w - 2 * pad) * i / (n - 1));
+    const Y = v => pad + (h - 2 * pad) * (1 - (v - min) / span);
+    const pts = vals.map((v, i) => X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ');
+    return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:160px"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(n - 1).toFixed(1)}" cy="${Y(vals[n - 1]).toFixed(1)}" r="2.4" fill="${color}"/></svg>`;
+}
+function trendBadge(vals) {
+    if (vals.length < 3) return '<span class="stat-trend flat">→</span>';
+    const h = Math.floor(vals.length / 2), early = vals.slice(0, h), late = vals.slice(-h);
+    const d = late.reduce((a, v) => a + v, 0) / late.length - early.reduce((a, v) => a + v, 0) / early.length;
+    if (d <= -3) return '<span class="stat-trend down">⬇ schneller</span>';
+    if (d >= 3) return '<span class="stat-trend up">⬆ langsamer</span>';
+    return '<span class="stat-trend flat">→ stabil</span>';
+}
+function showStats() {
+    let log = []; try { log = JSON.parse(localStorage.getItem('ellaGameLog') || '[]'); } catch (e) {}
+    if (!Array.isArray(log)) log = [];
+    const ov = document.getElementById('statsOverlay'), body = document.getElementById('statsBody');
+    if (!log.length) { body.innerHTML = '<p class="admin-p">Noch keine Spiele aufgezeichnet. Sobald Ella ein 🩺 Mathe-Spiel beendet, erscheint hier ihr Fortschritt. 🐴</p>'; ov.classList.add('active'); return; }
+    log = log.slice().sort((a, b) => (a.ts || 0) - (b.ts || 0));   // chronological → left = older, right = newer
+    const recent = log.slice(-30);
+    const avgTotal = log.reduce((a, g) => a + (g.total || 0), 0) / log.length;
+    const avgWrong = (log.reduce((a, g) => a + (g.wrong || 0), 0) / log.length).toFixed(1);
+    const totalBonus = log.reduce((a, g) => a + (g.bonus || 0), 0);
+    let html = `<div class="stats-summary">🎮 <b>${log.length}</b> Spiele &nbsp;·&nbsp; ⏱️ Ø <b>${statFmtTime(avgTotal)}</b> pro Spiel &nbsp;·&nbsp; ❌ Ø <b>${avgWrong}</b> erste Fehler &nbsp;·&nbsp; 🏅 <b>${totalBonus}</b> Zeit-Boni</div>`;
+    html += `<div class="stats-chart"><div class="stats-h">⏱️ Gesamtzeit pro Spiel (Verlauf)</div>${lineChart(recent.map(g => g.total || 0), '#5b8def', statFmtTime)}<div class="stats-axis"><span>← älter</span><span>neuer →</span></div></div>`;
+    const types = {}; log.forEach(g => (g.q || []).forEach(e => { (types[e.k] = types[e.k] || []).push(e.s || 0); }));
+    const typeKeys = Object.keys(types).sort((a, b) => types[b].length - types[a].length);
+    let cards = '';
+    typeKeys.forEach(k => {
+        const series = types[k].slice(-30);
+        cards += `<div class="stat-mini"><div class="stat-mini-top"><span class="stat-mini-label">${STAT_TYPE_LABEL[k] || k}</span>${trendBadge(series)}</div>${sparkline(series, '#37bd8c')}<div class="stat-mini-foot">Ø ${statFmtTime(series.reduce((a, v) => a + v, 0) / series.length)} · zuletzt ${statFmtTime(series[series.length - 1])} · ${series.length}×</div></div>`;
+    });
+    html += `<div class="stats-chart"><div class="stats-h">📚 Zeit je Aufgabentyp (Verlauf)</div><div class="stat-mini-grid">${cards}</div></div>`;
+    html += `<div class="stats-chart"><div class="stats-h">❌ Erste Fehler pro Spiel (Verlauf)</div>${lineChart(recent.map(g => g.wrong || 0), '#f0a93b', v => String(Math.round(v)))}<div class="stats-axis"><span>← älter</span><span>neuer →</span></div></div>`;
+    body.innerHTML = html;
+    ov.classList.add('active');
+}
+function closeStats() { document.getElementById('statsOverlay').classList.remove('active'); }
 function adminCheckPw() {
     if (document.getElementById('adminPw').value === '0101') {
         document.getElementById('adminStep1').classList.add('hidden');
@@ -3833,8 +3968,9 @@ const FIREBASE_CONFIG = {
     function unionArr(k){ if(a[k]==null&&b[k]==null) return; var seen={}, res=[]; [a,b].forEach(function(o){ try{ (JSON.parse(o[k]||'[]')||[]).forEach(function(x){ if(!seen[x]){ seen[x]=1; res.push(x); } }); }catch(e){} }); out[k]=JSON.stringify(res); }
     function unionMap(k){ if(a[k]==null&&b[k]==null) return; function p(o){ try{ return JSON.parse(o[k]||'{}')||{}; }catch(e){ return {}; } } var res={}; [p(a),p(b)].forEach(function(o){ Object.keys(o).forEach(function(h){ var seen={}; res[h]=res[h]||[]; res[h].forEach(function(x){seen[x]=1;}); (o[h]||[]).forEach(function(x){ if(!seen[x]){ seen[x]=1; res[h].push(x); } }); }); }); out[k]=JSON.stringify(res); }
     function newest(k){ if(a[k]==null&&b[k]==null) return; out[k] = cloudNewer ? (b[k]!=null?b[k]:a[k]) : (a[k]!=null?a[k]:b[k]); }
+    function unionLog(k){ if(a[k]==null&&b[k]==null) return; function p(o){ try{ var arr=JSON.parse(o[k]||'[]'); return Array.isArray(arr)?arr:[]; }catch(e){ return []; } } var seen={}, res=[]; p(a).concat(p(b)).forEach(function(r){ if(r&&r.id!=null&&!seen[r.id]){ seen[r.id]=1; res.push(r); } }); res.sort(function(x,y){ return (x.ts||0)-(y.ts||0); }); out[k]=JSON.stringify(res.slice(-100)); }   // game history: append/union by id across devices, keep last 100 (progress-only-up doesn't apply)
     ['ellaVetPoints','ellaRankAchieved','ellaCollectSet'].forEach(maxKey);
-    unionArr('ellaSeenConcepts'); unionMap('ellaHorseGifts');
+    unionArr('ellaSeenConcepts'); unionMap('ellaHorseGifts'); unionLog('ellaGameLog');
     ['ellaFeedTokens','ellaGifts','ellaCollectProgress','ellaTopicCycle','ellaNudgeOn','ellaCollection'].forEach(newest);
     [a,b].forEach(function(o){ Object.keys(o).forEach(function(k){ if(!(k in out)) newest(k); }); });   // any other progress key → newer wins
     return out;
