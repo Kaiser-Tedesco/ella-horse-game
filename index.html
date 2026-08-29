@@ -2559,7 +2559,7 @@ function toggleFocus() {
     renderFocus();
     resetIdle();   // re-arm (or clear) the 45s idle nudge; timer pause/resume is handled by the tick guard on mFocusOn
 }
-const FUNNY_HORSES = ['horse-images/funny-horse-1.jpg', 'horse-images/funny-horse-2.jpg', 'horse-images/funny-horse-3.jpg', 'horse-images/funny-horse-4.jpg', 'horse-images/funny-horse-5.jpg'];
+const FUNNY_HORSES = Array.from({ length: 15 }, (_, i) => 'horse-images/funny-horse-' + (i + 1) + '.jpg');   // beat-the-clock reward photos (funny-horse-1..15.jpg)
 function showTimePop() {
     const pop = document.getElementById('mTimePop'), img = document.getElementById('mTimePopImg');
     if (!pop || !img) return;
