@@ -2204,6 +2204,47 @@ function Qtimecalc(story) {
         problemHTML:`${startDisp} + ${add} min = ? min`, story: story(startDisp, add) };
 }
 
+// ── Klasse-5 KA1-Vorbereitung (2026-09): Stellenwert + Platzhalter. Beides sind normale rotierende
+//    Cycle-Themen (siehe TOPIC_CYCLE), NICHT gepinnt. Einzelne ganze Zahl als Antwort → Standard-int-Feld. ──
+// Stellenwert: welchen Wert hat eine Ziffer an ihrer Stelle (z. B. die 7 in 47.320 = 7000).
+//    Story-Arg: (nDisp, digit) — die große Zahl mit Tausenderpunkt + die (eindeutige) Zielziffer.
+const STELLEN_NAMES = ['Einer', 'Zehner', 'Hunderter', 'Tausender', 'Zehntausender', 'Hunderttausender'];
+function Qstellenwert(story) {
+    const L = [4, 4, 5, 5, 5, 6][rnd(0, 5)];                 // 4–6 Stellen (bis 1 000 000, wie im Lehrplan)
+    const p = rnd(1, L - 1);                                 // Zielstelle: Zehner .. höchste Stelle (Einer wäre zu leicht)
+    const d = rnd(1, 9);                                     // Zielziffer nie 0 → Antwort nie 0
+    const digits = [];                                       // little-endian: Index = Stelle (0 = Einer)
+    for (let i = 0; i < L; i++) {
+        if (i === p) { digits[i] = d; continue; }
+        let g = rnd(i === L - 1 ? 1 : 0, 9); while (g === d) g = rnd(i === L - 1 ? 1 : 0, 9);   // jede andere Ziffer ≠ d → d ist eindeutig
+        digits[i] = g;
+    }
+    const n = digits.reduce((s, dig, i) => s + dig * Math.pow(10, i), 0);
+    const answer = d * Math.pow(10, p), place = STELLEN_NAMES[p];
+    return { kind:'stellenwert', answer, n, digit:d, place,
+        label:'🔢 Stellenwert: Welchen Wert hat die Ziffer? Zähl die Stellen von rechts – Einer, Zehner, Hunderter, Tausender …',
+        problemHTML:`Welchen Wert hat die Ziffer <b>${d}</b> in <b>${fmtTh(n)}</b>?<div class="carry-hint">Die ${d} steht an der <b>${place}</b>-Stelle – schreib die ${d} und so viele Nullen wie die Stelle.</div>`,
+        story: story(fmtTh(n), d) };
+}
+// Platzhalter: eine Zahl in einer +/− -Gleichung fehlt (z. B. 340 + □ = 500 → 160). Gegenrechnung/Umkehraufgabe.
+//    Story-Arg: (exprDisp) — die Gleichung als Text, z. B. "340 + □ = 500".
+function Qplatzhalter(story) {
+    let expr, answer;
+    if (Math.random() < 0.5) {                               // Addition: a + m = s, ein Summand fehlt
+        const a = rnd(20, 480), m = rnd(20, 480), s = a + m;
+        if (Math.random() < 0.5) { expr = `${fmtTh(a)} + □ = ${fmtTh(s)}`; answer = m; }
+        else                     { expr = `□ + ${fmtTh(m)} = ${fmtTh(s)}`; answer = a; }
+    } else {                                                 // Subtraktion: min − b = r  (min = b + r)
+        const b = rnd(20, 480), r = rnd(20, 480), min = b + r;
+        if (Math.random() < 0.5) { expr = `${fmtTh(min)} − □ = ${fmtTh(r)}`; answer = b; }
+        else                     { expr = `□ − ${fmtTh(b)} = ${fmtTh(r)}`; answer = min; }
+    }
+    return { kind:'platzhalter', answer, expr,
+        label:'🔍 Platzhalter: Welche Zahl fehlt? Nutze die Umkehr-Aufgabe (Gegenrechnung)!',
+        problemHTML:`${expr}<div class="carry-hint">Welche Zahl gehört ins □? Tipp: rechne rückwärts (Umkehr-Aufgabe).</div>`,
+        story: story(expr) };
+}
+
 // ── ~92 horse-vet concepts (German). Each = a vet idea (with sound-out term for the big word),
 //    a coherent maths task of a fixed skill type, and a matching treatment for the cure step. ──
 const vetConcepts = [
@@ -2409,17 +2450,29 @@ const vetConcepts = [
   { horseIdx:43, type:'round', treatment:'bucket', title:"Rustys große Rodeo-Show", intro:"Rusty ist blitzschnell und tritt bei einer großen Rodeo-Show (Ro-de-o) auf. Am Abend zählt die Kasse die vielen Zuschauer, und die große Zahl soll schön gerundet werden.", cured:"Rusty hat alle mit seinem schnellen Start begeistert! 🤠", make:()=>Qround((n,place)=>`Bei Rustys schnellem Rodeo-Rennen haben heute <b>${n}</b> Zuschauer zugejubelt! Runde die Zahl auf <b>${place}</b>.`) },
   { horseIdx:44, type:'estimate', treatment:'bucket', title:"Djangos Gelenk-Kraut für den weichen Gang", intro:"Damit Djangos Gelenke (Ge-len-ke) bei seinem sanften Schweberitt geschmeidig bleiben, streust du, als Tierärztin, täglich etwas Gelenk-Kraut ins Futter. Du willst ungefähr wissen, wie viel für einen ganzen Block nötig ist.", cured:"Django gleitet wieder sanft wie auf Wolken über den Weg! 🎵", make:()=>Qestimate((n,d)=>`Django bekommt ungefähr <b>${n} g</b> Gelenk-Kraut pro Tag, <b>${d} Tage</b> lang. Überschlage: etwa wie viel Gramm sind das insgesamt?`) },
   { horseIdx:44, type:'convert', treatment:'bucket', title:"Djangos Hafer abwiegen", intro:"Django bekommt sein Kraftfutter genau abgewogen, damit er für die langen, ruhigen Ausritte genug Kraft (Kraft) hat. Die Pflegerin wiegt seinen Hafer.", cured:"Django ist gestärkt und nickt zufrieden mit dem Kopf im Takt! 😌", make:()=>Qconvert('wt',(disp,unit)=>`Django bekommt heute <b>${disp}</b> Hafer. Wie viel ist das in <b>${unit}</b>?`) },
+
+  // ===== KLASSE-5 KA1-VORBEREITUNG (2026-09): Stellenwert + Platzhalter (rotierende Cycle-Themen) =====
+  { horseIdx:0, type:'stellenwert', treatment:'bucket', title:"Stellas Wüsten-Reise", intro:"Araber wie Stella stammen aus der heißen Wüste (Wüs-te) und können dort riesige Strecken laufen, ohne müde zu werden. Nach einer langen Reise durch den Sand wird Stellas zurückgelegte Strecke in Metern ins Ritt-Buch geschrieben.", cured:"Stella hat ihre weite Wüsten-Reise geschafft und schnaubt zufrieden am Wassereimer! 🏜️", make:()=>Qstellenwert((n,digit)=>`Auf ihrer langen Wüsten-Reise ist Stella <b>${n}</b> Meter gelaufen. Welchen Wert hat die Ziffer <b>${digit}</b> in dieser Zahl?`) },
+  { horseIdx:2, type:'stellenwert', treatment:'injection', title:"Thunders wilde Mustang-Herde", intro:"Thunder stammt von wilden Mustangs (Mus-tangs) ab, die in großen Herden frei durch Amerika ziehen. Einmal im Jahr fliegen Ranger mit dem Flugzeug über die Prärie und zählen alle Wildpferde.", cured:"Thunder darf mit seiner großen Herde weiterziehen, und die gezählte Zahl stimmt genau! 🐎", make:()=>Qstellenwert((n,digit)=>`Bei der großen Zählung wurden <b>${n}</b> wilde Mustangs gezählt. Welchen Wert hat die Ziffer <b>${digit}</b> in dieser Zahl?`) },
+  { horseIdx:8, type:'stellenwert', treatment:'bucket', title:"Brios Winter-Heulager", intro:"Damit Brio und alle Haflinger (Haf-lin-ger) den ganzen Winter genug fressen, wird im Herbst ein riesiges Heulager (Heu-la-ger) angelegt. Der Bauer wiegt den ganzen Vorrat und schreibt die große Zahl auf.", cured:"Brios Heulager ist randvoll und die Zahl stimmt – jetzt kann der Winter kommen! 🌾", make:()=>Qstellenwert((n,digit)=>`Im Heulager liegen <b>${n}</b> Kilogramm Heu für den Winter. Welchen Wert hat die Ziffer <b>${digit}</b> in dieser Zahl?`) },
+  { horseIdx:10, type:'stellenwert', treatment:'salve', title:"Auroras Zuchtbuch-Nummer", intro:"Der Akhal-Teke (A-chal-Te-ke) wie Aurora hat ein Fell, das in der Sonne wie Gold glänzt. Jedes dieser seltenen Pferde wird mit einer eigenen Nummer in ein großes Zuchtbuch (Zucht-buch) eingetragen. Danach pflegst du ihr glänzendes Fell mit etwas Öl.", cured:"Auroras goldenes Fell glänzt, und ihre Nummer im Zuchtbuch stimmt genau! ✨", make:()=>Qstellenwert((n,digit)=>`Aurora ist im Zuchtbuch mit der Nummer <b>${n}</b> eingetragen. Welchen Wert hat die Ziffer <b>${digit}</b> in dieser Nummer?`) },
+  { horseIdx:12, type:'stellenwert', treatment:'bandage', title:"Chestnuts Zugkraft-Test", intro:"Chestnut ist ein Suffolk Punch (Sa-folk Pantsch), ein kräftiges Zugpferd. Beim Zugkraft-Test (Zug-kraft) zieht sie einen schweren Schlitten, und das Gewicht wird in Kilogramm aufgeschrieben. Danach legst du ihren Beinen einen stützenden Verband an.", cured:"Chestnut hat den schweren Schlitten mühelos gezogen, und die Gewichtszahl ist richtig notiert! 💪", make:()=>Qstellenwert((n,digit)=>`Chestnut zieht beim Test einen Schlitten von <b>${n}</b> Kilogramm. Welchen Wert hat die Ziffer <b>${digit}</b> in dieser Zahl?`) },
+  { horseIdx:1, type:'platzhalter', treatment:'bucket', title:"Biscuits verschmierter Futterplan", intro:"Biscuit ist ein riesiger Clydesdale (Klais-dejl) mit dicken Fellfransen an den Beinen und großem Appetit. Auf ihrem Futterplan an der Stalltür ist heute eine Zahl mit Matsch verschmiert (fer-schmiert)!", cured:"Die fehlende Zahl ist gefunden, Biscuits Futterplan stimmt wieder, und sie bekommt genau die richtige Menge! 🥕", make:()=>Qplatzhalter((expr)=>`Auf Biscuits Futterplan steht eine Rechnung, aber eine Zahl fehlt: <b>${expr}</b>. Welche Zahl gehört in das Kästchen □, damit die Rechnung stimmt?`) },
+  { horseIdx:3, type:'platzhalter', treatment:'injection', title:"Dottys verwischter Behandlungsplan", intro:"Dotty ist ein Appaloosa (Ä-pa-lu-sa) mit lustigen Tupfen im Fell. Auf ihrem Behandlungsplan (Be-hand-lungs-plan) ist eine Zahl abgewischt, und ohne sie geht die Rechnung nicht auf.", cured:"Die Zahl ist wieder da, Dottys Plan stimmt, und sie hüpft mit ihren Tupfen fröhlich davon! 🐆", make:()=>Qplatzhalter((expr)=>`Auf Dottys Behandlungsplan fehlt eine Zahl: <b>${expr}</b>. Welche Zahl muss in das Kästchen □?`) },
+  { horseIdx:5, type:'platzhalter', treatment:'bandage', title:"Sunnys lückenhafter Trainingsplan", intro:"Sunny ist ein Palomino (Pa-lo-mi-no) mit goldenem Fell und heller Mähne. Auf ihrem Trainingsplan an der Boxentür ist eine Zahl verwischt worden.", cured:"Sunnys Plan ist wieder komplett, und sie trabt mit wehender goldener Mähne los! ☀️", make:()=>Qplatzhalter((expr)=>`Auf Sunnys Trainingsplan steht eine Rechnung mit Lücke: <b>${expr}</b>. Welche Zahl gehört in das Kästchen □?`) },
+  { horseIdx:9, type:'platzhalter', treatment:'bandage', title:"Lunas Trainings-Protokoll", intro:"Lipizzaner (Li-pi-tsa-ner) wie Luna werden dunkel geboren, und ihr Fell wird erst mit den Jahren schneeweiß. Sie üben wunderschöne Sprünge der Hohen Schule. Auf Lunas Trainings-Protokoll (Pro-to-koll) ist eine Zahl verwischt.", cured:"Lunas Protokoll ist vollständig, und sie übt weiter an ihrer perfekten Kapriole! ✨", make:()=>Qplatzhalter((expr)=>`Auf Lunas Trainings-Protokoll fehlt eine Zahl: <b>${expr}</b>. Welche Zahl gehört in das Kästchen □?`) },
+  { horseIdx:11, type:'platzhalter', treatment:'bucket', title:"Freyas unleserlicher Fütterungsplan", intro:"Freya ist ein Fjordpferd (Fjord-pferd) mit einer besonderen Stehmähne (Steh-mäh-ne): Der dunkle Streifen in der Mitte bleibt stehen, die helleren Haare daneben werden kurz geschnitten. Auf ihrem Fütterungsplan ist heute eine Zahl unleserlich.", cured:"Die fehlende Zahl ist gefunden, Freyas Plan stimmt, und ihre lustige Stehmähne wippt beim Fressen! 🌟", make:()=>Qplatzhalter((expr)=>`Auf Freyas Fütterungsplan fehlt eine Zahl: <b>${expr}</b>. Welche Zahl muss in das Kästchen □, damit die Rechnung stimmt?`) },
 ];
 let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false, mPerfect = true;
 let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mConvPhase = null, mTreat = null, mHelpShown = false, mTried = false;
 let mChooseSlot = 0, mChooseCandidates = [], mChosen = false;   // Phase 1: one patient per session is hers to choose
 
-// A session is 5 fresh questions (year update 2026-07). Question 1 is ALWAYS schriftliche
-// Multiplikation (3-stellig × 2-stellig). The other 4 slots walk the 13-theme Grade-4 cycle
-// below via a persistent pointer (localStorage 'ellaTopicCycle', mirrored by the cloud sync),
-// so every theme comes up exactly once per 12 slots ≈ 4 sessions. Each question uses a
-// different horse where possible and a random vet concept, reshuffled every game.
-const TOPIC_CYCLE = ['add', 'wt', 'money', 'sub', 'len', 'tens', 'compare', 'round', 'zeit', 'halb', 'vol', 'estimate'];   // 12 rotating themes; 'longmult' AND 'div' are pinned into every game (see buildMathPool)
+// A session is 5 fresh questions. 'longmult' AND 'div' are pinned into every game (see buildMathPool);
+// the other 3 slots walk the 14-theme cycle below via a persistent pointer (localStorage
+// 'ellaTopicCycle', mirrored by the cloud sync), so every theme comes up once per 14 slots ≈ 5
+// sessions. Each question uses a different horse where possible and a random vet concept, reshuffled
+// every game. (2026-09: 'stellenwert' + 'platzhalter' added as Klasse-5 KA1-prep cycle themes.)
+const TOPIC_CYCLE = ['add', 'wt', 'money', 'sub', 'len', 'tens', 'compare', 'round', 'zeit', 'halb', 'vol', 'estimate', 'stellenwert', 'platzhalter'];   // 14 rotating themes (stellenwert + platzhalter = Klasse-5 KA1-Vorbereitung, 2026-09); 'longmult' AND 'div' are pinned into every game (see buildMathPool)
 // convert concepts bake their family into make() — read it back out of the function source
 function conceptFam(c) { const m = String(c.make).match(/Qconvert\(\s*'(\w+)'/); return m ? m[1] : null; }
 function themeMatches(theme, c) {
@@ -2705,7 +2758,8 @@ function checkMathAnswer() {
         case 'div':      return checkDivision(q, fbEl);
         case 'compare':  return checkCompare(q, fbEl);
         case 'add': case 'sub': case 'round': case 'tens': case 'halb': case 'estimate': case 'timecalc':
-                         return checkExactNum(q, fbEl, q.answer, false);   // year-update types: one exact whole number
+        case 'stellenwert': case 'platzhalter':
+                         return checkExactNum(q, fbEl, q.answer, false);   // year-update + KA1-prep types: one exact whole number
     }
 }
 
@@ -3401,6 +3455,18 @@ const EXAM = {
   "Rustys große Rodeo-Show": { q:"Warum lieben Cowboys Quarter Horses wie Rusty?", correct:"Weil sie schnell, klug und ruhig bei der Arbeit mit dem Vieh sind.", wrong:["Weil sie im Dunkeln leuchten.", "Weil sie niemals stehen bleiben können."] },
   "Djangos Gelenk-Kraut für den weichen Gang": { q:"Wofür ist der Tennessee Walking Horse wie Django berühmt?", correct:"Für seinen besonders weichen, sanften Gang, der sich wie Schweben anfühlt.", wrong:["Für den härtesten, holprigsten Gang von allen.", "Dafür, dass er rückwärts schneller läuft."] },
   "Djangos Hafer abwiegen": { q:"Was macht Django bei seinem besonderen Gang mit dem Kopf?", correct:"Er nickt sanft im Takt mit dem Kopf, während er läuft.", wrong:["Er dreht den Kopf ganz herum.", "Er hält den Kopf ganz still und steif."] },
+
+  // ===== KLASSE-5 KA1-VORBEREITUNG (2026-09) =====
+  "Stellas Wüsten-Reise": { q:"Woher stammen Araber-Pferde wie Stella ursprünglich?", correct:"Aus der heißen Wüste, wo sie weite Strecken laufen.", wrong:["Aus dem tiefen Meer.", "Aus kalten Eishöhlen."] },
+  "Thunders wilde Mustang-Herde": { q:"Wie leben wilde Mustangs?", correct:"Frei in großen Herden in der Natur.", wrong:["Allein in kleinen dunklen Ställen.", "Nur nachts tief in Höhlen."] },
+  "Brios Winter-Heulager": { q:"Warum legt man für Haflinger im Herbst ein großes Heulager an?", correct:"Damit sie den ganzen Winter über genug zu fressen haben.", wrong:["Damit der Stall bunter aussieht.", "Damit sie schneller rennen können."] },
+  "Auroras Zuchtbuch-Nummer": { q:"Was ist am Fell eines Akhal-Teke wie Aurora besonders?", correct:"Es glänzt in der Sonne wie Metall oder Gold.", wrong:["Es leuchtet im Dunkeln von selbst.", "Es ist immer klatschnass."] },
+  "Chestnuts Zugkraft-Test": { q:"Wofür ist ein Suffolk Punch wie Chestnut gebaut?", correct:"Für schwere Zugarbeit – er ist kräftig und stark.", wrong:["Für schnelle Rennen auf der Bahn.", "Für hohe Sprünge über Mauern."] },
+  "Biscuits verschmierter Futterplan": { q:"Was ist an einem Clydesdale wie Biscuit auffällig?", correct:"Er ist sehr groß und hat lange Fellfransen an den Beinen.", wrong:["Er ist winzig klein wie ein Hund.", "Er hat überhaupt keine Mähne."] },
+  "Dottys verwischter Behandlungsplan": { q:"Was ist typisch für einen Appaloosa wie Dotty?", correct:"Ein geflecktes Fell mit vielen Tupfen.", wrong:["Ein Fell, das ständig die Farbe wechselt.", "Ein Horn mitten auf der Stirn."] },
+  "Sunnys lückenhafter Trainingsplan": { q:"Wie sieht ein Palomino wie Sunny aus?", correct:"Goldenes Fell mit heller Mähne und hellem Schweif.", wrong:["Schwarzes Fell mit roten Punkten.", "Grünes Fell im Sommer."] },
+  "Lunas Trainings-Protokoll": { q:"Was ist bei Lipizzanern wie Luna besonders?", correct:"Sie werden dunkel geboren, und ihr Fell wird erst später weiß.", wrong:["Sie werden weiß geboren und dann kohlschwarz.", "Sie können ihre Fellfarbe täglich wechseln."] },
+  "Freyas unleserlicher Fütterungsplan": { q:"Was ist an der Mähne eines Fjordpferds wie Freya besonders?", correct:"Sie steht aufrecht und hat in der Mitte einen dunklen Streifen.", wrong:["Sie ist immer knallrot gefärbt.", "Sie wächst bis zum Boden hinunter."] },
 };
 const EXAM_LEN = 5;
 let exQs = [], exIdx = 0, exRight = 0, exMissed = [];
@@ -3793,7 +3859,7 @@ function recordGameLog() {
         localStorage.setItem('ellaGameLog', JSON.stringify(log.slice(-100)));   // keep last ~100; mirrored to the cloud via the append-merge
     } catch (e) {}
 }
-const STAT_TYPE_LABEL = { longmult:'Schriftlich ×', div:'Teilen ÷', add:'Plus +', sub:'Minus −', money:'Geld €', compare:'Preisvergleich', round:'Runden', tens:'×÷ 10/100', halb:'Halbschriftlich', estimate:'Überschlagen', timecalc:'Zeit ⏰', convert:'Einheiten' };
+const STAT_TYPE_LABEL = { longmult:'Schriftlich ×', div:'Teilen ÷', add:'Plus +', sub:'Minus −', money:'Geld €', compare:'Preisvergleich', round:'Runden', tens:'×÷ 10/100', halb:'Halbschriftlich', estimate:'Überschlagen', timecalc:'Zeit ⏰', convert:'Einheiten', stellenwert:'Stellenwert', platzhalter:'Platzhalter' };
 function statFmtTime(s) { s = Math.round(s); return s >= 60 ? Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' min' : s + 's'; }
 function statDate(ts) { try { const d = new Date(ts), p = n => String(n).padStart(2, '0'); return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '. ' + p(d.getHours()) + ':' + p(d.getMinutes()); } catch (e) { return ''; } }
 function barChart(vals, color, fmt) {
