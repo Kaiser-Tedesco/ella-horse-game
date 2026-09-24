@@ -323,6 +323,14 @@
         .lm-stack > div { padding: 1px 10px; }
         .lm-bar { border-top: 5px solid #2c3e50; height: 0; margin: 5px 0; padding: 0 !important; }
         .carry-hint { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.82rem; color: #e67e22; background: rgba(230,126,34,0.12); border-radius: 10px; padding: 6px 12px; display: inline-block; margin: -4px auto 12px; }
+        /* ── Klasse-5 KA-Typen (2026-09): Zahlenmauer + Vergleichen ── */
+        .zm-wall { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 10px auto; }
+        .zm-row { display: flex; gap: 6px; justify-content: center; }
+        .zm-brick { min-width: 72px; padding: 10px 6px; border-radius: 10px; background: #fdf1d8; border: 2px solid #e0b877; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 1.05rem; color: #6b4a13; text-align: center; }
+        .zm-brick.zm-q { background: #eef3f8; border-color: #a9bed4; color: #5a7290; }
+        .vgl-row { font-family: 'Nunito', sans-serif; font-size: 1.45rem; font-weight: 800; text-align: center; margin: 12px 0; letter-spacing: 1px; color: #2d2d2d; }
+        .vgl-box { display: inline-block; min-width: 42px; padding: 2px 10px; margin: 0 8px; border: 2px dashed #a9bed4; border-radius: 8px; color: #8aa0b8; }
+        .cmp-btn.picked { opacity: 0.4; }
         /* two-bundle "which is dearer" display + choice buttons */
         .bundle-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; font-size: 1.15rem; margin-bottom: 6px; }
         .bundle { background: #f2f7ff; border: 3px solid #cfe0ff; border-radius: 16px; padding: 12px 18px; font-family: 'Fredoka One', cursive; color: #2c3e50; }
@@ -394,6 +402,23 @@
         /* cure celebration overlay */
         .cure-overlay { display: none; position: fixed; inset: 0; background: rgba(10,30,40,0.85); z-index: 1200; align-items: center; justify-content: center; padding: 20px; }
         .cure-overlay.active { display: flex; }
+        /* ── Bonus-Runde (2026-09): großer Auftritt, wenn sie schnell war ── */
+        .bonus-overlay { display: none; position: fixed; inset: 0; background: rgba(26,16,48,0.86); z-index: 1300; align-items: center; justify-content: center; padding: 20px; }
+        .bonus-overlay.active { display: flex; animation: bonusFade 0.28s ease; }
+        @keyframes bonusFade { from { opacity: 0; } to { opacity: 1; } }
+        .bonus-card { position: relative; overflow: hidden; text-align: center; width: 100%; max-width: 430px; padding: 28px 24px 26px; border-radius: 26px; background: linear-gradient(160deg, #fff8dd, #ffd86b 58%, #f3a92c); box-shadow: 0 22px 60px rgba(0,0,0,0.5); animation: bonusPop 0.6s cubic-bezier(.2,1.5,.4,1); }
+        @keyframes bonusPop { 0% { transform: scale(0.45) rotate(-7deg); opacity: 0; } 70% { transform: scale(1.07) rotate(1.5deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+        .bonus-emoji { font-size: 4rem; line-height: 1; animation: bonusBounce 1.1s ease-in-out infinite; }
+        @keyframes bonusBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-13px); } }
+        .bonus-title { font-family: 'Fredoka One', cursive; font-size: 2.25rem; color: #b8460e; letter-spacing: 1px; margin: 4px 0 4px; text-shadow: 0 3px 0 rgba(255,255,255,0.65); }
+        .bonus-sub { font-family: 'Nunito', sans-serif; font-weight: 800; color: #8a5a10; margin-bottom: 10px; }
+        .bonus-text { font-family: 'Nunito', sans-serif; font-weight: 700; color: #5d4210; line-height: 1.55; margin-bottom: 18px; }
+        .bonus-btn { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: #fff; background: linear-gradient(135deg, #f0562b, #c0392b); border: none; border-radius: 40px; padding: 14px 34px; cursor: pointer; box-shadow: 0 6px 0 #96271c; }
+        .bonus-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #96271c; }
+        .bonus-spark { position: absolute; font-size: 1.3rem; pointer-events: none; animation: bonusSpark 1.7s ease-in-out infinite; }
+        @keyframes bonusSpark { 0%, 100% { transform: translateY(0) scale(1); opacity: .8; } 50% { transform: translateY(-18px) scale(1.3); opacity: 1; } }
+        .cc-token.premium { filter: drop-shadow(0 0 12px #ffc83d); }
+        .ev-bonus { font-family: 'Fredoka One', cursive; font-size: 1.15rem; color: #b8460e; background: linear-gradient(135deg, #fff3cc, #ffd86b); border-radius: 14px; padding: 10px 14px; margin: 10px 0; }
         .cure-card { background: white; border-radius: 28px; max-width: 470px; width: 100%; text-align: center; padding: 34px 28px; box-shadow: 0 24px 70px rgba(0,0,0,0.5); position: relative; overflow: hidden; animation: popIn 0.4s ease; }
         .cure-hearts { position: absolute; inset: 0; pointer-events: none; }
         .cure-heart { position: absolute; bottom: 10px; font-size: 1.6rem; animation: floatUp 2.6s ease-in infinite; }
@@ -523,7 +548,7 @@
         <div class="maths-info-grid">
             <div class="maths-info-card"><div class="mi-emoji">✖️</div><h3>Große Mal-Aufgaben</h3><p>Eine große Zahl mal eine kleinere, schriftlich untereinander gerechnet. Denk an den Übertrag!</p></div>
             <div class="maths-info-card"><div class="mi-emoji">➕</div><h3>Schriftlich plusrechnen</h3><p>Zwei große Zahlen untereinander zusammenzählen. Denk an den Übertrag!</p></div>
-            <div class="maths-info-card"><div class="mi-emoji">➖</div><h3>Schriftlich minusrechnen</h3><p>Eine große Zahl von einer anderen abziehen, mit Entbündeln (Borgen), wenn eine Stelle nicht reicht.</p></div>
+            <div class="maths-info-card"><div class="mi-emoji">➖</div><h3>Schriftlich minusrechnen</h3><p>Eine große Zahl von einer anderen abziehen. Du rechnest mit Ergänzen: von unten nach oben, wie viel fehlt bis zur oberen Ziffer?</p></div>
             <div class="maths-info-card"><div class="mi-emoji">🔢</div><h3>Große Zahlen runden</h3><p>Zahlen bis 1 000 000 runden, auf Zehner, Hunderter, Tausender oder Zehntausender.</p></div>
             <div class="maths-info-card"><div class="mi-emoji">🔟</div><h3>Mal und geteilt mit 10, 100, 1000</h3><p>Verschiebe einfach die Stellen, dann geht es ganz schnell!</p></div>
             <div class="maths-info-card"><div class="mi-emoji">✍️</div><h3>Halbschriftlich rechnen</h3><p>Zerlege die Zahl in Hunderter, Zehner und Einer und rechne Stück für Stück.</p></div>
@@ -728,6 +753,17 @@
 <audio id="sndNudge3" src="horse-sounds/cure-whinny.mp3" preload="auto"></audio>
 
 <!-- ════════════════ CURE CELEBRATION ════════════════ -->
+<div class="bonus-overlay" id="mBonusOverlay">
+  <div class="bonus-card" id="mBonusCard">
+    <div class="bonus-emoji">🚀</div>
+    <h2 class="bonus-title">BONUS-RUNDE!</h2>
+    <p class="bonus-sub" id="mBonusSub"></p>
+    <p class="bonus-text">Du bist so gut, dass du noch <b>2 Extra-Fragen</b> bekommst!<br>
+      Jede richtige Antwort bringt <b>+5 Tierarzt-Punkte</b> und einen <b>🏆 Turnier-Schatz</b> zum Verschenken.</p>
+    <button class="bonus-btn" onclick="beginBonusQuestions()">Los geht's! ⚡</button>
+  </div>
+</div>
+
 <div class="cure-overlay" id="mCureOverlay">
     <div class="cure-card">
         <div class="cure-hearts" id="mCureHearts"></div>
@@ -2149,15 +2185,17 @@ function Qadd(story) {
         problemHTML:`<div class="lm-stack"><div>${fmtTh(a)}</div><div>+ ${fmtTh(b)}</div><div class="lm-bar"></div><div>?</div></div><div class="carry-hint">⚠️ Übertrag nicht vergessen!</div>`,
         story: story(fmtTh(a), fmtTh(b)) };
 }
-// schriftliche Subtraktion: Entbündeln garantiert, oft mit Nullen im Minuenden (z.B. 7003 − 2548)
+// schriftliche Subtraktion — ERGÄNZUNGSVERFAHREN, wie es ihre Schule lehrt (Buch S. 46/58): von unten
+// nach oben ergänzen, "wie viel fehlt bis zur oberen Ziffer?", Übertrag in die nächste Spalte.
+// NICHT Entbündeln/Borgen umformulieren. Übertrag garantiert, oft mit Nullen im Minuenden (z.B. 7003 − 2548)
 function Qsub(story) {
     let a, b;
     do {
         a = Math.random() < 0.5 ? rnd(2, 9) * 1000 + rnd(3, 99) : rnd(2005, 9020);
         b = rnd(1002, a - 500);
     } while (!needsBorrow(a, b));
-    return { kind:'sub', a, b, answer:a - b, label:'➖ Schriftlich minusrechnen – denk ans Entbündeln! ⚠️',
-        problemHTML:`<div class="lm-stack"><div>${fmtTh(a)}</div><div>− ${fmtTh(b)}</div><div class="lm-bar"></div><div>?</div></div><div class="carry-hint">⚠️ Entbündeln (borgen) nicht vergessen!</div>`,
+    return { kind:'sub', a, b, answer:a - b, label:'➖ Schriftlich minusrechnen mit Ergänzen: rechne von unten nach oben – wie viel fehlt bis zur oberen Ziffer? ⚠️',
+        problemHTML:`<div class="lm-stack"><div>${fmtTh(a)}</div><div>− ${fmtTh(b)}</div><div class="lm-bar"></div><div>?</div></div><div class="carry-hint">⚠️ Ergänzen: Wie viel fehlt bis zur oberen Ziffer? Übertrag in die nächste Spalte!</div>`,
         story: story(fmtTh(a), fmtTh(b)) };
 }
 // große Zahlen bis 1 000 000 runden (auf Zehner bis Zehntausender)
@@ -2243,6 +2281,144 @@ function Qplatzhalter(story) {
         label:'🔍 Platzhalter: Welche Zahl fehlt? Nutze die Umkehr-Aufgabe (Gegenrechnung)!',
         problemHTML:`${expr}<div class="carry-hint">Welche Zahl gehört ins □? Tipp: rechne rückwärts (Umkehr-Aufgabe).</div>`,
         story: story(expr) };
+}
+
+// ── Klasse-5 Kap.1 "Daten erheben und auswerten" (2026-09): Minimum/Maximum/Spannweite, Median,
+//    Säulendiagramm ablesen. Die Messwerte stehen IN DER STORY (wie bei compare), weil sie zur
+//    Aufgabe gehören; problemHTML trägt nur den Merksatz. ──
+const DATEN_RANGES = {                                   // realistische Messbereiche je Story
+    sprung: { lo: 60,  hi: 110,  step: 5 },              // Sprunghöhe in cm
+    puls:   { lo: 28,  hi: 48,   step: 2 },              // Puls pro Minute (Pferd in Ruhe: 28–44)
+    liter:  { lo: 15,  hi: 55,   step: 5 },              // Trinkmenge in Litern
+    min:    { lo: 15,  hi: 60,   step: 5 },              // Bewegungszeit in Minuten
+    sek:    { lo: 34,  hi: 52,   step: 1 },              // Rundenzeit in Sekunden
+    kg:     { lo: 820, hi: 1000, step: 10 }              // Gewicht Kaltblut in kg
+};
+// n VERSCHIEDENE Werte aus dem Raster ziehen → Minimum/Maximum/Median sind immer eindeutig
+function datenValues(rangeKey, n) {
+    const r = DATEN_RANGES[rangeKey] || DATEN_RANGES.sprung;
+    const steps = Math.floor((r.hi - r.lo) / r.step) + 1;
+    return shuffle(Array.from({ length: steps }, (_, i) => i)).slice(0, n).map(i => r.lo + i * r.step);
+}
+// Minimum, Maximum und Spannweite aus einer Messreihe (drei Antwortfelder auf einmal, wie im Buch)
+function Qdaten(rangeKey, story) {
+    const vals = datenValues(rangeKey, rnd(5, 6));
+    const min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+    return { kind:'daten', vals, min, max, spann: max - min,
+        label:'📊 Minimum = kleinster Wert, Maximum = größter Wert, Spannweite = Maximum − Minimum.',
+        problemHTML:`<div class="carry-hint">Ordne die Zahlen von klein nach groß. Spannweite = Maximum − Minimum.</div>`,
+        story: story(vals.join(', ')) };
+}
+// Median (Zentralwert): immer ungerade Anzahl → die Mitte ist eindeutig, nie ein halber Wert
+function Qmedian(rangeKey, story) {
+    const n = [5, 7, 7][rnd(0, 2)];
+    const vals = datenValues(rangeKey, n);
+    const sorted = vals.slice().sort((a, b) => a - b), pos = (n + 1) / 2;
+    return { kind:'median', answer: sorted[pos - 1], vals, n, pos,
+        label:'📊 Median: Ordne alle Zahlen von klein nach groß. Der Median ist die Zahl genau in der Mitte.',
+        problemHTML:`<div class="carry-hint">Es sind ${n} Zahlen. Ordne sie – der Median ist dann die <b>${pos}.</b> Zahl von links.</div>`,
+        story: story(vals.join(', ')) };
+}
+// kleines Säulendiagramm als Inline-SVG; Werte liegen IMMER genau auf einer Gitterlinie
+function datenChart(names, vals, step) {
+    const W = 320, H = 180, padL = 36, padB = 26, padT = 8, maxU = 6;
+    const plotH = H - padB - padT, plotW = W - padL - 8, bw = plotW / names.length;
+    const cols = ['#7fb7e8', '#8fd3a6', '#f6c667', '#e79bb5'];
+    let g = '';
+    for (let u = 0; u <= maxU; u++) {
+        const y = padT + plotH - (u / maxU) * plotH;
+        g += `<line x1="${padL}" y1="${y}" x2="${W - 8}" y2="${y}" stroke="#dde3ea" stroke-width="1"/>`;
+        g += `<text x="${padL - 7}" y="${y + 4}" text-anchor="end" font-size="11" fill="#5a6572">${u * step}</text>`;
+    }
+    names.forEach((nm, i) => {
+        const h = (vals[i] / step / maxU) * plotH, x = padL + i * bw + bw * 0.18, w = bw * 0.64;
+        g += `<rect x="${x}" y="${padT + plotH - h}" width="${w}" height="${h}" rx="3" fill="${cols[i % 4]}"/>`;
+        g += `<text x="${x + w / 2}" y="${H - 8}" text-anchor="middle" font-size="11" fill="#3a4450">${nm}</text>`;
+    });
+    g += `<line x1="${padL}" y1="${padT + plotH}" x2="${W - 8}" y2="${padT + plotH}" stroke="#9aa5b1" stroke-width="1.5"/>`;
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" style="width:100%;max-width:340px;height:auto;display:block;margin:8px auto;">${g}</svg>`;
+}
+// Säulendiagramm ablesen: entweder einen Wert ablesen oder die Spannweite bestimmen
+function Qdiagramm(story) {
+    const names = shuffle(['Luna', 'Stella', 'Brio', 'Freya', 'Saga', 'Dotty', 'Sunny', 'Aurora']).slice(0, 4);
+    const step = [1, 2, 5][rnd(0, 2)];
+    const vals = shuffle([1, 2, 3, 4, 5, 6]).slice(0, 4).map(u => u * step);
+    const read = Math.random() < 0.6, pick = rnd(0, 3);
+    const frage = read ? `Wie viele sind es bei <b>${names[pick]}</b>?` : 'Wie groß ist die <b>Spannweite</b>?';
+    return { kind:'diagramm', answer: read ? vals[pick] : Math.max.apply(null, vals) - Math.min.apply(null, vals),
+        label: read ? '📊 Säulendiagramm lesen: Wie hoch ist die Säule? Lies den Wert an der Achse links ab.'
+                    : '📊 Spannweite: höchste Säule minus niedrigste Säule.',
+        problemHTML:`<div class="carry-hint">${frage} Lies die Werte an der Achse links ab.</div>`,
+        story: story(datenChart(names, vals, step), frage) };
+}
+
+// ── Klasse-5 KA Phase 2 (2026-09): Zahlenstrahl ablesen, vergleichen/ordnen, Zahlenmauer. ──
+// Zahlenstrahl: 10 Abschnitte, Beschriftung an jedem 2. Strich. Die Marker sitzen IMMER auf einem
+// UNbeschrifteten Strich, sonst könnte sie die Zahl einfach abschreiben statt abzuzählen.
+function zahlenstrahlSvg(unit, marks) {
+    const W = 340, H = 96, padL = 18, padR = 18, y = 56, n = 10;
+    const plotW = W - padL - padR;
+    let g = `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#5a6572" stroke-width="2"/>`;
+    g += `<polygon points="${W - padR},${y} ${W - padR - 9},${y - 5} ${W - padR - 9},${y + 5}" fill="#5a6572"/>`;
+    for (let i = 0; i <= n; i++) {
+        const x = padL + (i / n) * plotW, big = i % 2 === 0;
+        g += `<line x1="${x}" y1="${y - (big ? 9 : 5)}" x2="${x}" y2="${y + (big ? 9 : 5)}" stroke="#5a6572" stroke-width="${big ? 2 : 1}"/>`;
+        if (big) g += `<text x="${x}" y="${y + 26}" text-anchor="middle" font-size="11" fill="#3a4450">${fmtTh(i * unit)}</text>`;
+    }
+    marks.forEach(m => {
+        const x = padL + (m.v / (unit * n)) * plotW;
+        g += `<text x="${x}" y="${y - 24}" text-anchor="middle" font-size="14" font-weight="700" fill="#c0392b">${m.name}</text>`;
+        g += `<polygon points="${x},${y - 11} ${x - 5},${y - 20} ${x + 5},${y - 20}" fill="#c0392b"/>`;
+    });
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" style="width:100%;max-width:360px;height:auto;display:block;margin:8px auto;">${g}</svg>`;
+}
+function Qzahlenstrahl(story) {
+    const unit = [10, 50, 100, 500, 1000][rnd(0, 4)];
+    const names = ['A', 'B', 'C'];
+    const marks = shuffle([1, 3, 5, 7, 9]).slice(0, 3).sort((a, b) => a - b)
+                    .map((i, k) => ({ name: names[k], v: i * unit }));
+    return { kind:'zahlenstrahl', unit, marks,
+        fields: marks.map((m, k) => ({ id:'mZs' + k, label:m.name, expect:m.v })),
+        label:'📏 Zahlenstrahl: Zwischen zwei beschrifteten Strichen liegt genau ein weiterer Strich. Zähl in gleichen Schritten weiter.',
+        problemHTML:`<div class="carry-hint">Ein kleiner Schritt ist hier <b>${fmtTh(unit)}</b>, von einer Zahl zur nächsten sind es <b>${fmtTh(unit * 2)}</b>.</div>`,
+        story: story(zahlenstrahlSvg(unit, marks)) };
+}
+// Vergleichen: entweder > < = setzen oder von klein nach groß ordnen (beides reine Tipp-Aufgaben)
+function Qvergleichen(story) {
+    if (Math.random() < 0.6) {
+        const len = rnd(3, 5), pow = Math.pow(10, len - 1);
+        const a = rnd(pow + 100, pow * 10 - 101);
+        let b; do { b = a + rnd(-99, 99); } while (b === a);      // gleiche Stellenzahl, Unterschied erst weiter hinten
+        return { kind:'vergleichen', mode:'zeichen', a, b, correct: a > b ? '>' : '<',
+            label:'🔎 Vergleiche von links Stelle für Stelle. Wo zuerst eine Ziffer größer ist, da ist die ganze Zahl größer.',
+            problemHTML:`<div class="carry-hint">Gleich viele Ziffern? Dann von links vergleichen: Tausender, Hunderter, Zehner, Einer.</div>`,
+            story: story(`<div class="vgl-row">${fmtTh(a)}<span class="vgl-box">?</span>${fmtTh(b)}</div>`,
+                         'Welches Zeichen gehört in das Kästchen?') };
+    }
+    const len = rnd(3, 4), pow = Math.pow(10, len - 1), base = rnd(pow, pow * 10 - 200);
+    const vals = [];
+    while (vals.length < 4) { const v = base + rnd(0, 180); if (vals.indexOf(v) < 0) vals.push(v); }
+    return { kind:'vergleichen', mode:'ordnen', vals: shuffle(vals.slice()), sorted: vals.slice().sort((x, y) => x - y),
+        label:'🔎 Ordnen: Vergleiche von links Stelle für Stelle und fang mit der kleinsten Zahl an.',
+        problemHTML:`<div class="carry-hint">Tippe die Zahlen der Reihe nach an, die kleinste zuerst.</div>`,
+        story: story('', 'Tippe die Zahlen von klein nach groß an.') };
+}
+// Zahlenmauer: je zwei Steine nebeneinander ergeben addiert den Stein darüber
+function zahlenmauerHtml(b) {
+    return `<div class="zm-wall"><div class="zm-row"><div class="zm-brick zm-q">?</div></div>` +
+           `<div class="zm-row"><div class="zm-brick zm-q">?</div><div class="zm-brick zm-q">?</div></div>` +
+           `<div class="zm-row">${b.map(v => `<div class="zm-brick">${v}</div>`).join('')}</div></div>`;
+}
+function Qzahlenmauer(story) {
+    const b = [rnd(12, 80), rnd(12, 80), rnd(12, 80)];
+    const m = [b[0] + b[1], b[1] + b[2]], top = m[0] + m[1];
+    return { kind:'zahlenmauer', b, m, top,
+        fields: [{ id:'mZm0', label:'Mitte links', expect:m[0] },
+                 { id:'mZm1', label:'Mitte rechts', expect:m[1] },
+                 { id:'mZm2', label:'Deckstein oben', expect:top }],
+        label:'🧱 Zahlenmauer: Zwei Steine nebeneinander werden addiert, die Summe steht im Stein darüber.',
+        problemHTML:`<div class="carry-hint">${b[0]} + ${b[1]} = Mitte links · ${b[1]} + ${b[2]} = Mitte rechts · beide Mittelsteine zusammen = Deckstein</div>`,
+        story: story(zahlenmauerHtml(b)) };
 }
 
 // ── ~92 horse-vet concepts (German). Each = a vet idea (with sound-out term for the big word),
@@ -2463,17 +2639,55 @@ const vetConcepts = [
   { horseIdx:5, type:'platzhalter', treatment:'bandage', title:"Sunnys Puls-Tabelle", intro:"Sunny trainiert für ein Turnier, und du, als Tierärztin, führst mit der Besitzerin eine Puls-Tabelle: Ruhepuls vor dem Training, Arbeitspuls direkt danach, Erholungspuls zehn Minuten später. In Ruhe schlägt Sunnys Herz um die 36 Mal in der Minute, im Galopp bis zu 200 Mal, und ein fittes Pferd ist zehn Minuten nach der Arbeit wieder unter 60. Eine Zahl ist verschmiert, aber die Differenz zwischen zwei Messungen steht daneben, also rechnest du sie zurück.", cured:"Sunnys Erholungspuls fällt jede Woche schneller: Sie ist fit fürs Turnier. ☀️", make:()=>Qplatzhalter((expr)=>`In Sunnys Puls-Tabelle fehlt eine Zahl: <b>${expr}</b> (Schläge pro Minute). Welche Zahl gehört in das Kästchen □?`) },
   { horseIdx:9, type:'platzhalter', treatment:'bucket', title:"Lunas Apotheken-Inventur", intro:"Einmal im Monat machst du, als Tierärztin, in Lunas Stall Inventur (In-ven-tur) der Stall-Apotheke (Stall-A-po-the-ke): Jedes Medikament wird gezählt, das Verfallsdatum geprüft, und was abgelaufen ist, kommt weg, denn alte Tabletten wirken schwächer oder gar nicht mehr. Impfstoffe gehören in den Kühlschrank, und alles steht außer Reichweite von Kindern und Pferdemäulern. In der Liste ist eine Zahl unleserlich, aber Anfangsbestand, Verbrauch und Rest hängen zusammen, also rechnest du sie zurück.", cured:"Lunas Stall-Apotheke ist gezählt, sortiert und ohne ein einziges abgelaufenes Fläschchen. ✨", make:()=>Qplatzhalter((expr)=>`In der Inventurliste der Stall-Apotheke fehlt eine Zahl: <b>${expr}</b> (Tabletten). Welche Zahl gehört in das Kästchen □?`) },
   { horseIdx:11, type:'platzhalter', treatment:'bucket', title:"Freyas Fohlen-Kalender", intro:"Freya ist tragend, und an der Stalltür hängt ihr Fohlen-Kalender, den du, als Tierärztin, angelegt hast: Eine Trächtigkeit dauert etwa 340 Tage, und ab dem Decktag zählt der Kalender die Tage bis zur Geburt herunter. Darin stehen auch die Termine: Ultraschall am Tag 15 und 45, die Impfungen im letzten Drittel, damit die Abwehrstoffe in die erste Milch gelangen, und ab Tag 320 die Nachtwache. Eine Zahl ist verwischt, aber aus Gesamtdauer und vergangenen Tagen lässt sich der Rest zurückrechnen.", cured:"Der Kalender ist vollständig, die Nachtwache ist eingeteilt, und Freyas Fohlen hat noch ein paar Wochen Zeit. 🛡️", make:()=>Qplatzhalter((expr)=>`Auf Freyas Fohlen-Kalender fehlt eine Zahl: <b>${expr}</b> (Tage). Welche Zahl gehört in das Kästchen □?`) },
+
+  // ===== KLASSE-5 KAP.1 "DATEN" (2026-09): daten / median / diagramm =====
+  { horseIdx:4, type:'daten', treatment:'injection', title:"Midnights Puls-Kontrolle", intro:"Midnight hatte in der Nacht eine leichte Kolik (Ko-lik). Ein Pferd in Ruhe hat etwa 28 bis 44 Herzschläge pro Minute; steigt der Puls deutlich darüber, hat es Schmerzen. Du fühlst darum mehrmals am Tag den Puls und schreibst jeden Wert auf, um zu sehen, wie stark er schwankt.", cured:"Midnights Puls bleibt ruhig und gleichmäßig, die Kolik ist überstanden. 🖤", make:()=>Qdaten('puls',(liste)=>`Das sind Midnights Puls-Werte von heute: <b>${liste}</b> Schläge pro Minute. Bestimme Minimum, Maximum und die Spannweite.`) },
+  { horseIdx:6, type:'daten', treatment:'bandage', title:"Patches' Sprung-Test", intro:"Nach ihrer Sehnenzerrung (Seh-nen-tser-rung) darf Patches wieder vorsichtig springen. Ist die Sehne verheilt, springt sie über alle Runden ähnlich hoch. Werden die Sprünge von Runde zu Runde niedriger, tut das Bein noch weh. Du misst darum jede Sprunghöhe.", cured:"Patches springt in jeder Runde gleich hoch, ihre Sehne hält. 🖤🤍", make:()=>Qdaten('sprung',(liste)=>`Patches hat heute diese Höhen geschafft: <b>${liste}</b> cm. Bestimme Minimum, Maximum und die Spannweite.`) },
+  { horseIdx:7, type:'daten', treatment:'bucket', title:"Cupcakes Wasser-Kontrolle", intro:"Cupcake trinkt seit zwei Tagen auffällig wenig. Trinkt ein Pony zu wenig, trocknet der Darminhalt aus und es droht eine Verstopfungskolik (Fer-schtop-fungs-ko-lik). Du misst darum jeden Tag genau, wie viele Liter sie aus dem Eimer nimmt.", cured:"Cupcake trinkt wieder kräftig, ihr Darm arbeitet ganz normal. 🧁", make:()=>Qdaten('liter',(liste)=>`Cupcake hat an den letzten Tagen <b>${liste}</b> Liter getrunken. Bestimme Minimum, Maximum und die Spannweite.`) },
+  { horseIdx:13, type:'daten', treatment:'bandage', title:"Sagas Bewegungs-Plan", intro:"Saga hatte eine Hufrehe (Huf-reh-e), eine schmerzhafte Entzündung der Huflederhaut. Zu viel Bewegung zu früh schadet dem entzündeten Huf, zu wenig lässt die Muskeln abbauen. Du notierst darum jeden Tag genau, wie viele Minuten sie geführt wurde.", cured:"Sagas Hufe sind schmerzfrei, und sie tölte wieder leichtfüßig über die Weide. 🇮🇸", make:()=>Qdaten('min',(liste)=>`Saga wurde an diesen Tagen <b>${liste}</b> Minuten geführt. Bestimme Minimum, Maximum und die Spannweite.`) },
+
+  { horseIdx:0, type:'median', treatment:'bucket', title:"Stellas Trainings-Zeiten", intro:"Stella trainiert für einen Distanzritt (Di-stants-ritt). Dabei zählt nicht die eine schnellste Runde, sondern wie gleichmäßig sie läuft. Damit ein einzelner Ausreißer das Bild nicht verfälscht, nimmst du den mittleren Wert, den Median. Du stoppst darum jede Runde.", cured:"Stella läuft gleichmäßig durch und kommt frisch am Ziel an. 🏜️", make:()=>Qmedian('sek',(liste)=>`Stellas Rundenzeiten: <b>${liste}</b> Sekunden. Wie lautet der Median?`) },
+  { horseIdx:5, type:'median', treatment:'injection', title:"Sunnys Herzschlag im Mittel", intro:"Sunny ist beim Tierarzt immer aufgeregt, darum springt ihr Puls (Puls) mal nach oben und mal nach unten. Eine einzelne Messung würde dich täuschen. Du misst deshalb mehrmals hintereinander und nimmst den mittleren Wert, den Median.", cured:"Sunny steht ganz ruhig da, ihr Herz schlägt völlig normal. ☀️", make:()=>Qmedian('puls',(liste)=>`Sunnys Puls-Messungen: <b>${liste}</b> Schläge pro Minute. Wie lautet der Median?`) },
+  { horseIdx:9, type:'median', treatment:'bandage', title:"Lunas Kapriolen-Höhe", intro:"Luna übt die Kapriole (Ka-pri-o-le), einen hohen Sprung der Hohen Schule. Ihre Trainerin misst jede Sprunghöhe, denn gleichmäßig hohe Sprünge zeigen, dass die Hinterhand kräftig und gesund ist. Der mittlere Wert sagt mehr als der beste Einzelsprung.", cured:"Luna springt kraftvoll und gleichmäßig, ihre Hinterhand ist stark. ✨", make:()=>Qmedian('sprung',(liste)=>`Lunas Sprunghöhen: <b>${liste}</b> cm. Wie lautet der Median?`) },
+  { horseIdx:12, type:'median', treatment:'bucket', title:"Chestnuts Gewichts-Kontrolle", intro:"Chestnut ist ein schweres Zugpferd. Bei ihr achtest du besonders aufs Gewicht, denn jedes Kilo zu viel belastet die Gelenke. Die Waage zeigt aber je nach Tageszeit etwas andere Werte an. Darum wiegst du mehrmals und nimmst den mittleren Wert.", cured:"Chestnut hält genau ihr gutes Gewicht, ihre Gelenke danken es ihr. 💪", make:()=>Qmedian('kg',(liste)=>`Chestnuts Wiegungen: <b>${liste}</b> kg. Wie lautet der Median?`) },
+
+  { horseIdx:2, type:'diagramm', treatment:'bucket', title:"Thunders Futter-Diagramm", intro:"Im Stall wird aufgeschrieben, wie viele Portionen Kraftfutter jedes Pferd am Tag bekommt. So fällt sofort auf, wenn eines zu viel oder zu wenig erhält. In einem Säulendiagramm (Zoy-len-di-a-gramm) kann man die Mengen auf einen Blick vergleichen.", cured:"Thunder bekommt genau die richtige Menge und ist rundum zufrieden. 🐎", make:()=>Qdiagramm((chart,frage)=>`So viele Portionen Kraftfutter haben die Pferde heute bekommen:${chart}${frage}`) },
+  { horseIdx:3, type:'diagramm', treatment:'salve', title:"Dottys Scheuer-Zählung", intro:"Manche Pferde reagieren allergisch auf die Stiche kleiner Mücken und bekommen ein Sommerekzem (Zom-mer-ek-tsem). Sie scheuern sich dann Mähne und Schweif wund. Im Stall wird gezählt, wie oft sich jedes Pferd scheuert, und die Werte kommen in ein Säulendiagramm.", cured:"Dottys Haut ist ruhig geworden, sie scheuert sich nicht mehr. 🐆", make:()=>Qdiagramm((chart,frage)=>`So oft haben sich die Pferde diese Woche gescheuert:${chart}${frage}`) },
+  { horseIdx:8, type:'diagramm', treatment:'bucket', title:"Brios Heu-Diagramm", intro:"Der Magen eines Pferdes bildet ständig Säure, auch wenn es gerade nichts frisst. Darum soll es möglichst viele Stunden am Tag Heu haben, sonst reizt die Säure die Magenwand. Der Stall trägt in ein Säulendiagramm ein, wie lange jedes Pferd am Heu steht.", cured:"Brio hat fast den ganzen Tag gefressen, sein Magen ist zufrieden. 🏔️", make:()=>Qdiagramm((chart,frage)=>`So viele Stunden standen die Pferde gestern am Heu:${chart}${frage}`) },
+  { horseIdx:11, type:'diagramm', treatment:'injection', title:"Freyas Impf-Diagramm", intro:"Einmal im Jahr werden alle Pferde gegen Tetanus (Te-ta-nus) und Pferdegrippe geimpft. Tetanus-Bakterien stecken im Boden und kommen über kleine Wunden hinein. Die Praxis trägt in ein Säulendiagramm ein, wie viele Impfungen jedes Pferd schon bekommen hat, damit keines vergessen wird.", cured:"Freya ist frisch geimpft und für das ganze Jahr gut geschützt. 🌟", make:()=>Qdiagramm((chart,frage)=>`So viele Impfungen haben die Pferde bisher bekommen:${chart}${frage}`) },
+
+  // ===== KLASSE-5 KA PHASE 2 (2026-09): zahlenstrahl / vergleichen / zahlenmauer =====
+  { horseIdx:1, type:'zahlenstrahl', treatment:'bucket', title:"Biscuits Waage ablesen", intro:"Biscuit ist ein riesiger Clydesdale und bekommt ihr Kraftfutter genau abgewogen, denn zu große Mengen auf einmal belasten ihren Stoffwechsel (Schtoff-wech-sel). Die alte Stallwaage trägt aber nur an jedem zweiten Strich eine Zahl. Du musst den Zeiger also genau ablesen können.", cured:"Biscuit bekommt genau die richtige Menge, ihr Stoffwechsel bleibt im Gleichgewicht. 🧡", make:()=>Qzahlenstrahl((strahl)=>`So sieht die Skala an Biscuits Futterwaage aus:${strahl}Welche Zahlen zeigen die Pfeile A, B und C?`) },
+  { horseIdx:4, type:'zahlenstrahl', treatment:'bandage', title:"Midnights Stockmaß", intro:"Das Stockmaß (Schtock-maaß) ist die Höhe eines Pferdes am Widerrist, also am höchsten Punkt des Rückens. Danach richten sich Sattelgröße und Decke, und ein schlecht passender Sattel drückt und macht Druckstellen. Gemessen wird mit einer Messlatte, die nur an jedem zweiten Strich eine Zahl trägt.", cured:"Midnights Stockmaß steht fest, Sattel und Decke passen ihr perfekt. 🖤", make:()=>Qzahlenstrahl((strahl)=>`Das ist die Messlatte für Midnights Stockmaß:${strahl}Welche Zahlen zeigen die Pfeile A, B und C?`) },
+  { horseIdx:10, type:'zahlenstrahl', treatment:'injection', title:"Auroras Spritzen-Skala", intro:"Damit eine Spritze richtig wirkt, liest du die Skala (Ska-la) auf dem Spritzenkörper genau ab. Zu wenig Wirkstoff hilft nicht, zu viel belastet die Nieren. Auch hier ist nur jeder zweite Strich beschriftet.", cured:"Aurora hat genau die richtige Dosis bekommen, und ihr goldenes Fell glänzt wieder. ✨", make:()=>Qzahlenstrahl((strahl)=>`So sieht die Skala an Auroras Spritze aus:${strahl}Welche Zahlen zeigen die Pfeile A, B und C?`) },
+  { horseIdx:13, type:'zahlenstrahl', treatment:'bucket', title:"Sagas Tränken-Zähler", intro:"An der Selbsttränke (Zelbst-trän-ke) hängt ein Zähler, der misst, wie viel jedes Pferd trinkt. Trinkt ein Pferd plötzlich deutlich weniger, ist das oft das allererste Zeichen einer Krankheit. Der Zähler ist nur an jedem zweiten Strich beschriftet.", cured:"Sagas Tränke läuft, und sie trinkt genau so viel, wie sie soll. 🇮🇸", make:()=>Qzahlenstrahl((strahl)=>`Das ist der Zähler an Sagas Tränke:${strahl}Welche Zahlen zeigen die Pfeile A, B und C?`) },
+
+  { horseIdx:0, type:'vergleichen', treatment:'bucket', title:"Stellas Elektrolyte", intro:"Auf langen Ritten schwitzt Stella viel und verliert dabei Elektrolyte (E-lek-tro-lü-te), also lebenswichtige Salze. Fehlen sie, können ihre Muskeln verkrampfen. Im Regal stehen mehrere Packungen mit unterschiedlich großen Milligramm-Angaben.", cured:"Stella hat ihre Salze zurück, ihre Muskeln bleiben schön locker. 🏜️", make:()=>Qvergleichen((disp,frage)=>`Auf den Elektrolyt-Packungen stehen diese Angaben in Milligramm:${disp}${frage}`) },
+  { horseIdx:6, type:'vergleichen', treatment:'salve', title:"Patches' Salben-Vergleich", intro:"Unter Patches' weißen Fellstellen ist die Haut hell und besonders empfindlich, dort bekommt sie in der Sonne schnell einen Sonnenbrand (Zon-nen-brand). Im Regal stehen mehrere Schutzsalben mit unterschiedlich großen Mengenangaben, und du suchst die passende heraus.", cured:"Patches' helle Haut ist gut geschützt, kein Sonnenbrand mehr. 🖤🤍", make:()=>Qvergleichen((disp,frage)=>`Auf den Salben-Dosen stehen diese Mengen in Milligramm:${disp}${frage}`) },
+  { horseIdx:8, type:'vergleichen', treatment:'bucket', title:"Brios Heu-Vergleich", intro:"Brio bekommt sein Heu genau abgewogen, denn ein Haflinger (Haf-lin-ger) setzt leicht Fett an, und Übergewicht schadet vor allem den Hufen. An den Heunetzen hängen Zettel mit dem Gewicht in Gramm.", cured:"Brio bekommt genau das richtige Netz und bleibt schlank und fit. 🏔️", make:()=>Qvergleichen((disp,frage)=>`Auf Brios Heunetzen stehen diese Gewichte in Gramm:${disp}${frage}`) },
+  { horseIdx:11, type:'vergleichen', treatment:'bandage', title:"Freyas Schrittzähler", intro:"Nach ihrer Verletzung soll Freya sich jeden Tag ein kleines Stück mehr bewegen: So heilt das Gewebe, ohne dass die Muskeln abbauen. Ein kleiner Schrittzähler (Schritt-tsäh-ler) am Halfter zählt mit, und du vergleichst die Zahlen von mehreren Tagen.", cured:"Freya läuft jeden Tag ein Stück weiter, ihre Heilung geht gut voran. 🌟", make:()=>Qvergleichen((disp,frage)=>`Freyas Schrittzähler zeigt an diesen Tagen:${disp}${frage}`) },
+
+  { horseIdx:2, type:'zahlenmauer', treatment:'bucket', title:"Thunders Futter-Mauer", intro:"Ein Pferdemagen ist erstaunlich klein, darum wird die Tagesration auf mehrere kleine Mahlzeiten verteilt. Der Stallmeister plant das mit einer Zahlenmauer: Unten stehen die einzelnen Portionen, je zwei nebeneinander werden addiert, und ganz oben steht die Gesamtmenge.", cured:"Thunders Tagesration stimmt genau, er ist satt und rundum zufrieden. 🐎", make:()=>Qzahlenmauer((mauer)=>`So sieht Thunders Futter-Mauer aus:${mauer}Rechne die fehlenden Steine aus.`) },
+  { horseIdx:5, type:'zahlenmauer', treatment:'injection', title:"Sunnys Dosis-Mauer", intro:"Sunnys Medizin wird über mehrere Tage gegeben. Die Tierärztin trägt jede Einzeldosis in eine Zahlenmauer ein und addiert sie Schritt für Schritt zusammen. Oben steht die Gesamtmenge, damit die erlaubte Höchstdosis (Höchst-do-zis) nicht überschritten wird.", cured:"Sunny hat genau die richtige Gesamtmenge bekommen und ist wieder munter. ☀️", make:()=>Qzahlenmauer((mauer)=>`So sieht Sunnys Dosis-Mauer aus:${mauer}Rechne die fehlenden Steine aus.`) },
+  { horseIdx:7, type:'zahlenmauer', treatment:'bucket', title:"Cupcakes Leckerli-Mauer", intro:"Cupcake liebt Leckerlis, aber ein Shetlandpony setzt davon schnell Fett an, und Übergewicht kann eine Hufrehe (Huf-reh-e) auslösen. Darum wird mit einer Zahlenmauer mitgezählt, wie viele Leckerlis sie über den ganzen Tag bekommt.", cured:"Cupcake hat genau so viele Leckerlis bekommen, wie gut für sie sind. 🧁", make:()=>Qzahlenmauer((mauer)=>`So sieht Cupcakes Leckerli-Mauer aus:${mauer}Rechne die fehlenden Steine aus.`) },
+  { horseIdx:12, type:'zahlenmauer', treatment:'bandage', title:"Chestnuts Kühl-Mauer", intro:"Nach schwerer Zugarbeit bekommt Chestnut Kühlbandagen (Kühl-ban-da-gen) an die Beine, das nimmt die Wärme aus den Sehnen. Zu langes Kühlen schadet aber der Haut. Der Pfleger notiert darum in einer Zahlenmauer, wie viele Minuten gekühlt wurde.", cured:"Chestnuts Beine sind angenehm gekühlt, und ihre Haut ist gesund geblieben. 💪", make:()=>Qzahlenmauer((mauer)=>`So sieht Chestnuts Kühl-Mauer aus:${mauer}Rechne die fehlenden Steine aus.`) },
 ];
 let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false, mPerfect = true;
 let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mConvPhase = null, mTreat = null, mHelpShown = false, mTried = false;
 let mChooseSlot = 0, mChooseCandidates = [], mChosen = false;   // Phase 1: one patient per session is hers to choose
 
-// A session is 5 fresh questions. 'longmult' AND 'div' are pinned into every game (see buildMathPool);
-// the other 3 slots walk the 14-theme cycle below via a persistent pointer (localStorage
-// 'ellaTopicCycle', mirrored by the cloud sync), so every theme comes up once per 14 slots ≈ 5
-// sessions. Each question uses a different horse where possible and a random vet concept, reshuffled
-// every game. (2026-09: 'stellenwert' + 'platzhalter' added as Klasse-5 KA1-prep cycle themes.)
-const TOPIC_CYCLE = ['add', 'wt', 'money', 'sub', 'len', 'tens', 'compare', 'round', 'zeit', 'halb', 'vol', 'estimate', 'stellenwert', 'platzhalter'];   // 14 rotating themes (stellenwert + platzhalter = Klasse-5 KA1-Vorbereitung, 2026-09); 'longmult' AND 'div' are pinned into every game (see buildMathPool)
+// A session is 5 fresh questions drawn from a theme cycle via a persistent pointer (localStorage
+// 'ellaTopicCycle', mirrored by the cloud sync). Each question uses a different horse where possible
+// and a random vet concept, reshuffled every game.
+//
+// ⚠️ TEST_PREP (2026-09) — Klasse-5 Klassenarbeit über Kap. 1 (Zahlen und Daten) + Kap. 2 (Addieren
+// und Subtrahieren). Solange true, übt das Spiel NUR Themen aus diesen beiden Kapiteln, und
+// 'longmult'/'div' pausieren komplett: in Kap. 1 und 2 kommt weder Mal- noch Geteiltrechnen vor.
+// NACH DER KA: einfach auf false setzen, dann läuft wieder alles wie vorher (nichts wird gelöscht).
+const TEST_PREP = true;
+const TOPIC_CYCLE = ['add', 'wt', 'money', 'sub', 'len', 'tens', 'compare', 'round', 'zeit', 'halb', 'vol', 'estimate', 'stellenwert', 'platzhalter'];   // Normalbetrieb: 14 Themen, dazu longmult + div gepinnt
+const TEST_CYCLE  = ['add', 'sub', 'round', 'stellenwert', 'platzhalter', 'daten', 'median', 'diagramm', 'zahlenstrahl', 'vergleichen', 'zahlenmauer'];   // KA-Modus: nur Kap. 1 + 2
+function cycleList() { return TEST_PREP ? TEST_CYCLE : TOPIC_CYCLE; }
 // convert concepts bake their family into make() — read it back out of the function source
 function conceptFam(c) { const m = String(c.make).match(/Qconvert\(\s*'(\w+)'/); return m ? m[1] : null; }
 function themeMatches(theme, c) {
@@ -2485,19 +2699,17 @@ function themeMatches(theme, c) {
         default:     return c.type === theme;   // add, sub, div, money, tens, compare, round, halb, estimate
     }
 }
-function getTopicPtr() { try { const v = parseInt(localStorage.getItem('ellaTopicCycle'), 10); return isNaN(v) ? 0 : ((v % TOPIC_CYCLE.length) + TOPIC_CYCLE.length) % TOPIC_CYCLE.length; } catch (e) { return 0; } }
-function setTopicPtr(n) { try { localStorage.setItem('ellaTopicCycle', String(n % TOPIC_CYCLE.length)); } catch (e) {} }
+function getTopicPtr() { try { const L = cycleList().length, v = parseInt(localStorage.getItem('ellaTopicCycle'), 10); return isNaN(v) ? 0 : ((v % L) + L) % L; } catch (e) { return 0; } }
+function setTopicPtr(n) { try { localStorage.setItem('ellaTopicCycle', String(n % cycleList().length)); } catch (e) {} }
 
-function buildMathPool() {
-    const ptr = getTopicPtr();
-    const themes = [0, 1, 2].map(i => TOPIC_CYCLE[(ptr + i) % TOPIC_CYCLE.length]);
-    setTopicPtr(ptr + 3);   // this session consumes 3 cycle themes
-    const order = shuffle(['longmult', 'div', ...themes]);   // longmult AND div are ALWAYS in the line-up (random slots); plus 3 rotating cycle themes
-    const usedHorse = new Set(), out = [];
-    for (const t of order) {
+// Für jedes Theme ein passendes Konzept ziehen. `usedHorse` wird mitgeführt, damit dieselbe Runde
+// (inklusive Bonus-Fragen) möglichst verschiedene Pferde zeigt.
+// fallback order: theme + fresh horse → theme, horse reuse ok → any concept on a fresh horse.
+// Maths curriculum beats horse variety: reusing a horse is better than swapping the skill.
+function pickForThemes(themes, usedHorse) {
+    const out = [];
+    for (const t of themes) {
         const match = t === 'longmult' ? (c => c.type === 'longmult') : (c => themeMatches(t, c));
-        // fallback order: theme + fresh horse → theme, horse reuse ok → any concept on a fresh horse.
-        // Maths curriculum beats horse variety: reusing a horse is better than swapping the skill.
         let opts = shuffle(vetConcepts.filter(c => match(c) && !usedHorse.has(c.horseIdx) && isHorseUnlocked(horses[c.horseIdx])));
         if (!opts.length) opts = shuffle(vetConcepts.filter(c => match(c) && isHorseUnlocked(horses[c.horseIdx])));
         if (!opts.length) opts = shuffle(vetConcepts.filter(c => !usedHorse.has(c.horseIdx) && isHorseUnlocked(horses[c.horseIdx])));
@@ -2505,6 +2717,17 @@ function buildMathPool() {
         usedHorse.add(c.horseIdx);
         out.push(Object.assign({ horseIdx: c.horseIdx, title: c.title, intro: c.intro, cured: c.cured, treatment: c.treatment }, c.make()));
     }
+    return out;
+}
+
+function buildMathPool() {
+    const L = cycleList(), per = TEST_PREP ? 5 : 3;          // KA-Modus: alle 5 Slots aus dem Test-Cycle
+    const ptr = getTopicPtr();
+    const themes = Array.from({ length: per }, (_, i) => L[(ptr + i) % L.length]);
+    setTopicPtr(ptr + per);   // this session consumes `per` cycle themes
+    const order = shuffle(TEST_PREP ? themes : ['longmult', 'div', ...themes]);   // im Normalbetrieb sind longmult + div gepinnt
+    const usedHorse = new Set();
+    const out = pickForThemes(order, usedHorse);
     // "Choose your patient": the first slot is hers. Offer the auto-picked horse plus up
     // to 2 other horses that have a concept of that same maths type and aren't used by the other slots — so she
     // influences only WHICH horse (not the maths), and favourites can't take over.
@@ -2526,6 +2749,7 @@ function showMathGame() {
 }
 function startMathGame() {
     mScore = 0; mQ = 0; mBusy = false; mPerfect = true; mChosen = false; mTimeBonus = 0; mSessionQ = [];
+    mBonusRound = false; mBonusPoints = 0; mBonusCorrect = 0;
     mPool = buildMathPool();
     document.getElementById('mQTotal').textContent = mPool.length;
     showMathQuestion();
@@ -2567,6 +2791,12 @@ function choosePatient(idx) {
 // ── Phase 2: focus helpers — toggleable idle nudge (45s sound) + a calm per-question timer bar ──
 let mFocusOn = true, mIdleTimer = null, mNudgeIdx = 0, mFocusInit = false, mAudioCtx = null;
 let mTimerBudget = 180, mTimerLeft = 180, mTimerRunning = false, mTimerTick = null, mTimeBonus = 0, mQStartMs = 0, mSessionQ = [], mTimePopTimer = null;
+// ── Bonus-Runde (2026-09): war sie bei mindestens BONUS_MIN_FAST der 5 Aufgaben vor der Uhr, gibt es
+//    einen großen Auftritt und 2 Extra-Fragen mit mehr Punkten und garantiertem Turnier-Schatz. ──
+const BONUS_MIN_FAST = 4;        // von 5 Hauptaufgaben "vor der Uhr" — hier justieren, wenn sie zu oft/selten kommt
+const BONUS_QUESTIONS = 2;
+const BONUS_POINTS_PER_Q = 5;
+let mBonusRound = false, mBonusPoints = 0, mBonusCorrect = 0;
 const mNudgeClips = ['sndNudge1', 'sndNudge2', 'sndNudge3'];
 function fmtClock(s) { s = Math.max(0, Math.round(s)); const m = Math.floor(s / 60), ss = s % 60; return m + ':' + String(ss).padStart(2, '0'); }
 function renderFocus() {
@@ -2591,7 +2821,7 @@ function startFocus() {
 }
 // per-question timer: budget resets each question; depletes ONLY while focus is ON (toggling off freezes it, no sound/penalty).
 function startQuestionTimer(kind) {
-    mTimerBudget = (kind === 'longmult' || kind === 'compare') ? 330 : 180;   // 5.5 min for the big written multiplication AND the two-shop price compare (double calc); 3 min for everything else
+    mTimerBudget = (kind === 'longmult' || kind === 'compare' || kind === 'daten' || kind === 'zahlenstrahl' || kind === 'zahlenmauer') ? 330 : 180;   // 5.5 min for the big written multiplication, the two-shop price compare AND daten (three answers); 3 min for everything else
     mTimerLeft = mTimerBudget; mTimerRunning = true; mQStartMs = Date.now();
     renderFocus();
 }
@@ -2623,6 +2853,54 @@ function showTimePop() {
     clearTimeout(mTimePopTimer);
     mTimePopTimer = setTimeout(() => pop.classList.add('hidden'), 4400);
 }
+// Großer Auftritt: 2 Extra-Fragen anhängen, Overlay zeigen, Fanfare (nur wenn 🔔 an ist).
+function startBonusRound() {
+    mBonusRound = true;
+    const mainCount = mPool.length;
+    const used = new Set(mPool.map(q => q.horseIdx));
+    const L = cycleList(), ptr = getTopicPtr();
+    const themes = Array.from({ length: BONUS_QUESTIONS }, (_, i) => L[(ptr + i) % L.length]);
+    setTopicPtr(ptr + BONUS_QUESTIONS);
+    mPool = mPool.concat(pickForThemes(shuffle(themes), used));
+    document.getElementById('mQTotal').textContent = mPool.length;
+    stopQuestionTimer();
+    if (mIdleTimer) { clearTimeout(mIdleTimer); mIdleTimer = null; }
+    document.getElementById('mBonusSub').textContent =
+        `Du hast ${mTimeBonus} von ${mainCount} Aufgaben vor der Uhr geschafft! ⏱️`;
+    const card = document.getElementById('mBonusCard');
+    card.querySelectorAll('.bonus-spark').forEach(s => s.remove());
+    // nur in die Ecken (Padding-Zone) setzen, damit die Funken keinen Text verdecken
+    [{ s:'✨', l:3, t:5 }, { s:'⭐', l:90, t:7 }, { s:'💫', l:4, t:85 }, { s:'🌟', l:91, t:87 }].forEach((p, i) => {
+        const el = document.createElement('span');
+        el.className = 'bonus-spark'; el.textContent = p.s;
+        el.style.left = p.l + '%'; el.style.top = p.t + '%';
+        el.style.animationDelay = (i * 0.26) + 's';
+        card.appendChild(el);
+    });
+    document.getElementById('mBonusOverlay').classList.add('active');
+    playFanfare();
+}
+function beginBonusQuestions() {
+    document.getElementById('mBonusOverlay').classList.remove('active');
+    showMathQuestion();
+}
+function playFanfare() {
+    if (!mFocusOn) return;                       // respektiert den 🔔-Schalter
+    try {
+        mAudioCtx = mAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (mAudioCtx.state === 'suspended') mAudioCtx.resume();
+        const now = mAudioCtx.currentTime;
+        [[523, 0], [659, 0.12], [784, 0.24], [1047, 0.38]].forEach(([f, t]) => {
+            const o = mAudioCtx.createOscillator(), g = mAudioCtx.createGain();
+            o.type = 'triangle'; o.frequency.value = f;
+            g.gain.setValueAtTime(0, now + t);
+            g.gain.linearRampToValueAtTime(0.14, now + t + 0.03);
+            g.gain.exponentialRampToValueAtTime(0.0001, now + t + 0.5);
+            o.connect(g); g.connect(mAudioCtx.destination);
+            o.start(now + t); o.stop(now + t + 0.55);
+        });
+    } catch (e) {}
+}
 function resetIdle() {
     if (mIdleTimer) { clearTimeout(mIdleTimer); mIdleTimer = null; }
     if (!mFocusOn) return;
@@ -2652,7 +2930,10 @@ function softChime() {
 }
 
 function showMathQuestion() {
-    if (mQ >= mPool.length) { showMathEnd(); return; }
+    if (mQ >= mPool.length) {
+        if (!mBonusRound && mTimeBonus >= BONUS_MIN_FAST) return startBonusRound();   // schnell genug → Bonus-Runde
+        showMathEnd(); return;
+    }
     if (mQ === mChooseSlot && !mChosen && mChooseCandidates.length >= 2) { showPatientChooser(); return; }
     const q = mPool[mQ];
     addSeenConcept(q.title);   // remember she has seen this concept (so the exam can ask about it)
@@ -2682,6 +2963,7 @@ function showMathQuestion() {
     const btn = document.getElementById('mMixBtn');
     btn.classList.remove('hidden'); btn.disabled = false; btn.textContent = '✅ Dosis prüfen!';
     if (mConvPhase === 'comma') { btn.classList.add('hidden'); document.getElementById('mHelpBtn').classList.add('hidden'); }   // step ① is tap-only
+    else if (q.kind === 'vergleichen') { btn.classList.add('hidden'); }   // reine Tipp-Aufgabe, Hilfe bleibt aber da
 
     resetIdle();   // re-arm the gentle idle nudge for this new question
     startQuestionTimer(q.kind);   // fresh per-question countdown (paused-safe, gentle)
@@ -2727,6 +3009,19 @@ function renderProblem(q) {
     else if (q.kind === 'compare') { mDivPhase = 'prices'; inputs.innerHTML = calcField('mPa', 'Laden A: eins =', 'dec') + calcField('mPb', 'Laden B: eins =', 'dec'); }
     else if (q.kind === 'timecalc') { inputs.innerHTML = calcField('mAns', 'Antwort (min)', 'int'); }
     else if (q.kind === 'estimate') { inputs.innerHTML = calcField('mAns', 'Ungefähr wie viel?', 'int'); }
+    else if (q.kind === 'daten')    { inputs.innerHTML = calcField('mMin', 'Minimum', 'int') + calcField('mMax', 'Maximum', 'int') + calcField('mSpann', 'Spannweite', 'int'); }
+    else if (q.kind === 'median')   { inputs.innerHTML = calcField('mAns', 'Median', 'int'); }
+    else if (q.kind === 'zahlenstrahl' || q.kind === 'zahlenmauer') { inputs.innerHTML = q.fields.map(f => calcField(f.id, f.label, 'int')).join(''); }
+    else if (q.kind === 'vergleichen') {
+        if (q.mode === 'zeichen') {
+            inputs.innerHTML = '<div class="cmp-btns">' + ['<', '=', '>'].map(s =>
+                `<button class="cmp-btn" onclick="answerVergleich('${s}')">${s}</button>`).join('') + '</div>';
+        } else {
+            mOrdnePicked = [];
+            inputs.innerHTML = '<div class="cmp-btns">' + q.vals.map((v, i) =>
+                `<button class="cmp-btn" id="mOrd${i}" onclick="answerOrdne(${i})">${fmtTh(v)}</button>`).join('') + '</div>';
+        }
+    }
     else { inputs.innerHTML = calcField('mAns', 'Antwort', 'int'); }   // longmult, add, sub, round, tens, halb
     attachMathInputs();
 }
@@ -2758,9 +3053,12 @@ function checkMathAnswer() {
         case 'convert':  return checkExactNum(q, fbEl, q.answer, !Number.isInteger(q.answer));   // decimal answers (kg/l/km) parse comma/dot; whole ml/g/m answers accept Tausenderpunkte
         case 'div':      return checkDivision(q, fbEl);
         case 'compare':  return checkCompare(q, fbEl);
+        case 'daten':    return checkDaten(q, fbEl);                       // drei Felder auf einmal
+        case 'zahlenstrahl': case 'zahlenmauer': return checkMulti(q, fbEl);
+        case 'vergleichen': return;                                        // reine Tipp-Aufgabe (answerVergleich/answerOrdne)
         case 'add': case 'sub': case 'round': case 'tens': case 'halb': case 'estimate': case 'timecalc':
-        case 'stellenwert': case 'platzhalter':
-                         return checkExactNum(q, fbEl, q.answer, false);   // year-update + KA1-prep types: one exact whole number
+        case 'stellenwert': case 'platzhalter': case 'median': case 'diagramm':
+                         return checkExactNum(q, fbEl, q.answer, false);   // year-update + KA-prep types: one exact whole number
     }
 }
 
@@ -2837,6 +3135,81 @@ function answerCompare(pick) {
     else { mFirstTry = false; mPerfect = false; fbEl.className = 'calc-feedback no'; fbEl.textContent = '❌ Nicht der – vergleiche die zwei Preise für EINS. Versuch es nochmal!'; }
 }
 
+// Daten: Minimum, Maximum und Spannweite werden zusammen geprüft. Falsche Felder werden benannt und
+// geleert, richtige bleiben stehen — sie muss nie alles noch einmal tippen.
+function checkDaten(q, fbEl) {
+    const gMin = parseNum(document.getElementById('mMin').value),
+          gMax = parseNum(document.getElementById('mMax').value),
+          gSp  = parseNum(document.getElementById('mSpann').value);
+    if (isNaN(gMin) || isNaN(gMax) || isNaN(gSp)) return needInput(fbEl, '✏️ Fülle alle drei Felder aus!');
+    mTried = true;
+    const okMin = gMin === q.min, okMax = gMax === q.max, okSp = gSp === q.spann;
+    if (okMin && okMax && okSp) return mathCorrect(q, fbEl);
+    mFirstTry = false; mPerfect = false;
+    revealHelp(true);
+    const bad = [];
+    if (!okMin) { bad.push('Minimum');    document.getElementById('mMin').value = ''; }
+    if (!okMax) { bad.push('Maximum');    document.getElementById('mMax').value = ''; }
+    if (!okSp)  { bad.push('Spannweite'); document.getElementById('mSpann').value = ''; }
+    fbEl.className = 'calc-feedback no';
+    fbEl.textContent = bad.length === 3
+        ? '❌ Noch nicht ganz – ordne die Zahlen erst von klein nach groß. Versuch es nochmal!'
+        : '❌ Fast! Schau nochmal bei: ' + bad.join(' und ') + '. Der Rest stimmt schon! 👍';
+    const first = document.getElementById(!okMin ? 'mMin' : (!okMax ? 'mMax' : 'mSpann'));
+    if (first) first.focus();
+}
+
+// Mehrere Antwortfelder auf einmal (zahlenstrahl, zahlenmauer) — q.fields = [{id,label,expect}].
+// Falsche Felder werden benannt und geleert, richtige bleiben stehen.
+function checkMulti(q, fbEl) {
+    const vals = q.fields.map(f => parseNum(document.getElementById(f.id).value));
+    if (vals.some(v => isNaN(v))) return needInput(fbEl, '✏️ Fülle alle Felder aus!');
+    mTried = true;
+    const bad = q.fields.filter((f, i) => vals[i] !== f.expect);
+    if (!bad.length) return mathCorrect(q, fbEl);
+    mFirstTry = false; mPerfect = false;
+    revealHelp(true);
+    bad.forEach(f => { document.getElementById(f.id).value = ''; });
+    fbEl.className = 'calc-feedback no';
+    fbEl.textContent = bad.length === q.fields.length
+        ? '❌ Noch nicht ganz – schau dir die Hilfe an und versuch es nochmal!'
+        : '❌ Fast! Schau nochmal bei: ' + bad.map(f => f.label).join(' und ') + '. Der Rest stimmt schon! 👍';
+    const first = document.getElementById(bad[0].id); if (first) first.focus();
+}
+
+// Vergleichen, Variante 1: sie tippt >, < oder =
+function answerVergleich(sym) {
+    if (mBusy) return;
+    const q = mPool[mQ], fbEl = document.getElementById('mFeedback');
+    mTried = true;
+    if (sym === q.correct) return mathCorrect(q, fbEl);
+    mFirstTry = false; mPerfect = false;
+    revealHelp(true);
+    fbEl.className = 'calc-feedback no';
+    fbEl.textContent = '❌ Noch nicht. Vergleiche die Zahlen von links Stelle für Stelle. Versuch es nochmal!';
+}
+// Vergleichen, Variante 2: sie tippt die Zahlen von klein nach groß an
+let mOrdnePicked = [];
+function answerOrdne(i) {
+    if (mBusy) return;
+    const q = mPool[mQ], fbEl = document.getElementById('mFeedback');
+    if (mOrdnePicked.indexOf(i) >= 0) return;
+    mTried = true;
+    if (q.vals[i] !== q.sorted[mOrdnePicked.length]) {
+        mFirstTry = false; mPerfect = false;
+        revealHelp(true);
+        fbEl.className = 'calc-feedback no';
+        fbEl.textContent = '❌ Die ist noch nicht dran. Suche die kleinste Zahl, die noch übrig ist!';
+        return;
+    }
+    mOrdnePicked.push(i);
+    const b = document.getElementById('mOrd' + i);
+    if (b) { b.disabled = true; b.classList.add('picked'); }
+    if (mOrdnePicked.length === q.sorted.length) return mathCorrect(q, fbEl);
+    fbEl.className = 'calc-feedback ok';
+    fbEl.textContent = `👍 Richtig! Noch ${q.sorted.length - mOrdnePicked.length}. Welche ist jetzt die kleinste?`;
+}
+
 // convert step ①: she taps where the comma sits in the whole number (370 → 370,0), then step ② converts.
 // A wrong tap is low-stakes (no perfect-bonus penalty) — it's a brand-new learning step.
 function answerComma(pick) {
@@ -2861,6 +3234,7 @@ function answerComma(pick) {
 function mathCorrect(q, fbEl) {
     mBusy = true;
     mScore++; document.getElementById('mScoreVal').textContent = mScore;   // healed once she gets it right (even after a retry)
+    if (mBonusRound) { mBonusCorrect++; mBonusPoints += BONUS_POINTS_PER_Q; }   // Extra-Punkte in der Bonus-Runde
     stopQuestionTimer();
     const sec = Math.max(0, Math.round((Date.now() - mQStartMs) / 1000));
     const gotBonus = mTimerLeft > 0;   // beat the clock: bar not empty (pausing preserves it, so a pause still lets her earn it)
@@ -3079,10 +3453,10 @@ function showCure(q) {
         hc.appendChild(sp);
     });
     const cc = document.getElementById('mCureCollect');
-    const drop = maybeDropCollectible();   // ~1 in 4 chance per heal, during the round
+    const drop = mBonusRound ? dropPremiumCollectible() : maybeDropCollectible();   // Bonus-Runde: garantiert + höherwertig; sonst ~1 in 4
     if (drop) {
-        const cLabel = drop.isNew ? '🎁 Neu für deine Sammlung:' : '🎁 Zum Verschenken bekommen:';
-        cc.innerHTML = `<div class="cc-token">${drop.svg}</div><div class="cc-text">${cLabel}<br><b>${drop.name}</b>!</div>`;
+        const cLabel = drop.premium ? '🏆 Turnier-Schatz gewonnen:' : (drop.isNew ? '🎁 Neu für deine Sammlung:' : '🎁 Zum Verschenken bekommen:');
+        cc.innerHTML = `<div class="cc-token${drop.premium ? ' premium' : ''}">${drop.svg}</div><div class="cc-text">${cLabel}<br><b>${drop.name}</b>!</div>`;
         cc.classList.remove('hidden');
     }
     else { cc.classList.add('hidden'); cc.innerHTML = ''; }
@@ -3132,8 +3506,24 @@ const COLLECTIBLES_SET3 = [
   { id:'laterne',        name:'Laterne',        svg:`<svg viewBox="0 0 64 64"><path d="M30 11a2 2 0 0 1 4 0" fill="none" stroke="#9aa0a6" stroke-width="2.5"/><rect x="27" y="14" width="10" height="4" rx="2" fill="#9aa0a6"/><path d="M22 18h20l2 27H20z" fill="#7e858c"/><rect x="24" y="22" width="16" height="20" rx="2" fill="#ffe07a"/><path d="M32 26c-3 4-3 9 0 12 3-3 3-8 0-12z" fill="#f0b429"/><path d="M32 29c-1.6 2.2-1.6 5 0 7 1.6-2 1.6-4.8 0-7z" fill="#fff3c4"/><rect x="18" y="45" width="28" height="5" rx="2.5" fill="#5c626a"/></svg>` }
 ];
 const COLLECTIBLE_SETS = [COLLECTIBLES, COLLECTIBLES_SET2, COLLECTIBLES_SET3];
+// 🏆 Turnier-Schätze (2026-09) — NUR in der Bonus-Runde zu gewinnen, nie über den normalen 1-in-4-Drop.
+// Bewusst NICHT in COLLECTIBLE_SETS (sie sollen den Album-Fortschritt nicht aufblähen), aber in
+// COLLECTIBLE_BY_ID registriert, damit Geschenk-Tray, Verschenken und die Pferde-Infokarte
+// unverändert funktionieren. Das Flag `premium` hält sie aus dem normalen Nachschub-Pool heraus.
+const COLLECTIBLES_PREMIUM = [
+  { id:'goldpokal',    name:'Siegerpokal',       svg:`<svg viewBox="0 0 64 64"><path d="M22 12h20v14a10 10 0 01-20 0z" fill="#ffd34d"/><path d="M22 16h-6a8 8 0 008 8M42 16h6a8 8 0 01-8 8" fill="none" stroke="#e0a93b" stroke-width="3"/><rect x="29" y="36" width="6" height="8" fill="#e0a93b"/><rect x="21" y="44" width="22" height="6" rx="2" fill="#f0b429"/><circle cx="32" cy="22" r="4" fill="#fff8d0"/></svg>` },
+  { id:'goldmedaille', name:'Goldmedaille',      svg:`<svg viewBox="0 0 64 64"><path d="M22 10l8 18h4l8-18" fill="none" stroke="#4d96ff" stroke-width="5"/><circle cx="32" cy="40" r="15" fill="#ffd34d" stroke="#e0a93b" stroke-width="3"/><circle cx="32" cy="40" r="9" fill="#f7e08a"/><text x="32" y="45" font-size="12" text-anchor="middle" fill="#b8860b" font-family="Arial" font-weight="bold">1</text></svg>` },
+  { id:'rosette',      name:'Turnier-Rosette',   svg:`<svg viewBox="0 0 64 64"><path d="M28 34 20 58l8-4 4 6 4-6 8 4-8-24z" fill="#c0392b"/><circle cx="32" cy="26" r="16" fill="#ffd34d"/><g stroke="#e0a93b" stroke-width="1.5"><path d="M32 10v32M16 26h32M21 15l22 22M43 15L21 37"/></g><circle cx="32" cy="26" r="6" fill="#c0392b"/></svg>` },
+  { id:'goldhufeisen', name:'Goldenes Hufeisen', svg:`<svg viewBox="0 0 64 64"><path d="M21 14c-9 7-11 30 0 41M43 14c9 7 11 30 0 41" fill="none" stroke="#ffd34d" stroke-width="9" stroke-linecap="round"/><path d="M21 14c-9 7-11 30 0 41" fill="none" stroke="#fff8d0" stroke-width="2.5" stroke-linecap="round"/><g fill="#b8860b"><circle cx="18" cy="25" r="1.7"/><circle cx="17" cy="35" r="1.7"/><circle cx="19" cy="45" r="1.7"/><circle cx="46" cy="25" r="1.7"/><circle cx="47" cy="35" r="1.7"/><circle cx="45" cy="45" r="1.7"/></g></svg>` },
+  { id:'kristallstriegel', name:'Kristall-Striegel', svg:`<svg viewBox="0 0 64 64"><rect x="26" y="14" width="12" height="7" rx="3.5" fill="#7fd3f0"/><ellipse cx="32" cy="26" rx="18" ry="9" fill="#b8ecff"/><ellipse cx="32" cy="24.5" rx="18" ry="8" fill="#e3f7ff"/><g stroke="#7fd3f0" stroke-width="2.4" stroke-linecap="round"><path d="M20 32v9"/><path d="M26 34v11"/><path d="M32 35v11"/><path d="M38 34v11"/><path d="M44 32v9"/></g><path d="M26 19l3 3-3 3-3-3z" fill="#fff"/></svg>` },
+  { id:'silberglocke', name:'Silberglocke',      svg:`<svg viewBox="0 0 64 64"><path d="M32 12a4 4 0 014 4c7 3 10 10 10 18v8H18v-8c0-8 3-15 10-18a4 4 0 014-4z" fill="#d8dee6"/><path d="M28 16c-6 3-8 10-8 18v6h6v-6c0-8 1-15 2-18z" fill="#fff" opacity=".6"/><rect x="14" y="42" width="36" height="5" rx="2.5" fill="#aab4c0"/><circle cx="32" cy="52" r="4" fill="#9aa4b0"/></svg>` },
+  { id:'siegerschaerpe', name:'Sieger-Schärpe',  svg:`<svg viewBox="0 0 64 64"><path d="M16 10l32 30-6 8L10 18z" fill="#c0392b"/><path d="M16 10l32 30-3 4L13 14z" fill="#e05545"/><circle cx="44" cy="46" r="9" fill="#ffd34d" stroke="#e0a93b" stroke-width="2"/><text x="44" y="50" font-size="9" text-anchor="middle" fill="#b8860b" font-family="Arial" font-weight="bold">1</text></svg>` },
+  { id:'sternenband',  name:'Sternen-Stirnband', svg:`<svg viewBox="0 0 64 64"><path d="M10 34c8-8 36-8 44 0-8 8-36 8-44 0z" fill="#6a5acd"/><path d="M10 34c8-6 36-6 44 0-8-3-36-3-44 0z" fill="#8a7ae0"/><path d="M32 22l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z" fill="#ffd34d"/><circle cx="19" cy="34" r="2.5" fill="#fff8d0"/><circle cx="45" cy="34" r="2.5" fill="#fff8d0"/></svg>` },
+  { id:'goldkrone',    name:'Goldene Krone',     svg:`<svg viewBox="0 0 64 64"><path d="M12 44l-3-24 11 9 12-15 12 15 11-9-3 24z" fill="#ffd34d"/><rect x="12" y="44" width="40" height="6" fill="#e0a93b"/><g fill="#c0392b"><circle cx="22" cy="34" r="3"/><circle cx="32" cy="32" r="3.5"/><circle cx="42" cy="34" r="3"/></g><path d="M12 44l-3-24 11 9 12-15v30z" fill="#fff" opacity=".18"/></svg>` }
+];
 const COLLECTIBLE_BY_ID = {};
 COLLECTIBLE_SETS.forEach(function (s) { s.forEach(function (it) { COLLECTIBLE_BY_ID[it.id] = it; }); });
+COLLECTIBLES_PREMIUM.forEach(function (it) { it.premium = true; COLLECTIBLE_BY_ID[it.id] = it; });
 let giftSelected = null, draggingGift = null;
 
 // ── set state: which set she's collecting, progress in it, giftable inventory, and gifts given to each horse ──
@@ -3186,12 +3576,19 @@ function maybeDropCollectible() {
         }
     }
     if (!item) {                                     // album fully discovered: keep the giveaway supply refilling
-        const pool = Object.values(COLLECTIBLE_BY_ID);
+        const pool = Object.values(COLLECTIBLE_BY_ID).filter(it => !it.premium);   // Turnier-Schätze nur in der Bonus-Runde
         item = pool[Math.floor(Math.random() * pool.length)];
     }
     const gifts = getGifts(); gifts.push(item.id); saveGifts(gifts);   // every drop tops up her giveaway tray
     renderCollection();
     return { id: item.id, name: item.name, svg: item.svg, isNew: isNew };
+}
+// Bonus-Runde: garantierter Drop, immer aus den Turnier-Schätzen (höherwertig als der normale Drop)
+function dropPremiumCollectible() {
+    const item = COLLECTIBLES_PREMIUM[Math.floor(Math.random() * COLLECTIBLES_PREMIUM.length)];
+    const gifts = getGifts(); gifts.push(item.id); saveGifts(gifts);
+    renderCollection();
+    return { id: item.id, name: item.name, svg: item.svg, premium: true };
 }
 function selectGift(idx) {
     giftSelected = (giftSelected === idx) ? null : idx;
@@ -3464,6 +3861,34 @@ const EXAM = {
   "Sunnys Puls-Tabelle": { q:"Woran erkennst du an der Puls-Tabelle, dass Sunny fitter geworden ist?", correct:"Ihr Puls sinkt nach der Arbeit schneller wieder unter 60.", wrong:["Ihr Ruhepuls steigt von Woche zu Woche an.", "Ihr Arbeitspuls im Galopp wird immer höher."] },
   "Lunas Apotheken-Inventur": { q:"Warum werden abgelaufene Medikamente aus der Stall-Apotheke entfernt?", correct:"Sie wirken schwächer oder gar nicht mehr, und im Notfall verlässt man sich dann auf ein Mittel, das nicht hilft.", wrong:["Weil abgelaufene Tabletten für Pferde bitter schmecken und verweigert werden.", "Weil der Tierarzt nur Medikamente nachbestellt, wenn die alten weggeworfen wurden."] },
   "Freyas Fohlen-Kalender": { q:"Warum werden tragende Stuten im letzten Drittel der Trächtigkeit noch einmal geimpft?", correct:"Damit die Abwehrstoffe in die erste Milch gelangen und das Fohlen in den ersten Wochen schützen.", wrong:["Weil das Fohlen im Bauch schon selbst geimpft werden muss.", "Weil die Stute in dieser Zeit ihre alten Impfungen vergisst."] },
+
+  // ===== KLASSE-5 KAP.1 "DATEN" (2026-09) =====
+  "Midnights Puls-Kontrolle": { q:"Wie viele Herzschläge pro Minute hat ein gesundes Pferd in Ruhe?", correct:"Ungefähr 28 bis 44 Schläge pro Minute.", wrong:["Ungefähr 150 Schläge pro Minute, wie ein Vogel.", "Ungefähr 5 Schläge pro Minute, wie im Winterschlaf."] },
+  "Patches' Sprung-Test": { q:"Woran merkst du beim Sprung-Test, dass eine Sehne noch nicht verheilt ist?", correct:"Die Sprünge werden von Runde zu Runde niedriger.", wrong:["Das Pferd wiehert beim Springen deutlich lauter.", "Das Fell wird an den Beinen heller."] },
+  "Cupcakes Wasser-Kontrolle": { q:"Warum ist es gefährlich, wenn ein Pony zu wenig trinkt?", correct:"Der Darminhalt trocknet aus und es droht eine Verstopfungskolik.", wrong:["Das Fell verliert dann seine Farbe.", "Die Hufe wachsen dann viel zu schnell."] },
+  "Sagas Bewegungs-Plan": { q:"Warum darf ein Pferd nach einer Hufrehe nur langsam wieder mehr laufen?", correct:"Zu viel Belastung schadet der entzündeten Huflederhaut.", wrong:["Weil es sonst zu schnell wächst.", "Weil Bewegung die Hufe dunkler färbt."] },
+  "Stellas Trainings-Zeiten": { q:"Warum schaut man bei Trainingszeiten auf den mittleren Wert?", correct:"Weil eine einzelne Ausreißer-Zeit das Bild sonst verfälscht.", wrong:["Weil der mittlere Wert immer die schnellste Zeit ist.", "Weil man nur ungerade Zahlen vergleichen darf."] },
+  "Sunnys Herzschlag im Mittel": { q:"Warum misst du den Puls eines aufgeregten Pferdes mehrmals?", correct:"Weil ein einzelner Wert durch die Aufregung zu hoch sein kann.", wrong:["Weil das Messgerät beim ersten Mal immer falsch misst.", "Weil der Puls nur am Abend zählt."] },
+  "Lunas Kapriolen-Höhe": { q:"Was zeigen gleichmäßig hohe Sprünge über die Hinterhand eines Pferdes?", correct:"Dass sie kräftig und gesund ist.", wrong:["Dass das Pferd zu wenig gefressen hat.", "Dass die Hufeisen zu schwer sind."] },
+  "Chestnuts Gewichts-Kontrolle": { q:"Warum achtet man bei schweren Zugpferden besonders auf das Gewicht?", correct:"Weil jedes Kilo zu viel die Gelenke belastet.", wrong:["Weil sie sonst ihre Fellfarbe verlieren.", "Weil schwere Pferde nicht trinken dürfen."] },
+  "Thunders Futter-Diagramm": { q:"Wofür ist ein Säulendiagramm gut?", correct:"Man kann verschiedene Mengen auf einen Blick vergleichen.", wrong:["Es zeigt, wie alt ein Pferd genau ist.", "Es ersetzt das Abwiegen des Futters."] },
+  "Dottys Scheuer-Zählung": { q:"Was ist ein Sommerekzem?", correct:"Eine allergische Reaktion auf die Stiche kleiner Mücken.", wrong:["Eine Erkältung, die nur im Sommer vorkommt.", "Ein zu kurz geschnittener Huf."] },
+  "Brios Heu-Diagramm": { q:"Warum soll ein Pferd möglichst viele Stunden am Tag fressen?", correct:"Weil sein Magen ständig Säure bildet, die das Futter abpuffert.", wrong:["Weil es sonst nachts nicht schlafen kann.", "Weil es dadurch schneller galoppieren lernt."] },
+  "Freyas Impf-Diagramm": { q:"Wie kommen Tetanus-Bakterien in ein Pferd hinein?", correct:"Über kleine Wunden, denn die Bakterien stecken im Boden.", wrong:["Über das Trinkwasser aus dem Eimer.", "Über die Luft beim Niesen anderer Pferde."] },
+
+  // ===== KLASSE-5 KA PHASE 2 (2026-09) =====
+  "Biscuits Waage ablesen": { q:"Warum wird das Kraftfutter genau abgewogen?", correct:"Weil zu große Mengen auf einmal den Stoffwechsel belasten.", wrong:["Weil die Waage sonst kaputtgeht.", "Weil Pferde nur abgewogenes Futter riechen können."] },
+  "Midnights Stockmaß": { q:"Was ist das Stockmaß eines Pferdes?", correct:"Die Höhe am Widerrist, dem höchsten Punkt des Rückens.", wrong:["Die Länge vom Kopf bis zum Schweif.", "Das Gewicht des Pferdes in Kilogramm."] },
+  "Auroras Spritzen-Skala": { q:"Warum muss eine Spritze genau dosiert werden?", correct:"Zu wenig Wirkstoff hilft nicht, zu viel belastet die Nieren.", wrong:["Damit die Spritze länger hält.", "Damit das Pferd danach schneller läuft."] },
+  "Sagas Tränken-Zähler": { q:"Warum schaut man nach, wie viel ein Pferd trinkt?", correct:"Weil plötzlich weniger Trinken oft das erste Zeichen einer Krankheit ist.", wrong:["Weil Wasser im Stall sehr teuer ist.", "Weil Pferde nur morgens trinken dürfen."] },
+  "Stellas Elektrolyte": { q:"Warum bekommt ein Pferd nach starkem Schwitzen Elektrolyte?", correct:"Weil es mit dem Schweiß wichtige Salze verliert und die Muskeln sonst verkrampfen.", wrong:["Weil Elektrolyte das Fell zum Glänzen bringen.", "Weil es dann weniger trinken muss."] },
+  "Patches' Salben-Vergleich": { q:"Warum bekommen Pferde an weißen Fellstellen leichter Sonnenbrand?", correct:"Weil die Haut darunter hell und besonders empfindlich ist.", wrong:["Weil weißes Fell die Sonne anzieht.", "Weil weiße Haare dicker sind als dunkle."] },
+  "Brios Heu-Vergleich": { q:"Warum wiegt man das Heu für einen Haflinger genau ab?", correct:"Weil er leicht Fett ansetzt und Übergewicht den Hufen schadet.", wrong:["Weil Heu sonst schlechter schmeckt.", "Weil zu leichtes Heu vom Wind weggeweht wird."] },
+  "Freyas Schrittzähler": { q:"Warum soll sich ein Pferd nach einer Verletzung langsam wieder mehr bewegen?", correct:"Damit das Gewebe heilt, die Muskeln aber nicht abbauen.", wrong:["Damit das Fell an der Stelle wieder wächst.", "Damit es schneller frisst."] },
+  "Thunders Futter-Mauer": { q:"Warum bekommt ein Pferd seine Tagesration auf mehrere Mahlzeiten verteilt?", correct:"Weil sein Magen klein ist und große Mengen auf einmal schlecht verträgt.", wrong:["Weil es sonst zu schnell wächst.", "Weil Futter am Abend besser schmeckt."] },
+  "Sunnys Dosis-Mauer": { q:"Warum zählt die Tierärztin alle Einzeldosen zusammen?", correct:"Damit die erlaubte Höchstdosis nicht überschritten wird.", wrong:["Damit die Spritze bunter aussieht.", "Damit das Pferd schneller trocknet."] },
+  "Cupcakes Leckerli-Mauer": { q:"Warum bekommt ein Shetlandpony nur wenige Leckerlis?", correct:"Weil es schnell Fett ansetzt und Übergewicht eine Hufrehe auslösen kann.", wrong:["Weil Leckerlis die Zähne blau färben.", "Weil Ponys überhaupt keinen Zucker schmecken."] },
+  "Chestnuts Kühl-Mauer": { q:"Warum darf man ein Bein nicht beliebig lange kühlen?", correct:"Weil zu langes Kühlen der Haut schadet.", wrong:["Weil das Bein davon kürzer wird.", "Weil Kälte die Hufeisen rosten lässt."] },
 };
 const EXAM_LEN = 5;
 let exQs = [], exIdx = 0, exRight = 0, exMissed = [];
@@ -3582,7 +4007,7 @@ function showMathEnd() {
 
     // ── award persistent vet points: full for healing them all, +5 for a perfect round, +1 per beat-the-clock answer ──
     const base = mPerfect ? 15 : 10;
-    const earned = base + mTimeBonus;
+    const earned = base + mTimeBonus + mBonusPoints;
     const before = getVetPoints(), after = before + earned;
     setVetPoints(after);
     const eff = effectiveTier(), tier = VET_TIERS[eff], ach = getRankAchieved();
@@ -3593,6 +4018,7 @@ function showMathEnd() {
 
     let html = `<div class="ev-earned">🎖️ +${earned} vet points!${mPerfect ? ' (perfect bonus +5! ✨)' : ''}</div>`;
     if (mTimeBonus > 0) html += `<div class="ev-feed">⏱️ +${mTimeBonus} Zeit-Bonus für schnelle Antworten! 🐴</div>`;
+    if (mBonusRound) html += `<div class="ev-bonus">🚀 Bonus-Runde geschafft! +${mBonusPoints} Extra-Punkte und ${mBonusCorrect === 1 ? 'einen 🏆 Turnier-Schatz' : mBonusCorrect + ' 🏆 Turnier-Schätze'} zum Verschenken!</div>`;
     html += `<div class="ev-feed">🥕 +2 Feed Kitchen plays unlocked!</div>`;
     if (examAvailable()) html += `<div class="ev-levelup">🎓 Exam unlocked! Take the Tierarzt-Prüfung on the main page to level up! ${VET_TIERS[ach + 1].emoji}</div>`;
     html += `<div class="ev-total">Total: ${after} vet points</div>`;
@@ -3856,7 +4282,7 @@ function recordGameLog() {
         localStorage.setItem('ellaGameLog', JSON.stringify(log.slice(-100)));   // keep last ~100; mirrored to the cloud via the append-merge
     } catch (e) {}
 }
-const STAT_TYPE_LABEL = { longmult:'Schriftlich ×', div:'Teilen ÷', add:'Plus +', sub:'Minus −', money:'Geld €', compare:'Preisvergleich', round:'Runden', tens:'×÷ 10/100', halb:'Halbschriftlich', estimate:'Überschlagen', timecalc:'Zeit ⏰', convert:'Einheiten', stellenwert:'Stellenwert', platzhalter:'Platzhalter' };
+const STAT_TYPE_LABEL = { longmult:'Schriftlich ×', div:'Teilen ÷', add:'Plus +', sub:'Minus −', money:'Geld €', compare:'Preisvergleich', round:'Runden', tens:'×÷ 10/100', halb:'Halbschriftlich', estimate:'Überschlagen', timecalc:'Zeit ⏰', convert:'Einheiten', stellenwert:'Stellenwert', platzhalter:'Platzhalter', daten:'Daten 📊', median:'Median', diagramm:'Diagramm', zahlenstrahl:'Zahlenstrahl', vergleichen:'Vergleichen', zahlenmauer:'Zahlenmauer' };
 function statFmtTime(s) { s = Math.round(s); return s >= 60 ? Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' min' : s + 's'; }
 function statDate(ts) { try { const d = new Date(ts), p = n => String(n).padStart(2, '0'); return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '. ' + p(d.getHours()) + ':' + p(d.getMinutes()); } catch (e) { return ''; } }
 function barChart(vals, color, fmt) {
