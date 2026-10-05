@@ -467,7 +467,7 @@
         .cure-text { font-size: 1.05rem; line-height: 1.6; color: #2d2d2d; font-weight: 600; margin-bottom: 24px; position: relative; }
 
         /* persistent vet rank card (main page) */
-        .vet-card { display: flex; align-items: center; gap: 16px; max-width: 440px; margin: 34px auto 0; background: white; border-radius: 22px; padding: 18px 22px; box-shadow: 0 8px 26px rgba(0,0,0,0.12); border: 3px solid #38ef7d; }
+        .vet-card { display: flex; align-items: flex-start; gap: 16px; max-width: 440px; margin: 34px auto 0; background: white; border-radius: 22px; padding: 18px 22px; box-shadow: 0 8px 26px rgba(0,0,0,0.12); border: 3px solid #38ef7d; }
         .vc-emoji { font-size: 3rem; line-height: 1; flex-shrink: 0; }
         .vc-info { flex: 1; min-width: 0; text-align: left; }
         .vc-tier { font-family: 'Fredoka One', cursive; font-size: 1.4rem; color: #11998e; line-height: 1.1; }
@@ -475,6 +475,11 @@
         .vc-progress { background: #eee; border-radius: 8px; height: 9px; overflow: hidden; margin-top: 8px; }
         .vc-progress-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #11998e, #38ef7d); width: 0%; transition: width 0.6s ease; }
         .vc-next { color: #999; font-size: 0.8rem; font-weight: 700; margin-top: 5px; }
+        /* ── Rang-Steckbrief: Kategorie-Pille + ausklappbare 3-Satz-Biografie ── */
+        .vc-cat { display: inline-block; font-weight: 800; font-size: 0.72rem; color: #fff; background: #5ec98a; border-radius: 999px; padding: 2px 10px; margin-top: 4px; letter-spacing: .2px; }
+        .vc-who-btn { display: block; margin-top: 7px; padding: 0; border: none; background: none; cursor: pointer; font-family: inherit; font-weight: 800; font-size: 0.8rem; color: #7a5a9e; text-decoration: underline; text-underline-offset: 2px; }
+        .vc-who-btn:hover { color: #5c3f7e; }
+        .vc-who { margin-top: 7px; padding: 10px 12px; background: #f7f3fb; border-left: 4px solid #b89ad6; border-radius: 0 10px 10px 0; color: #5a4a6a; font-weight: 600; font-size: 0.84rem; line-height: 1.45; }
 
         /* vet points panel (maths end screen) */
         .end-vet { background: rgba(255,255,255,0.94); border-radius: 22px; padding: 20px 24px; max-width: 440px; margin: 0 auto 30px; box-shadow: 0 8px 26px rgba(0,0,0,0.22); }
@@ -578,9 +583,12 @@
         <div class="vc-emoji" id="vcEmoji">🌱</div>
         <div class="vc-info">
             <div class="vc-tier" id="vcTier">Apprentice</div>
+            <div class="vc-cat" id="vcCat"></div>
             <div class="vc-points" id="vcPoints">0 vet points</div>
             <div class="vc-progress"><div class="vc-progress-fill" id="vcProgressFill"></div></div>
             <div class="vc-next" id="vcNext"></div>
+            <button class="vc-who-btn" id="vcWhoBtn" onclick="toggleVetWho()">Wer war das? 👀</button>
+            <div class="vc-who hidden" id="vcWho"></div>
         </div>
     </div>
     <button class="exam-btn hidden" id="examBtn" onclick="startExam()">🎓 Tierarzt-Prüfung ablegen!</button>
@@ -609,20 +617,10 @@
     <!-- ════════════════ MATHS OPERATIONS EXPLAINER ════════════════ -->
     <section class="maths-info">
         <h2>🧮 Welche Rechen-Arten übst du im Tierarzt-Spiel?</h2>
-        <p class="maths-info-sub">Im 🩺 Tierarzt-Mathe-Spiel mischst du die Medizin, indem du Aufgaben löst. Jede Aufgabe ist eine Sachaufgabe: Lies die Geschichte und finde selbst heraus, welche Rechnung du brauchst! Wenn du nicht weiterkommst, hilft dir der 🖐 Hilfe-Knopf. Die erste Aufgabe ist immer eine große Mal-Aufgabe, danach kommen diese Rechen-Arten der Reihe nach dran:</p>
-        <div class="maths-info-grid">
-            <div class="maths-info-card"><div class="mi-emoji">✖️</div><h3>Große Mal-Aufgaben</h3><p>Eine große Zahl mal eine kleinere, schriftlich untereinander gerechnet. Denk an den Übertrag!</p></div>
-            <div class="maths-info-card"><div class="mi-emoji">➕</div><h3>Schriftlich plusrechnen</h3><p>Zwei große Zahlen untereinander zusammenzählen. Denk an den Übertrag!</p></div>
-            <div class="maths-info-card"><div class="mi-emoji">➖</div><h3>Schriftlich minusrechnen</h3><p>Eine große Zahl von einer anderen abziehen. Du rechnest mit Ergänzen: von unten nach oben, wie viel fehlt bis zur oberen Ziffer?</p></div>
-            <div class="maths-info-card"><div class="mi-emoji">🔢</div><h3>Große Zahlen runden</h3><p>Zahlen bis 1 000 000 runden, auf Zehner, Hunderter, Tausender oder Zehntausender.</p></div>
-            <div class="maths-info-card"><div class="mi-emoji">🔟</div><h3>Mal und geteilt mit 10, 100, 1000</h3><p>Verschiebe einfach die Stellen, dann geht es ganz schnell!</p></div>
-            <div class="maths-info-card"><div class="mi-emoji">✍️</div><h3>Halbschriftlich rechnen</h3><p>Zerlege die Zahl in Hunderter, Zehner und Einer und rechne Stück für Stück.</p></div>
-            <div class="maths-info-card"><div class="mi-emoji">🤔</div><h3>Überschlagen</h3><p>Runde zuerst und rechne dann ungefähr, so kannst du schnell planen.</p></div>
-            <div class="maths-info-card"><div class="mi-emoji">💶</div><h3>Rechnen mit Geld</h3><p>Ein Preis mit Komma mal einer Anzahl, zum Beispiel 4,50 € × 3. Pass gut auf das Komma auf!</p></div>
-            <div class="maths-info-card"><div class="mi-emoji">⚖️</div><h3>Preise vergleichen</h3><p>Zwei Läden, zwei Angebote. Rechne aus, was EIN Stück kostet, und vergleiche die Preise.</p></div>
-            <div class="maths-info-card"><div class="mi-emoji">📏</div><h3>Einheiten umrechnen</h3><p>Rechne um: Kilometer in Meter, Kilo in Gramm, Liter in Milliliter oder Stunden in Minuten. Manchmal zählst du auch Zeiten zusammen!</p></div>
-            <div class="maths-info-card"><div class="mi-emoji">➗</div><h3>Teilen mit Rest</h3><p>Teile gerecht auf. Erst schätzen, dann genau rechnen, und manchmal bleibt ein Rest übrig!</p></div>
-        </div>
+        <!-- Text + Karten werden von renderMathsInfo() aus der LAUFENDEN Themenliste gebaut (cycleList()),
+             damit dieser Abschnitt nie wieder veraltet. TEST_PREP umschalten genügt. -->
+        <p class="maths-info-sub" id="mathsInfoSub"></p>
+        <div class="maths-info-grid" id="mathsInfoGrid"></div>
         <p class="maths-info-note">⚡ Und bei den Blitz-Karten übst du das kleine Einmaleins, schnelle Mal-Aufgaben wie 7 × 8!</p>
     </section>
     <footer class="rainbow-bg">
@@ -3019,6 +3017,55 @@ const TEST_PREP = true;
 const TOPIC_CYCLE = ['add', 'wt', 'money', 'sub', 'len', 'tens', 'compare', 'round', 'zeit', 'halb', 'vol', 'estimate', 'stellenwert', 'platzhalter'];   // Normalbetrieb: 14 Themen, dazu longmult + div gepinnt
 const TEST_CYCLE  = ['add', 'sub', 'round', 'stellenwert', 'platzhalter', 'daten', 'median', 'diagramm', 'zahlenstrahl', 'vergleichen', 'zahlenmauer'];   // KA-Modus: nur Kap. 1 + 2
 function cycleList() { return TEST_PREP ? TEST_CYCLE : TOPIC_CYCLE; }
+
+// ═══════════════════════════════════════════════════════════
+//  "WELCHE RECHEN-ARTEN?" — Erklärkarten auf der Hauptseite
+//  Wird aus cycleList() + den gepinnten Typen gebaut, NICHT von Hand gepflegt.
+//  Die convert-Familien (wt/len/vol/zeit) zeigen über `ref` alle auf EINE Karte.
+// ═══════════════════════════════════════════════════════════
+const RECHENART_INFO = {
+    longmult:     { e: '✖️', t: 'Große Mal-Aufgaben',            d: 'Eine große Zahl mal eine kleinere, schriftlich untereinander gerechnet. Denk an den Übertrag!' },
+    div:          { e: '➗', t: 'Teilen mit Rest',                d: 'Teile gerecht auf. Erst schätzen, dann genau rechnen, und manchmal bleibt ein Rest übrig!' },
+    add:          { e: '➕', t: 'Schriftlich plusrechnen',        d: 'Zwei große Zahlen untereinander zusammenzählen. Denk an den Übertrag!' },
+    sub:          { e: '➖', t: 'Schriftlich minusrechnen',       d: 'Eine große Zahl von einer anderen abziehen. Du rechnest mit Ergänzen: von unten nach oben, wie viel fehlt bis zur oberen Ziffer?' },
+    round:        { e: '🔢', t: 'Große Zahlen runden',           d: 'Zahlen bis 1 000 000 runden, auf Zehner, Hunderter, Tausender oder Zehntausender.' },
+    stellenwert:  { e: '🏷️', t: 'Stellenwert',                   d: 'Welchen Wert hat eine bestimmte Ziffer? Die 7 in 47.320 ist keine 7, sondern 7000.' },
+    platzhalter:  { e: '🔲', t: 'Die fehlende Zahl',              d: 'In der Rechnung fehlt eine Zahl, zum Beispiel 340 + ⬜ = 500. Die Umkehr-Aufgabe hilft dir weiter.' },
+    daten:        { e: '📊', t: 'Minimum, Maximum, Spannweite',  d: 'Aus einer Liste von Messwerten den kleinsten und den größten heraussuchen. Die Spannweite ist der Abstand zwischen beiden.' },
+    median:       { e: '🎯', t: 'Median (Zentralwert)',          d: 'Die Zahlen der Größe nach ordnen und die mittlere nehmen. Es sind immer ungerade viele, damit genau eine in der Mitte steht.' },
+    diagramm:     { e: '📈', t: 'Säulendiagramm ablesen',        d: 'Im Diagramm die Säulen ablesen und damit weiterrechnen. Schau genau hin, wie hoch jede Säule wirklich ist.' },
+    zahlenstrahl: { e: '📍', t: 'Zahlenstrahl',                  d: 'Drei Markierungen sitzen auf dem Zahlenstrahl. Zähl die Abschnitte ab, um herauszufinden, welche Zahl gemeint ist.' },
+    vergleichen:  { e: '🔍', t: 'Vergleichen und ordnen',        d: 'Setze das richtige Zeichen: größer, kleiner oder gleich. Manchmal sollst du Zahlen auch von klein nach groß antippen.' },
+    zahlenmauer:  { e: '🧱', t: 'Zahlenmauer',                   d: 'Zwei Steine nebeneinander ergeben zusammen den Stein darüber. Fülle die leeren Steine aus.' },
+    tens:         { e: '🔟', t: 'Mal und geteilt mit 10, 100, 1000', d: 'Verschiebe einfach die Stellen, dann geht es ganz schnell!' },
+    halb:         { e: '✍️', t: 'Halbschriftlich rechnen',       d: 'Zerlege die Zahl in Hunderter, Zehner und Einer und rechne Stück für Stück.' },
+    estimate:     { e: '🤔', t: 'Überschlagen',                  d: 'Runde zuerst und rechne dann ungefähr, so kannst du schnell planen.' },
+    money:        { e: '💶', t: 'Rechnen mit Geld',              d: 'Ein Preis mit Komma mal einer Anzahl, zum Beispiel 4,50 € × 3. Pass gut auf das Komma auf!' },
+    compare:      { e: '🛒', t: 'Preise vergleichen',            d: 'Zwei Läden, zwei Angebote. Rechne aus, was EIN Stück kostet, und vergleiche die Preise.' },
+    convert:      { e: '📏', t: 'Einheiten umrechnen',           d: 'Rechne um: Kilometer in Meter, Kilo in Gramm, Liter in Milliliter oder Stunden in Minuten. Manchmal zählst du auch Zeiten zusammen!' },
+    wt: { ref: 'convert' }, len: { ref: 'convert' }, vol: { ref: 'convert' }, zeit: { ref: 'convert' },
+    // läuft zum Abschluss JEDES Spiels, steht darum nicht im Themen-Cycle
+    fachbegriff:  { e: '📚', t: 'Fachbegriffe',                  d: 'Zum Schluss jeder Übung: Zieh den Summanden, den Minuenden oder den Subtrahenden in den Stall. So lernst du, wie die Zahlen in einer Rechnung heißen.' }
+};
+function renderMathsInfo() {
+    const sub = document.getElementById('mathsInfoSub'), grid = document.getElementById('mathsInfoGrid');
+    if (!sub || !grid) return;
+    sub.textContent = 'Im 🩺 Tierarzt-Mathe-Spiel mischst du die Medizin, indem du Aufgaben löst. Jede Aufgabe ist eine Sachaufgabe: Lies die Geschichte und finde selbst heraus, welche Rechnung du brauchst! Wenn du nicht weiterkommst, hilft dir der 🖐 Hilfe-Knopf. '
+        + (TEST_PREP
+            ? 'Gerade übst du für die Klassenarbeit, darum kommen nur die Rechen-Arten aus Kapitel 1 und 2 dran:'
+            : 'In jedem Spiel kommen auf jeden Fall eine große Mal-Aufgabe und eine Teil-Aufgabe dran, dazu wechseln diese Rechen-Arten:');
+    // gepinnte Typen zuerst (nur im Normalbetrieb), dann der laufende Cycle, zum Schluss die Fachbegriff-Runde
+    const themes = (TEST_PREP ? [] : ['longmult', 'div']).concat(cycleList()).concat(['fachbegriff']);
+    const seen = {}, cards = [];
+    themes.forEach(function (th) {
+        const key = (RECHENART_INFO[th] && RECHENART_INFO[th].ref) || th;   // convert-Familien auf eine Karte falten
+        const info = RECHENART_INFO[key];
+        if (!info || seen[key]) return;
+        seen[key] = true;
+        cards.push('<div class="maths-info-card"><div class="mi-emoji">' + info.e + '</div><h3>' + info.t + '</h3><p>' + info.d + '</p></div>');
+    });
+    grid.innerHTML = cards.join('');
+}
 // convert concepts bake their family into make() — read it back out of the function source
 function conceptFam(c) { const m = String(c.make).match(/Qconvert\(\s*'(\w+)'/); return m ? m[1] : null; }
 function themeMatches(theme, c) {
@@ -4063,44 +4110,128 @@ function horseGiftsHtml(i) {
     return `<div class="info-block"><h3>🎁 Geschenke von Ella</h3><div class="horse-gifts">${g.map(id => { const it = COLLECTIBLE_BY_ID[id]; return it ? `<span class="horse-gift" title="${it.name}">${it.svg}</span>` : ''; }).join('')}</div></div>`;
 }
 
+// ── Rang-Kategorien: jeder Rang gehört zu einer Gruppe, damit Ella sieht, WAS für ein Mensch das war ──
+const VET_CATS = {
+    start:  { label: 'Deine ersten Schritte',            emoji: '🌱', color: '#5ec98a' },
+    vet:    { label: 'Berühmte Tierärztinnen & Tierärzte', emoji: '🩺', color: '#4aa3df' },
+    horse:  { label: 'Pferde-Fachleute',                 emoji: '🐴', color: '#c98a4a' },
+    wild:   { label: 'Wildtier- & Zoo-Fachleute',        emoji: '🦁', color: '#d98f2e' },
+    nature: { label: 'Naturforscher & Entdecker',        emoji: '🌍', color: '#7a5a9e' },
+    green:  { label: 'Natur- & Tierschutz',              emoji: '💚', color: '#3aa76d' }
+};
+
 // ── Persistent vet rank: total points are saved by the browser so progress is remembered ──
+// 51 Ränge. min wird gleich darunter per VET_LEVEL_STEP neu gesetzt — die Zahlen hier sind nur Deko.
+// ⚠️ Ränge 0–14 sind BEWUSST unverändert (Ella hat sie schon erspielt). Ab 15 neu sortiert:
+//    erst echte Tierärztinnen/Tierärzte und Pferde-Fachleute, danach die Naturforscher.
 const VET_TIERS = [
-    { name: 'Apprentice',      emoji: '🌱', min: 0 },
-    { name: 'Junior Vet',      emoji: '🐴', min: 30 },
-    { name: 'Full Vet',        emoji: '🩺', min: 60 },
-    { name: 'Senior Vet',      emoji: '⭐', min: 90 },
-    { name: 'Super Vet',       emoji: '🌟', min: 120 },
-    { name: 'Super Hero Vet',  emoji: '🦸', min: 150 },
-    { name: 'Mega Vet',        emoji: '💫', min: 180 },
-    { name: 'Ultra Vet',       emoji: '🚀', min: 210 },
-    { name: 'Legendary Vet',   emoji: '🏆', min: 240 },
-    { name: 'Herriot Vet',     emoji: '📖', min: 270 },
-    { name: 'Goodall Vet',     emoji: '🐵', min: 300 },
-    { name: 'Attenborough Vet',emoji: '🌍', min: 330 },
-    { name: 'Irwin Vet',       emoji: '🐊', min: 360 },
-    { name: 'Fossey Vet',      emoji: '🦍', min: 390 },
-    { name: 'Durrell Vet',     emoji: '🐧', min: 420 },
-    { name: 'Darwin Vet',      emoji: '🐢', min: 450 },
-    { name: 'Cousteau Vet',    emoji: '🐬', min: 480 },
-    { name: 'Carson Vet',      emoji: '🦋', min: 510 },
-    { name: 'Muir Vet',        emoji: '🌲', min: 540 },
-    { name: 'Wallace Vet',     emoji: '🐛', min: 570 },
-    { name: 'Humboldt Vet',    emoji: '🗺️', min: 600 },
-    { name: 'Grzimek Vet',     emoji: '🦓', min: 630 },
-    { name: 'Adamson Vet',     emoji: '🦁', min: 660 },
-    { name: 'Audubon Vet',     emoji: '🦅', min: 690 },
-    { name: 'Leakey Vet',      emoji: '🦴', min: 720 },
-    { name: 'Linnaeus Vet',    emoji: '🌸', min: 750 },
-    { name: 'Lorenz Vet',           emoji: '🦆', min: 1040 },
-    { name: 'Frisch Vet',           emoji: '🐝', min: 1080 },
-    { name: 'Schaller Vet',         emoji: '🐼', min: 1120 },
-    { name: 'Galdikas Vet',         emoji: '🦧', min: 1160 },
-    { name: 'Payne Vet',            emoji: '🐋', min: 1200 },
-    { name: 'Earle Vet',            emoji: '🌊', min: 1240 },
-    { name: 'Mech Vet',             emoji: '🐺', min: 1280 },
-    { name: 'Maathai Vet',          emoji: '🌳', min: 1320 },
-    { name: 'Seton Vet',            emoji: '🦉', min: 1360 },
-    { name: 'Douglas-Hamilton Vet', emoji: '🐘', min: 1400 }
+    { name: 'Apprentice',      emoji: '🌱', min: 0, cat: 'start',
+      who: "Hier fängt jede Tierärztin an: beim Zuschauen und Lernen. Du kennst die ersten Pferde und übst, worauf man bei einem kranken Tier achtet. Jeder Fall, den du löst, bringt dich ein Stück weiter." },
+    { name: 'Junior Vet',      emoji: '🐴', min: 30, cat: 'start',
+      who: "Du bist keine Anfängerin mehr und darfst schon selbst behandeln. Du erkennst, welche Medizin zu welchem Fall passt. Die Pferde fangen an, dir zu vertrauen." },
+    { name: 'Full Vet',        emoji: '🩺', min: 60, cat: 'start',
+      who: "Jetzt bist du eine richtige Tierärztin mit eigener Praxis. Du kannst Puls und Atmung prüfen und weißt, welche Werte normal sind. Dein Stall läuft wie von selbst." },
+    { name: 'Senior Vet',      emoji: '⭐', min: 90, cat: 'start',
+      who: "Du hast so viele Fälle gesehen, dass dich fast nichts mehr überrascht. Jüngere Tierärztinnen fragen dich um Rat. Auch knifflige Rechnungen machen dich nicht mehr nervös." },
+    { name: 'Super Vet',       emoji: '🌟', min: 120, cat: 'start',
+      who: "Dich ruft man, wenn es schwierig wird. Du findest die Ursache, auch wenn das Pferd nicht sagen kann, wo es weh tut. Ruhig bleiben ist deine größte Stärke." },
+    { name: 'Super Hero Vet',  emoji: '🦸', min: 150, cat: 'start',
+      who: "Notfall mitten in der Nacht? Du bist schon unterwegs und rettest Pferde, bei denen andere längst aufgeben würden. Dein Umhang ist unsichtbar, aber alle wissen, dass du ihn hast." },
+    { name: 'Mega Vet',        emoji: '💫', min: 180, cat: 'start',
+      who: "Dein Name ist weit über deinen Reitstall hinaus bekannt. Du behandelst nicht nur, du bringst anderen bei, wie es geht. Kein Fall ist dir zu groß." },
+    { name: 'Ultra Vet',       emoji: '🚀', min: 210, cat: 'start',
+      who: "Du arbeitest schneller und genauer als fast alle anderen. Große Zahlen und schwierige Dosierungen rechnest du im Kopf. Pferdebesitzer aus dem ganzen Land rufen bei dir an." },
+    { name: 'Legendary Vet',   emoji: '🏆', min: 240, cat: 'start',
+      who: "Über dich werden Geschichten erzählt. Was du dir ausgedacht hast, machen heute viele Tierärztinnen nach. Ab dem nächsten Rang trägst du die Namen echter berühmter Tierärzte und Forscherinnen." },
+
+    { name: 'Herriot Vet',     emoji: '📖', min: 270, cat: 'vet',
+      who: "James Herriot (Dschäims Her-ri-ott) war ein echter Landtierarzt in Yorkshire in England. Er fuhr bei jedem Wetter auf die Höfe zu Kühen, Schafen und Pferden, oft mitten in der Nacht. Seine warmherzigen und sehr lustigen Bücher über seine Patienten wurden auf der ganzen Welt gelesen." },
+    { name: 'Goodall Vet',     emoji: '🐵', min: 300, cat: 'wild',
+      who: "Jane Goodall (Dschäin Gud-oll) lebte ab 1960 im Wald von Tansania mitten unter wilden Schimpansen. Sie entdeckte, dass Schimpansen Werkzeuge bauen und benutzen — das hatte vorher niemand für möglich gehalten. Bis ins hohe Alter reiste sie um die Welt und sprach für den Schutz der Tiere." },
+    { name: 'Attenborough Vet',emoji: '🌍', min: 330, cat: 'nature',
+      who: "David Attenborough (Dä-wid Att-en-bo-ro) hat über siebzig Jahre lang Naturfilme gemacht und dafür fast jedes Land der Erde besucht. Seine ruhige Stimme erklärt seit Generationen, wie Tiere leben. Durch seine Filme haben Millionen Menschen zum ersten Mal verstanden, wie zerbrechlich die Natur ist." },
+    { name: 'Irwin Vet',       emoji: '🐊', min: 360, cat: 'wild',
+      who: "Steve Irwin (Stiew Ör-win) wuchs in Australien in einem Reptilienpark auf und fing schon als Kind Krokodile. Als „Crocodile Hunter“ zeigte er im Fernsehen, dass auch gefährliche Tiere Schutz brauchen. Mit dem Geld aus seinen Sendungen kaufte er Land, damit Wildtiere dort sicher leben können." },
+    { name: 'Fossey Vet',      emoji: '🦍', min: 390, cat: 'wild',
+      who: "Dian Fossey (Dei-ann Foss-i) lebte achtzehn Jahre lang bei den Berggorillas in den Bergen von Ruanda. Sie lernte, jeden Gorilla einzeln zu erkennen, und zeigte, dass sie sanft sind und ihre Familie lieben. Sie kämpfte gegen Wilderer, damit die letzten Berggorillas nicht aussterben." },
+    { name: 'Durrell Vet',     emoji: '🐧', min: 420, cat: 'wild',
+      who: "Gerald Durrell (Dsche-rald Dur-rell) gründete 1959 auf der Insel Jersey einen Zoo mit einer ganz neuen Idee. Statt Tiere nur zu zeigen, züchtete er bedrohte Arten und brachte sie zurück in die Wildnis. Seine Bücher über seine Kindheit voller Tiere sind bis heute berühmt." },
+
+    { name: 'Cust Vet',        emoji: '🐎', min: 450, cat: 'horse',
+      who: "Aleen Cust (A-lien Kast) wollte Tierärztin werden, als Frauen das offiziell gar nicht durften. Sie studierte trotzdem, wurde Klassenbeste und arbeitete über zwanzig Jahre in Irland mit Pferden und Rindern — ohne sich Tierärztin nennen zu dürfen. Erst 1922 bekam sie endlich ihr Diplom und war damit die erste anerkannte Tierärztin Großbritanniens und Irlands." },
+    { name: 'Grzimek Vet',     emoji: '🦓', min: 480, cat: 'vet',
+      who: "Bernhard Grzimek (Gschi-mek) war Tierarzt und baute nach dem Krieg den zerstörten Frankfurter Zoo wieder auf. Für seinen Film „Serengeti darf nicht sterben“ bekam er 1960 als erster Deutscher nach dem Krieg einen Oscar. Sein Sohn Michael stürzte bei den Dreharbeiten mit dem Flugzeug ab, doch Grzimek kämpfte weiter für den Schutz der Serengeti." },
+    { name: 'Sjöberg Vet',     emoji: '👁️', min: 510, cat: 'horse',
+      who: "Agnes Sjöberg (Scho-berg) aus Finnland studierte in Dresden als einzige Frau unter dreihundert Männern. 1918 wurde sie in Leipzig mit einer Arbeit über die Augen von Pferden promoviert und war damit die erste Frau in Europa mit einem Doktortitel in Tiermedizin. Ihre Kollegen behandelten sie schlecht, und erst lange nach ihrem Tod wurde anerkannt, was sie geschafft hatte." },
+    { name: 'Hobday Vet',      emoji: '🌬️', min: 540, cat: 'horse',
+      who: "Frederick Hobday (Fred-rick Hobb-dei) war ein englischer Tierarzt, der sich auf den Kehlkopf von Pferden spezialisierte. Pferde, die beim schnellen Laufen laut pfeifen und keine Luft mehr bekommen, konnte er operieren — diese Operation heißt bis heute nach ihm. Er war außerdem der Tierarzt der englischen Königin Alexandra." },
+    { name: 'Eber Vet',        emoji: '🔬', min: 570, cat: 'vet',
+      who: "Ruth Eber legte 1924 in Leipzig ihr Staatsexamen ab und war damit die erste deutsche Tierärztin überhaupt. Ein Jahr später machte sie auch noch ihren Doktor — wieder als erste Frau in Deutschland. Ihr Vater war Professor für Tierkrankheiten, und sie bewies, dass seine Tochter das genauso konnte." },
+    { name: 'Dyson Vet',       emoji: '🏇', min: 600, cat: 'horse',
+      who: "Sue Dyson (Ssu Dei-ssen) erforscht seit über vierzig Jahren, warum Pferde lahmen und wo ihnen weh tut. 2017 stellte sie eine Liste mit 24 Zeichen vor, an denen man einem gerittenen Pferd ansehen kann, dass es Schmerzen hat. Dank ihr merken Reiterinnen heute viel früher, wenn ihr Pferd leidet, statt es für ungehorsam zu halten." },
+    { name: 'Bourgelat Vet',   emoji: '🏫', min: 630, cat: 'horse',
+      who: "Claude Bourgelat (Klohd Bursch-la) leitete in Lyon eine Reitschule und ärgerte sich, dass niemand richtig wusste, wie man kranke Tiere heilt. 1761 erlaubte ihm der französische König, die allererste Tierarzt-Schule der Welt zu gründen. Wenige Jahre später eröffnete er eine zweite bei Paris, und von dort breitete sich die Idee über ganz Europa aus." },
+    { name: 'Clark Vet',       emoji: '🔨', min: 660, cat: 'horse',
+      who: "Bracy Clark (Brei-ssi Klark) war einer der allerersten Schüler der Londoner Tierarzt-Schule und erforschte sein Leben lang den Pferdehuf. Er fand heraus, dass die damals üblichen Hufeisen den Huf zusammendrücken und beschädigen — und wurde dafür von seinen Kollegen ausgelacht. Heute geben ihm viele Hufexperten recht." },
+    { name: 'Dick Vet',        emoji: '🏛️', min: 690, cat: 'vet',
+      who: "William Dick (Will-jam Dick) hielt im November 1823 in Edinburgh abends seine erste Vorlesung über Tierkrankheiten, vor nur 25 Schülern. Daraus wurde eine der besten Tierarzt-Schulen der Welt. Sie heißt bis heute „Dick Vet“ nach ihm." },
+    { name: 'Hinton Vet',      emoji: '🧫', min: 720, cat: 'vet',
+      who: "Jane Hinton (Dschäin Hinn-ton) entwickelte 1941 als Laborassistentin einen besonderen Nährboden mit, auf dem man testen kann, welches Antibiotikum gegen welche Bakterien hilft. Dieser „Mueller-Hinton-Agar“ wird noch heute in Laboren auf der ganzen Welt benutzt. 1949 wurde sie außerdem eine der ersten beiden schwarzen Tierärztinnen der USA." },
+    { name: 'Webb Vet',        emoji: '⚖️', min: 750, cat: 'vet',
+      who: "Alfreda Johnson Webb (Al-fre-da Dschonn-ssen Webb) machte 1949 ihren Tierarzt-Abschluss und war die erste schwarze Frau in den USA mit einer Zulassung als Tierärztin. Danach unterrichtete sie jahrzehntelang Anatomie, also den Körperbau der Tiere. 1972 wurde sie als erste schwarze Frau ins Parlament ihres Bundesstaates gewählt." },
+    { name: 'Brancker Vet',    emoji: '🩹', min: 780, cat: 'vet',
+      who: "Mary Brancker (Mä-ri Brank-er) gehörte zu den ersten Frauen, die in London Tiermedizin studieren durften. 1967 wurde sie als erste Frau Präsidentin des britischen Tierärzteverbandes. Im selben Jahr brach die Maul- und Klauenseuche aus, und sie organisierte den Einsatz von rund achttausend Tierärzten im ganzen Land." },
+    { name: "O'Connor Vet",    emoji: '🦒', min: 810, cat: 'vet',
+      who: "Patricia O'Connor (Pa-tri-schia O-Konn-or) wurde 1942 Tierärztin im Zoo von Staten Island in New York, weil im Krieg kein Mann dafür da war. Sie blieb 28 Jahre und war lange die einzige Zootierärztin des ganzen Landes. Später gründete sie den Verband der Zootierärzte mit." },
+    { name: 'Camuti Vet',      emoji: '🐈', min: 840, cat: 'vet',
+      who: "Louis Camuti (Lu-i Ka-muu-ti) war der erste Tierarzt der USA, der ausschließlich Katzen behandelte. Über sechzig Jahre lang fuhr er in New York von Wohnung zu Wohnung, weil Katzen zu Hause viel ruhiger sind als in einer Praxis. Sein Buch heißt „Alle meine Patienten sind unterm Bett“." },
+    { name: 'McGrath Vet',     emoji: '🐕', min: 870, cat: 'vet',
+      who: "Elinor McGrath (E-li-nor Mäk-grath) war 1907 die erste Frau an der Tierarzt-Schule in Chicago, und ihre Mitschüler machten ihr das Leben schwer. Der Direktor sagte ihr, sie werde eine bessere Tierärztin als alle anderen — 1910 machte sie mit 22 Jahren ihren Abschluss. Jahrzehntelang behandelte sie Hunde und Katzen und richtete den ersten Tierfriedhof der Stadt ein." },
+    { name: 'Grandin Vet',     emoji: '🐄', min: 900, cat: 'green',
+      who: "Temple Grandin (Tem-pel Grän-din) ist Autistin und sagt, dass sie in Bildern denkt — ähnlich, wie Tiere es tun. Dadurch fiel ihr auf, was Rinder erschreckt: Schatten, Spiegelungen, flatternde Fahnen. Sie entwarf ruhige, geschwungene Gänge für Höfe, die heute überall benutzt werden, damit Tiere weniger Angst haben." },
+
+    { name: 'Schaller Vet',    emoji: '🐼', min: 930, cat: 'wild',
+      who: "George Schaller (Dschordsch Schall-er) hat mehr große Tiere erforscht als fast jeder andere Mensch. Er untersuchte Berggorillas, Löwen in der Serengeti, Tiger, Schneeleoparden und als erster westlicher Forscher die Großen Pandas in China. Fast überall, wo er gearbeitet hat, entstanden später Schutzgebiete." },
+    { name: 'Galdikas Vet',    emoji: '🦧', min: 960, cat: 'wild',
+      who: "Biruté Galdikas (Bi-ru-te Gal-di-kas) ging 1971 in den Regenwald von Borneo, um Orang-Utans zu erforschen. Ihre Studie läuft bis heute und ist damit die längste Untersuchung eines wilden Säugetiers überhaupt. Sie zieht außerdem Orang-Utan-Waisen auf und bringt sie zurück in den Wald." },
+    { name: 'Adamson Vet',     emoji: '🦁', min: 990, cat: 'wild',
+      who: "Joy Adamson (Dscheu A-dam-ssen) zog in Kenia die verwaiste Löwin Elsa mit der Flasche auf. Statt sie in einen Zoo zu geben, brachte sie Elsa das Jagen bei und ließ sie frei. Ihr Buch „Frei geboren“ machte Millionen Menschen klar, dass Wildtiere in die Wildnis gehören." },
+    { name: 'Leakey Vet',      emoji: '🦴', min: 1020, cat: 'wild',
+      who: "Louis Leakey (Lu-is Lie-ki) suchte in der Olduvai-Schlucht in Tansania nach Knochen und fand Spuren der allerersten Menschen. Er war überzeugt, dass die Menschheit in Afrika begann — und bekam recht. Er war es auch, der Jane Goodall, Dian Fossey und Biruté Galdikas zu den Menschenaffen schickte." },
+    { name: 'Douglas-Hamilton Vet', emoji: '🐘', min: 1050, cat: 'wild',
+      who: "Iain Douglas-Hamilton (Ien Dag-lass-Ha-mil-ton) erforschte ab 1965 am Manyara-See in Tansania als Erster das Familienleben wilder Elefanten. Er zählte, wie viele Elefanten von Wilderern getötet wurden, und machte die Zahlen weltweit bekannt. Seine Organisation „Save the Elephants“ schützt die Tiere bis heute." },
+    { name: 'Payne Vet',       emoji: '🐋', min: 1080, cat: 'wild',
+      who: "Roger Payne (Rodsch-er Pein) entdeckte, dass Buckelwale richtige Lieder singen, mit Strophen, die sich wiederholen. 1970 veröffentlichte er eine Schallplatte mit diesen Gesängen, und sie wurde ein Welterfolg. Weil plötzlich alle den Walen zuhören konnten, wuchs die Bewegung, die den Walfang stoppte." },
+    { name: 'Mech Vet',        emoji: '🐺', min: 1110, cat: 'wild',
+      who: "David Mech (Dei-wid Mietsch) erforscht Wölfe seit den 1950er-Jahren und begann auf der Insel Isle Royale, wo Wölfe und Elche ganz allein leben. Er fand heraus, dass ein Wolfsrudel keine kämpfende Rangordnung ist, sondern einfach eine Familie aus Eltern und ihren Jungen. Den Mythos vom „Alphawolf“ hatte er selbst mitverbreitet — und hat ihn später öffentlich richtiggestellt." },
+
+    { name: 'Lorenz Vet',      emoji: '🦆', min: 1140, cat: 'nature',
+      who: "Konrad Lorenz aus Österreich zog Graugänse auf und entdeckte dabei die Prägung: Gänseküken halten das erste große Wesen, das sie sehen, für ihre Mutter. Seine Küken liefen hinter ihm her, als wäre er eine Gans. 1973 bekam er dafür den Nobelpreis." },
+    { name: 'Frisch Vet',      emoji: '🐝', min: 1170, cat: 'nature',
+      who: "Karl von Frisch entschlüsselte die Sprache der Bienen. Er fand heraus, dass eine Biene mit einem Tanz erklärt, in welcher Richtung und wie weit entfernt Futter zu finden ist. 1973 bekam er zusammen mit Konrad Lorenz den Nobelpreis." },
+    { name: 'Seton Vet',       emoji: '🦉', min: 1200, cat: 'nature',
+      who: "Ernest Thompson Seton (Ör-nest Tomp-ssen Sie-ton) schrieb Tiergeschichten, in denen jedes Tier ein eigener Charakter mit eigenem Namen war. Sein Buch „Wildtiere, wie ich sie kenne“ von 1898 veränderte, wie Menschen über Tiere nachdachten. Er zeichnete seine Tiere selbst und half später, die Pfadfinder zu gründen." },
+    { name: 'Audubon Vet',     emoji: '🦅', min: 1230, cat: 'nature',
+      who: "John James Audubon (Dschon Dschäims O-du-bonn) wollte jeden Vogel Nordamerikas malen — und zwar in Lebensgröße. Sein Riesenbuch „The Birds of America“ enthält 435 Tafeln und ist eines der wertvollsten Bücher der Welt. Die größte Vogelschutz-Organisation der USA ist nach ihm benannt." },
+    { name: 'Linnaeus Vet',    emoji: '🌸', min: 1260, cat: 'nature',
+      who: "Carl von Linné (Lin-nee), auf Lateinisch Linnaeus, erfand das System, mit dem bis heute alle Lebewesen benannt werden. Jede Art bekommt genau zwei lateinische Namen, zum Beispiel Equus caballus für das Hauspferd. So versteht sich die ganze Welt, egal welche Sprache jemand spricht." },
+    { name: 'Wallace Vet',     emoji: '🐛', min: 1290, cat: 'nature',
+      who: "Alfred Russel Wallace (Äl-fred Rass-el Woll-less) sammelte jahrelang Tiere in den Regenwäldern Südostasiens. Dabei kam er ganz allein auf dieselbe Idee wie Darwin: dass Arten sich im Laufe der Zeit verändern. Er schickte Darwin einen Brief darüber, und 1858 stellten die beiden ihre Idee gemeinsam vor." },
+    { name: 'Humboldt Vet',    emoji: '🗺️', min: 1320, cat: 'nature',
+      who: "Alexander von Humboldt reiste von 1799 bis 1804 durch Südamerika und maß und zeichnete alles: Pflanzen, Gesteine, Luft, Sterne. Er bestieg den Vulkan Chimborazo und bemerkte, dass sich die Pflanzen mit jeder Höhenstufe ändern. Als Erster erklärte er, dass die ganze Natur ein einziges zusammenhängendes Netz ist." },
+    { name: 'Darwin Vet',      emoji: '🐢', min: 1350, cat: 'nature',
+      who: "Charles Darwin (Tscharls Dar-win) fuhr fünf Jahre lang mit dem Schiff „Beagle“ um die Welt und sammelte Tiere, Pflanzen und Fossilien. Auf den Galápagos-Inseln fiel ihm auf, dass die Finken auf jeder Insel anders geformte Schnäbel haben. Daraus entwickelte er die Evolutionstheorie, die erklärt, wie aus einer Art über sehr lange Zeit viele werden." },
+
+    { name: 'Cousteau Vet',    emoji: '🐬', min: 1380, cat: 'green',
+      who: "Jacques Cousteau (Schack Kus-toh) erfand 1943 zusammen mit einem Ingenieur das Tauchgerät, mit dem man frei unter Wasser atmen kann. Mit seinem Schiff „Calypso“ filmte er die Meere und zeigte den Menschen zum ersten Mal, wie es dort unten aussieht. Später kämpfte er dafür, dass die Ozeane nicht als Mülleimer benutzt werden." },
+    { name: 'Earle Vet',       emoji: '🌊', min: 1410, cat: 'green',
+      who: "Sylvia Earle (Ssil-wia Örl) ging 1979 in einem Spezialanzug 381 Meter tief auf den Meeresboden und lief dort umher, ohne Verbindung zum Schiff — bis heute ein Rekord. Sie war die erste Chefwissenschaftlerin der amerikanischen Meeresbehörde. Mit ihrem Projekt „Mission Blue“ schützt sie besondere Orte im Meer, die sie „Hoffnungsflecken“ nennt." },
+    { name: 'Carson Vet',      emoji: '🦋', min: 1440, cat: 'green',
+      who: "Rachel Carson (Rei-tschel Kar-ssen) war Meeresbiologin und merkte, dass in manchen Gegenden die Vögel verstummten. In ihrem Buch „Der stumme Frühling“ von 1962 zeigte sie, dass sich das Insektengift DDT in der Nahrungskette anreichert und Vögel tötet. Chemiefirmen griffen sie heftig an, doch das Gift wurde verboten und die Umweltbewegung entstand." },
+    { name: 'Muir Vet',        emoji: '🌲', min: 1470, cat: 'green',
+      who: "John Muir (Dschon Mjur) wanderte jahrelang durch die Berge Kaliforniens und schlief am liebsten draußen unter den Bäumen. Er schrieb so begeistert über das Yosemite-Tal, dass daraus ein Nationalpark wurde. 1892 gründete er den Sierra Club, einen der ersten Naturschutzvereine der Welt." },
+    { name: 'Maathai Vet',     emoji: '🌳', min: 1500, cat: 'green',
+      who: "Wangari Maathai (Wan-ga-ri Maa-thai) aus Kenia sah, dass ohne Bäume der Boden wegspült und die Brunnen austrocknen. 1977 begann sie mit Frauen aus den Dörfern Bäume zu pflanzen — daraus wurden über fünfzig Millionen. 2004 bekam sie als erste afrikanische Frau den Friedensnobelpreis." }
 ];
 const VET_LEVEL_STEP = 40;                                            // points per horse level (was 30). Paired with the Mal-Quiz +5 reward.
 VET_TIERS.forEach(function (t, i) { t.min = i * VET_LEVEL_STEP; });   // re-step the thresholds uniformly; names/emojis unchanged
@@ -4509,6 +4640,21 @@ function finishExam() {
     renderVetCard();
 }
 
+// ── Rang-Steckbrief auf der Rangkarte: Kategorie-Pille + ausklappbarer 3-Satz-Text ──
+// Bei den Start-Rängen (cat 'start') steht kein Mensch dahinter, darum heißt der Knopf dort anders.
+let vetWhoOpen = false;
+function renderVetWho(tier) {
+    const catEl = document.getElementById('vcCat'), whoEl = document.getElementById('vcWho'), btn = document.getElementById('vcWhoBtn');
+    if (!catEl || !whoEl || !btn) return;
+    const cat = VET_CATS[tier.cat] || VET_CATS.start;
+    catEl.textContent = cat.emoji + ' ' + cat.label;
+    catEl.style.background = cat.color;
+    whoEl.textContent = tier.who || '';
+    btn.textContent = (tier.cat === 'start' ? 'Was heißt das?' : 'Wer war das?') + (vetWhoOpen ? ' 🔼' : ' 👀');
+    whoEl.classList.toggle('hidden', !vetWhoOpen);
+}
+function toggleVetWho() { vetWhoOpen = !vetWhoOpen; renderVetWho(VET_TIERS[effectiveTier()]); }
+
 function renderVetCard() {
     // keep points consistent with her earned rank (e.g. after the level-spacing change) so "next level" is always an achievable gap
     var _ach = getRankAchieved(), _floor = (VET_TIERS[_ach] && VET_TIERS[_ach].min) || 0;
@@ -4517,6 +4663,7 @@ function renderVetCard() {
     document.getElementById('vcEmoji').textContent = tier.emoji;
     document.getElementById('vcTier').textContent = tier.name;
     document.getElementById('vcPoints').textContent = pts + (pts === 1 ? ' vet point' : ' vet points');
+    renderVetWho(tier);
     var fill = document.getElementById('vcProgressFill'), next = document.getElementById('vcNext'), examBtn = document.getElementById('examBtn');
     if (examAvailable()) {
         var target = VET_TIERS[ach + 1];
@@ -4940,6 +5087,7 @@ renderCollection();
 applyClaimedNames();   // Ellas selbst gewählte Namen in horses[] übernehmen, BEVOR das Gitter baut
 renderHorseGrid();   // build the grid (locked reward horses show as silhouettes)
 renderPickButton();  // "Neues Pferd aussuchen"-Banner, falls eine Wahl offen ist
+renderMathsInfo();   // Rechen-Arten-Erklärkarten aus der laufenden Themenliste bauen
 // give a small starter allowance for the Feed Kitchen the very first time
 try { if (localStorage.getItem('ellaFeedTokens') === null) setFeedTokens(2); } catch (e) {}
 renderFeedButton();
