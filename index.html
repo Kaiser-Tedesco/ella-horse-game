@@ -2563,20 +2563,165 @@ function Qstellenwert(story) {
 // Platzhalter: eine Zahl in einer +/− -Gleichung fehlt (z. B. 340 + □ = 500 → 160). Gegenrechnung/Umkehraufgabe.
 //    Story-Arg: (exprDisp) — die Gleichung als Text, z. B. "340 + □ = 500".
 function Qplatzhalter(story) {
-    let expr, answer;
+    let expr, answer, term;
     if (Math.random() < 0.5) {                               // Addition: a + m = s, ein Summand fehlt
         const a = rnd(20, 480), m = rnd(20, 480), s = a + m;
-        if (Math.random() < 0.5) { expr = `${fmtTh(a)} + □ = ${fmtTh(s)}`; answer = m; }
-        else                     { expr = `□ + ${fmtTh(m)} = ${fmtTh(s)}`; answer = a; }
+        if (Math.random() < 0.5) { expr = `${fmtTh(a)} + □ = ${fmtTh(s)}`; answer = m; term = '2. Summand'; }
+        else                     { expr = `□ + ${fmtTh(m)} = ${fmtTh(s)}`; answer = a; term = '1. Summand'; }
     } else {                                                 // Subtraktion: min − b = r  (min = b + r)
         const b = rnd(20, 480), r = rnd(20, 480), min = b + r;
-        if (Math.random() < 0.5) { expr = `${fmtTh(min)} − □ = ${fmtTh(r)}`; answer = b; }
-        else                     { expr = `□ − ${fmtTh(b)} = ${fmtTh(r)}`; answer = min; }
+        if (Math.random() < 0.5) { expr = `${fmtTh(min)} − □ = ${fmtTh(r)}`; answer = b; term = 'Subtrahend'; }
+        else                     { expr = `□ − ${fmtTh(b)} = ${fmtTh(r)}`; answer = min; term = 'Minuend'; }
     }
-    return { kind:'platzhalter', answer, expr,
+    return { kind:'platzhalter', answer, expr, term,
         label:'🔍 Platzhalter: Welche Zahl fehlt? Nutze die Umkehr-Aufgabe (Gegenrechnung)!',
         problemHTML:`${expr}<div class="carry-hint">Welche Zahl gehört ins □? Tipp: rechne rückwärts (Umkehr-Aufgabe).</div>`,
+        // Schritt ②: Buch S. 50, Kompetenz 1 verlangt AUCH den Fachbegriff der fehlenden Zahl
+        phase2: fachPhase2(term),
         story: story(expr) };
+}
+
+// ═══════════════════════════════════════════════════════════
+//  KLASSE-5 KAPITEL 2 — ZWISCHENTEST (Buch S. 50)
+//  Die vier Kompetenzen, die im Spiel komplett fehlten, plus zwei schärfere Varianten
+//  von Qadd/Qsub. Reihenfolge wie im Buch: Fachbegriff, Überschlagen, Probe,
+//  vorteilhaft rechnen, Klammerregel, schriftlich +, schriftlich −.
+// ═══════════════════════════════════════════════════════════
+
+// Baut die Schritt-②-Nachfrage nach dem Fachbegriff: richtige Antwort + 2 plausible Ablenker
+// aus derselben Rechenart-Familie, damit Raten nicht funktioniert.
+function fachPhase2(term) {
+    const plus = term.indexOf('Summand') >= 0 || term === 'Wert der Summe';
+    const family = FACH_TERMS.filter(t => (t.op === '+') === plus).map(t => t.term);
+    const opts = shuffle([term].concat(shuffle(family.filter(t => t !== term)).slice(0, 2)));
+    const hint = (FACH_TERMS.find(t => t.term === term) || {}).hint || '';
+    return { label: `② Und wie heißt die Zahl, die gefehlt hat? (${plus ? 'Plus-Aufgabe' : 'Minus-Aufgabe'})`,
+             options: opts, correct: opts.indexOf(term),
+             ok: '👍 Zahl stimmt! Und wie heißt diese Zahl mit Fachbegriff?', hint: '❌ Noch nicht. ' + hint };
+}
+
+// Kompetenz 2 — Überschlagen bei + und −.
+// ⚠️ Die Rundungsstelle wird IMMER genannt. Ohne Vorgabe wären bei 43 + 288 sowohl 40 + 290 = 330
+// als auch 40 + 300 = 340 vertretbar, und eine richtig gerechnete Antwort würde als falsch gewertet.
+function Queberschlag(story) {
+    const plus = Math.random() < 0.5;
+    const place = Math.random() < 0.5 ? 10 : 100;
+    const pname = place === 10 ? 'Zehner' : 'Hunderter';
+    const half = place / 2, lo = place === 10 ? 23 : 130, hi = place === 10 ? 98 : 890;
+    const pick = () => { let n; do { n = rnd(lo, hi); } while (n % place === 0 || n % place === half); return n; };   // nie schon rund, nie genau auf der Hälfte
+    let a, b, ra, rb;
+    do {
+        a = pick(); b = pick();
+        if (!plus && b > a) { const t = a; a = b; b = t; }                 // Minuend muss der größere sein
+        ra = Math.round(a / place) * place; rb = Math.round(b / place) * place;
+    } while (!plus && ra - rb < place);                                    // Differenz deutlich positiv halten
+    const op = plus ? '+' : '−', answer = plus ? ra + rb : ra - rb;
+    return { kind:'ueberschlag', a, b, place, pname, ra, rb, answer,
+        label:`🤔 Überschlagen: runde beide Zahlen auf ${pname} und rechne dann – nur ungefähr, nicht genau!`,
+        problemHTML:`${fmtTh(a)} ${op} ${fmtTh(b)} ≈ ?<div class="carry-hint">Runde beide auf ${pname}: ${fmtTh(a)} ≈ ${fmtTh(ra)} und ${fmtTh(b)} ≈ ${fmtTh(rb)}. Dann ${fmtTh(ra)} ${op} ${fmtTh(rb)}.</div>`,
+        story: story(fmtTh(a), fmtTh(b), pname) };
+}
+
+// Kompetenz 3 — Probe mit der Umkehraufgabe.
+// Eine BEREITS GELÖSTE Aufgabe wird gezeigt; sie rechnet die Gegenrechnung und entscheidet dann,
+// ob die Lösung stimmt. Etwa die Hälfte der gezeigten Aufgaben ist absichtlich falsch.
+function Qprobe(story) {
+    const sub = Math.random() < 0.5, isWrong = Math.random() < 0.5;
+    const a = rnd(180, 940), b = rnd(40, a - 100);
+    const trueRes = sub ? a - b : a + b;
+    const off = [1, 9, 10, 20][rnd(0, 3)] * (Math.random() < 0.5 ? 1 : -1);
+    const shownRes = isWrong ? trueRes + off : trueRes;
+    const shown = `${fmtTh(a)} ${sub ? '−' : '+'} ${fmtTh(b)} = ${fmtTh(shownRes)}`;
+    // Umkehraufgabe: bei − wird zurück-addiert, bei + zurück-subtrahiert. Das Ergebnis muss wieder a sein.
+    const probeExpr = `${fmtTh(shownRes)} ${sub ? '+' : '−'} ${fmtTh(b)}`;
+    const answer = sub ? shownRes + b : shownRes - b;
+    const ok = answer === a;
+    const opts = ['✅ Ja, stimmt', '❌ Nein, falsch'];
+    return { kind:'probe', shown, probeExpr, answer, ok,
+        label:`🔄 Probe mit der Umkehr-Aufgabe: rechne ${probeExpr} – kommt wieder ${fmtTh(a)} heraus?`,
+        problemHTML:`Gelöste Aufgabe: <b>${shown}</b><div class="carry-hint">Probe (Umkehr-Aufgabe): ${probeExpr} = ? — kommt ${fmtTh(a)} heraus, war die Aufgabe richtig.</div>`,
+        phase2: { label:'② Stimmt die Aufgabe oben?', options:opts, correct: ok ? 0 : 1,
+                  ok:'👍 Probe gerechnet! Und jetzt: stimmt die Aufgabe oben?',
+                  hint:`❌ Schau nochmal: deine Probe ergibt ${fmtTh(answer)}, oben steht als erste Zahl ${fmtTh(a)}. Nur wenn beide GLEICH sind, war die Aufgabe richtig gelöst.` },
+        story: story(shown, probeExpr) };
+}
+
+// Kompetenz 4 — vorteilhaft rechnen mit den Rechengesetzen.
+// Vier Summanden, die paarweise glatte Zehner (oder Hunderter) ergeben — genau das Buchmuster
+// 18 + 16 + 24 + 12 → (18 + 12) + (16 + 24) = 30 + 40.
+function Qvorteilhaft(story) {
+    const step = Math.random() < 0.65 ? 10 : 100;
+    const pair = () => {
+        const t = rnd(3, 9) * step;
+        let x;
+        if (step === 10) { do { x = rnd(11, t - 11); } while (x % 10 === 0 || x * 2 === t); }
+        else             { do { x = rnd(11, t / 10 - 11) * 10; } while (x % 100 === 0 || (t - x) % 100 === 0 || x * 2 === t); }
+        return [x, t - x, t];
+    };
+    const [a, b, t1] = pair(), [c, d, t2] = pair();
+    const nums = shuffle([a, b, c, d]), answer = t1 + t2;
+    return { kind:'vorteilhaft', nums, a, b, c, d, t1, t2, answer,
+        label:'🧩 Vorteilhaft rechnen: suche zwei Zahlen, die zusammen eine glatte Zahl ergeben, und tausche sie nach vorne!',
+        problemHTML:`${nums.join(' + ')} = ?<div class="carry-hint">Geschickt: ${a} + ${b} = ${t1} und ${c} + ${d} = ${t2}. Dann nur noch ${t1} + ${t2}.</div>`,
+        story: story(nums) };
+}
+
+// Kompetenz 5 — Klammerregel. Dieselbe Zahlenreihe einmal ohne und einmal mit Klammer.
+// Vier Varianten: zwei ergeben dasselbe, zwei nicht — sonst lernt sie, immer "gleich" zu tippen.
+function Qklammer(story) {
+    const v = rnd(0, 3);
+    let a, b, c, e1, e2, r1, r2;
+    if (v === 0) {          // a − b − c  vs  a − (b − c)   → verschieden
+        c = rnd(5, 30); b = rnd(c + 5, c + 45); a = rnd(b + c + 15, b + c + 90);
+        e1 = `${a} − ${b} − ${c}`; e2 = `${a} − (${b} − ${c})`; r1 = a - b - c; r2 = a - (b - c);
+    } else if (v === 1) {   // a − b + c  vs  a − (b + c)   → verschieden
+        b = rnd(15, 60); c = rnd(5, 40); a = rnd(b + c + 20, b + c + 90);
+        e1 = `${a} − ${b} + ${c}`; e2 = `${a} − (${b} + ${c})`; r1 = a - b + c; r2 = a - (b + c);
+    } else if (v === 2) {   // a + b − c  vs  a + (b − c)   → gleich
+        c = rnd(5, 30); b = rnd(c + 10, c + 60); a = rnd(20, 90);
+        e1 = `${a} + ${b} − ${c}`; e2 = `${a} + (${b} − ${c})`; r1 = a + b - c; r2 = a + (b - c);
+    } else {                // a + b + c  vs  a + (b + c)   → gleich
+        a = rnd(20, 90); b = rnd(15, 70); c = rnd(10, 60);
+        e1 = `${a} + ${b} + ${c}`; e2 = `${a} + (${b} + ${c})`; r1 = a + b + c; r2 = a + (b + c);
+    }
+    const same = r1 === r2, opts = ['✅ Ja, gleich', '❌ Nein, verschieden'];
+    return { kind:'klammer', e1, e2, r1, r2, same,
+        fields:[{ id:'mK1', label:'ohne Klammer', expect:r1 }, { id:'mK2', label:'mit Klammer', expect:r2 }],
+        label:'🔗 Klammerregel: was in der Klammer steht, wird ZUERST gerechnet. Rechne beide Aufgaben aus!',
+        problemHTML:`<b>${e1}</b> &nbsp;und&nbsp; <b>${e2}</b><div class="carry-hint">Erst die Klammer ausrechnen, dann der Reihe nach von links nach rechts.</div>`,
+        phase2: { label:'② Sind die beiden Ergebnisse gleich?', options:opts, correct: same ? 0 : 1,
+                  ok:'👍 Beide Ergebnisse stimmen! Und jetzt: sind sie gleich?',
+                  hint:`❌ Vergleich sie nochmal genau: ${r1} und ${r2}.` },
+        story: story(e1, e2) };
+}
+
+// Kompetenz 6 — schriftlich addieren mit DREI oder VIER Summanden (Buch Spalte b/c, z.B. 2514 + 38 + 497 + 66).
+// Eigener Builder statt Qadd umzubauen: die 20+ bestehenden add-Konzepte erzählen eine Geschichte mit
+// genau ZWEI Zahlen, ihre story()-Signatur darf sich nicht ändern. kind bleibt 'add'.
+function Qaddmehr(story) {
+    const n = Math.random() < 0.55 ? 3 : 4;
+    let parts, sum;
+    do {
+        parts = Array.from({ length: n }, () => Math.random() < 0.45 ? rnd(28, 980) : rnd(1030, 8600));   // Stellenzahl gemischt, wie im Buch
+        sum = parts.reduce((x, y) => x + y, 0);
+    } while (!parts.some((p, i) => (parts.slice(0, i + 1).reduce((x, y) => x + y, 0) % 10) < (p % 10)));   // mindestens ein Übertrag in der Einerspalte
+    return { kind:'add', parts, answer:sum,
+        label:`➕ Schriftlich plusrechnen mit ${n} Zahlen – stell sie stellengerecht untereinander und denk an den Übertrag! ⚠️`,
+        problemHTML:`<div class="lm-stack">${parts.map((p, i) => `<div>${i ? '+ ' : ''}${fmtTh(p)}</div>`).join('')}<div class="lm-bar"></div><div>?</div></div><div class="carry-hint">⚠️ Einer unter Einer, Zehner unter Zehner – Übertrag nicht vergessen!</div>`,
+        story: story(parts.map(fmtTh)) };
+}
+
+// Kompetenz 7 — schriftlich subtrahieren in der KETTE: a − b − c (Buch Spalte c, z.B. 38517 − 852 − 9064).
+// Wieder ERGÄNZEN, nicht Entbündeln. kind bleibt 'sub'.
+function Qsubkette(story) {
+    let a, b, c;
+    do {
+        a = rnd(12050, 48900); b = rnd(420, 9400); c = rnd(420, 9400);
+    } while (a - b - c < 1000 || (!needsBorrow(a, b) && !needsBorrow(a - b, c)));
+    return { kind:'sub', a, b, c, answer:a - b - c,
+        label:'➖ Minus-Kette: rechne der Reihe nach von links nach rechts, mit Ergänzen – zuerst die erste Aufgabe, dann davon die zweite abziehen! ⚠️',
+        problemHTML:`${fmtTh(a)} − ${fmtTh(b)} − ${fmtTh(c)} = ?<div class="carry-hint">⚠️ Erst ${fmtTh(a)} − ${fmtTh(b)}, dann von diesem Ergebnis noch ${fmtTh(c)} abziehen.</div>`,
+        story: story(fmtTh(a), fmtTh(b), fmtTh(c)) };
 }
 
 // ── Klasse-5 Kap.1 "Daten erheben und auswerten" (2026-09): Minimum/Maximum/Spannweite, Median,
@@ -3000,6 +3145,35 @@ const vetConcepts = [
 
   { horseIdx:54, type:'round', treatment:'injection', title:"Die Zählung der Wildpferde", intro:"{NAME}s Rasse wäre beinahe ausgestorben, alle heute lebenden Tiere stammen von nur elf Pferden ab. Darum wird jedes Jahr genau gezählt und geimpft, damit eine Krankheit nicht die ganze kleine Population auslöscht. Für den Bericht wird die Zahl gerundet.", cured:"{NAME} ist geimpft und gezählt, ihre seltene Herde ist geschützt. 🇵🇹", make:()=>Qround((n,p)=>`Bei der Zählung im Schutzgebiet wurden <b>${n}</b> Tiere erfasst. Runde die Zahl für den Bericht auf <b>${p}</b>.`) },
   { horseIdx:54, type:'zahlenmauer', treatment:'bucket', title:"Die Heu-Mauer für den Winter", intro:"{NAME} lebt halbwild auf magerem, trockenem Land. Im Winter findet sie dort kaum etwas, darum wird zugefüttert. Der Ranger plant die Wochenration mit einer Zahlenmauer und addiert je zwei Tagesportionen zur nächsten Reihe.", cured:"{NAME}s Winterfutter ist geplant, sie kommt gut durch die karge Zeit. 🏜️", make:()=>Qzahlenmauer((mauer)=>`So sieht {NAME}s Heu-Mauer für die Woche aus:${mauer}Rechne die fehlenden Steine aus.`) },
+
+  // ===== KLASSE-5 KAP.2 ZWISCHENTEST (Buch S. 50, 2026-10-05) =====
+  // 20 Fälle für die vier neuen Kompetenzen + die schärferen +/− Varianten. Alle auf IMMER
+  // freigeschalteten Pferden (idx 0–13), damit jedes Kind sie sofort bekommt.
+  { horseIdx:4, type:'ueberschlag', treatment:'bucket', title:"Midnights Heu-Überschlag", intro:"Midnight steht vor einer leeren Raufe, und du, als Tierärztin, rechnest nach, ob er überhaupt genug bekommt. Ein Pferd braucht am Tag rund eineinhalb bis zwei Kilogramm Raufutter (Rau-fut-ter) je hundert Kilogramm Körpergewicht, und es darf nie länger als vier Stunden am Stück ohne Heu stehen. Der Pferdemagen produziert nämlich ununterbrochen Säure, auch wenn nichts drin ist, und dann frisst die Säure die Magenwand an: ein Magengeschwür (Ma-gen-ge-schwür). Für die schnelle Kontrolle im Stall reicht dir ein Überschlag.", cured:"Midnights Raufe ist voll, ein Heunetz verlangsamt das Fressen, und sein Magen hat rund um die Uhr etwas zu tun. 🌙", make:()=>Queberschlag((a,b,p)=>`Im Heulager liegen <b>${a}</b> Kilogramm Heu, und du bestellst <b>${b}</b> Kilogramm nach. Überschlage, wie viel das zusammen ungefähr ist: runde beide Zahlen auf ${p}.`) },
+  { horseIdx:6, type:'ueberschlag', treatment:'bucket', title:"Patches und der Wasserzähler", intro:"Patches' Tränke tropft, und niemand weiß, ob sie genug trinkt. Du, als Tierärztin, erklärst, warum du das so genau wissen willst: Ein Pferd trinkt am Tag dreißig bis fünfzig Liter, bei Hitze oder Arbeit deutlich mehr, und zu wenig Wasser ist eine der häufigsten Ursachen für eine Verstopfungskolik (Ver-stop-fungs-ko-lik). Mit dem Hautfaltentest (Haut-fal-ten-test) am Hals prüfst du, ob sie ausgetrocknet ist: Bleibt die Falte stehen, fehlt Flüssigkeit. Für die Tagesmenge genügt ein Überschlag.", cured:"Die Tränke ist repariert, Patches hat über vierzig Liter getrunken, und ihre Hautfalte fällt sofort zurück. 💧", make:()=>Queberschlag((a,b,p)=>`Am Vormittag hat Patches <b>${a}</b> Liter getrunken, am Nachmittag <b>${b}</b> Liter. Überschlage die Tagesmenge: runde beide Zahlen auf ${p}.`) },
+  { horseIdx:9, type:'ueberschlag', treatment:'injection', title:"Lunas Impf-Bestellung", intro:"Im Frühjahr kommt die Bestandsimpfung (Be-stands-imp-fung), und du, als Tierärztin, überschlägst, wie viele Dosen du mitbringen musst. Geimpft wird gegen Tetanus (Te-ta-nus), den Wundstarrkrampf, der über kleinste Wunden in den Körper kommt und fast immer tödlich endet, und gegen Influenza (In-flu-en-za), die Pferdegrippe, die durch einen ganzen Stall fegt. Je mehr Pferde geimpft sind, desto schwerer findet ein Erreger noch ein Opfer. Beim Bestellen rundest du lieber großzügig auf.", cured:"Alle Pferde sind geimpft, die Impfpässe sind gestempelt, und Lunas Stall ist gegen Tetanus und Grippe geschützt. 💉", make:()=>Queberschlag((a,b,p)=>`Im Nachbarstall stehen <b>${a}</b> Pferde, in Lunas Stall <b>${b}</b>. Überschlage, wie viele Impfdosen du ungefähr brauchst: runde beide Zahlen auf ${p}.`) },
+  { horseIdx:13, type:'ueberschlag', treatment:'bandage', title:"Sagas Einstreu-Rechnung", intro:"In Sagas Box beißt dir beim Betreten der Geruch in die Nase, und du, als Tierärztin, wirst sofort hellhörig. Aus nassem Mist und Urin entsteht Ammoniak (Am-mo-ni-ak), ein stechendes Gas, das schwerer als Luft ist und genau da steht, wo ein liegendes Pferd atmet. Es reizt die feinen Atemwege, und daraus wird mit der Zeit Equines Asthma (E-qui-nes Ast-ma), früher Dämpfigkeit genannt: Husten, Nasenausfluss, Atemnot schon im Schritt. Genug trockene Einstreu ist deshalb Medizin.", cured:"Sagas Box ist ausgemistet, dick eingestreut und durchlüftet, und der stechende Geruch ist völlig verschwunden. 🌬️", make:()=>Queberschlag((a,b,p)=>`Für diese Woche liegen <b>${a}</b> Kilogramm Stroh im Lager, <b>${b}</b> Kilogramm kommen dazu. Überschlage den Vorrat: runde beide Zahlen auf ${p}.`) },
+
+  { horseIdx:1, type:'probe', treatment:'bucket', title:"Biscuits Tabletten-Probe", intro:"Biscuit bekommt ein Schmerzmittel, und auf der Dose steht, wie viele Tabletten noch drin sein müssten. Du, als Tierärztin, zählst trotzdem nach, denn bei Medikamenten ist Schätzen verboten: Zu wenig wirkt nicht, zu viel kann Magen und Nieren schädigen. Eine Zahl auf dem Plan sieht komisch aus, und dafür gibt es die Probe mit der Umkehr-Aufgabe (Um-kehr-auf-ga-be). Rechnest du rückwärts und kommst wieder bei der Ausgangszahl heraus, stimmt die Rechnung.", cured:"Der Bestand stimmt bis auf die letzte Tablette, Biscuits Dosis sitzt, und der Plan hängt frisch geschrieben an der Box. 🧡", make:()=>Qprobe((shown,probe)=>`Auf Biscuits Medikamenten-Plan steht die Rechnung <b>${shown}</b> (in Tabletten). Mach die Probe mit der Umkehr-Aufgabe: Was ergibt ${probe}?`) },
+  { horseIdx:5, type:'probe', treatment:'bandage', title:"Sunnys Boxenruhe-Probe", intro:"Sunny hat sich eine Beugesehne (Beu-ge-seh-ne) gezerrt, und die braucht Zeit: Sehnen werden kaum durchblutet und heilen deshalb langsamer als fast alles andere im Pferdekörper. Du, als Tierärztin, hast einen Plan über viele Wochen geschrieben, erst Boxenruhe, dann Schrittführen, dann ganz langsam mehr. Wer zu früh wieder galoppiert, reißt die frische Heilung auf und fängt von vorn an. Auf dem Plan ist eine Rechnung durchgestrichen, also machst du die Probe.", cured:"Sunny geht wieder taktrein, die Sehne ist fest, und der Plan hat bis zum letzten Tag gestimmt. ☀️", make:()=>Qprobe((shown,probe)=>`Auf Sunnys Heilungsplan steht <b>${shown}</b> (in Tagen). Prüfe mit der Umkehr-Aufgabe nach: Was ergibt ${probe}?`) },
+  { horseIdx:10, type:'probe', treatment:'injection', title:"Auroras Impf-Abstand", intro:"Aurora bekommt ihre Grundimmunisierung (Grund-im-mu-ni-sie-rung), und die besteht aus mehreren Spritzen in genau festgelegten Abständen. Du, als Tierärztin, erklärst, warum die Tage so wichtig sind: Die erste Impfung zeigt dem Abwehrsystem den Erreger, die zweite im richtigen Abstand macht den Schutz erst stark und haltbar. Kommt die zweite zu spät, muss man von vorn anfangen. Im Impfpass ist eine Tageszahl überschrieben, also rechnest du zur Sicherheit die Probe.", cured:"Auroras Impfpass stimmt auf den Tag genau, und ihr Schutz hält jetzt wirklich. ✨", make:()=>Qprobe((shown,probe)=>`In Auroras Impfpass steht die Rechnung <b>${shown}</b> (in Tagen). Mach die Probe: Was ergibt ${probe}?`) },
+  { horseIdx:12, type:'probe', treatment:'salve', title:"Chestnuts Huf-Protokoll", intro:"Chestnut hat ein Hufgeschwür (Huf-ge-schwür): Unter dem Horn hat sich Eiter gesammelt, und weil das Horn hart ist, kann er nirgends hin und drückt mörderisch. Du, als Tierärztin, hast die Stelle geöffnet, damit der Eiter abfließt, und seitdem wird täglich ein Hufverband mit Zugsalbe gewechselt. Jeder Wechsel wird im Protokoll (Pro-to-koll) eingetragen, damit niemand den Überblick verliert. Eine Zeile wirkt falsch, also prüfst du sie mit der Umkehr-Aufgabe.", cured:"Chestnuts Huf ist sauber, trocken und schmerzfrei, und er tritt wieder voll auf. 🍂", make:()=>Qprobe((shown,probe)=>`In Chestnuts Huf-Protokoll steht <b>${shown}</b> (in Gramm Zugsalbe). Mach die Probe mit der Umkehr-Aufgabe: Was ergibt ${probe}?`) },
+
+  { horseIdx:0, type:'vorteilhaft', treatment:'bucket', title:"Stellas Trink-Protokoll", intro:"Stella soll eine Woche lang ein Trink-Protokoll bekommen, weil sie nach einer leichten Kolik (Ko-lik) wieder in Schwung kommen muss. Du, als Tierärztin, erklärst der Besitzerin, dass Wasser im Pferdedarm die wichtigste Medizin gegen Verstopfung ist: Trockenes Futter plus zu wenig Trinken ergibt einen festen Pfropf, der nicht weiterwandert. Darum wird jeder Eimer notiert. Am Abend zählst du die Eimer zusammen, und das geht viel schneller, wenn du geschickt gruppierst.", cured:"Stellas Tagesmenge stimmt, ihr Darm arbeitet hörbar, und die Kolik ist Geschichte. ⭐", make:()=>Qvorteilhaft((n)=>`Stella hat heute vier Eimer getrunken: <b>${n[0]}</b>, <b>${n[1]}</b>, <b>${n[2]}</b> und <b>${n[3]}</b> Liter. Zähle geschickt zusammen: Wie viel war das insgesamt?`) },
+  { horseIdx:7, type:'vorteilhaft', treatment:'bucket', title:"Cupcakes Portions-Plan", intro:"Cupcake ist ein Shetlandpony und damit ein Sparofen: Ihre Vorfahren lebten auf kargen Inseln, und ihr Körper holt aus wenig Futter sehr viel heraus. Du, als Tierärztin, warnst deshalb vor zu viel Kraftfutter, denn daraus wird bei Ponys schnell EMS, das Equine Metabolische Syndrom (E-qui-nes Me-ta-bo-li-sches Syn-drom), und daraus wiederum Hufrehe (Huf-re-he), eine extrem schmerzhafte Entzündung in der Hufwand. Darum wird ihre Tagesration in kleine Portionen geteilt und genau gezählt.", cured:"Cupcake hat ihre Ration auf vier kleine Portionen verteilt bekommen, ihr Hufpuls ist ruhig, und sie trabt fröhlich los. 🧁", make:()=>Qvorteilhaft((n)=>`Cupcakes Tagesration ist auf vier Portionen verteilt: <b>${n[0]}</b>, <b>${n[1]}</b>, <b>${n[2]}</b> und <b>${n[3]}</b> Gramm. Zähle geschickt zusammen: Wie viel bekommt sie am Tag?`) },
+  { horseIdx:8, type:'vorteilhaft', treatment:'bandage', title:"Brios Schritt-Minuten", intro:"Brio darf nach seiner Verletzung wieder bewegt werden, aber nur im Schritt an der Hand. Du, als Tierärztin, erklärst, warum das keine Zeitverschwendung ist: Bewegung pumpt Blut durch das heilende Gewebe, verhindert, dass Narben steif zusammenwachsen, und hält den Darm in Gang, der bei reiner Boxenruhe gern träge wird und eine Kolik auslöst. Jede Einheit wird mitgeschrieben, und abends zählst du die Minuten des Tages zusammen.", cured:"Brio hat seine Minuten voll, läuft geschmeidig, und morgen darf er zum ersten Mal wieder traben. 🏔️", make:()=>Qvorteilhaft((n)=>`Brio wurde heute viermal geführt: <b>${n[0]}</b>, <b>${n[1]}</b>, <b>${n[2]}</b> und <b>${n[3]}</b> Minuten. Zähle geschickt zusammen: Wie lange war er in Bewegung?`) },
+  { horseIdx:11, type:'vorteilhaft', treatment:'injection', title:"Freyas Impftag auf vier Höfen", intro:"Du, als Tierärztin, fährst heute vier Höfe ab und impfst überall gegen Tetanus und Influenza. Freyas Hof ist der letzte, und ihre Besitzerin fragt, warum du das an einem Tag machst: Weil eine Herde erst dann wirklich geschützt ist, wenn fast alle geimpft sind, und weil ein Erreger zwischen benachbarten Höfen hin- und herwandert. Impfstoff muss dabei durchgehend gekühlt bleiben, sonst verliert er seine Wirkung. Am Abend zählst du die Dosen zusammen.", cured:"Alle vier Höfe sind geimpft, Freya hat ihre Spritze kaum gemerkt, und die Kühlbox ist leer. 🛡️", make:()=>Qvorteilhaft((n)=>`Du hast heute auf vier Höfen geimpft: <b>${n[0]}</b>, <b>${n[1]}</b>, <b>${n[2]}</b> und <b>${n[3]}</b> Dosen. Zähle geschickt zusammen: Wie viele Dosen waren das?`) },
+
+  { horseIdx:2, type:'klammer', treatment:'bucket', title:"Thunders Heuballen-Klammer", intro:"Im Heulager von Thunders Stall stapeln sich die Ballen, und du, als Tierärztin, schaust sie dir genau an, bevor etwas verfüttert wird. Heu muss trocken, grünlich und staubfrei riechen; grauweiße Flecken und ein muffiger Geruch bedeuten Schimmel (Schim-mel), und dessen Sporen reizen die Atemwege so stark, dass daraus Equines Asthma (E-qui-nes Ast-ma) wird. Verdächtige Ballen fliegen raus. Beim Nachzählen kommt es darauf an, wo die Klammer steht.", cured:"Die schimmligen Ballen sind entsorgt, der Rest riecht süß und staubfrei, und Thunder hustet nicht mehr. 💨", make:()=>Qklammer((e1,e2)=>`Im Heulager wird gezählt. Rechne beide Aufgaben aus: <b>${e1}</b> und <b>${e2}</b> (in Ballen).`) },
+  { horseIdx:3, type:'klammer', treatment:'bandage', title:"Dottys Verbands-Zählung", intro:"Dotty hat eine Wunde am Röhrbein, und dort sitzt die Haut direkt auf dem Knochen, ohne schützendes Muskelpolster. Solche Wunden heilen langsam und neigen zu wildem Fleisch (wil-des Fleisch), einem Wulst aus überschüssigem Gewebe, der über die Wundränder wächst. Du, als Tierärztin, wechselst deshalb regelmäßig den Druckverband und zählst, wie viele Mullbinden noch da sind. Ob du dabei Klammern setzt oder nicht, macht einen Unterschied.", cured:"Dottys Wunde ist flach und sauber zugewachsen, ohne wildes Fleisch, und der Verband kann ab. 🎉", make:()=>Qklammer((e1,e2)=>`In der Stall-Apotheke wird nachgezählt. Rechne beide Aufgaben aus: <b>${e1}</b> und <b>${e2}</b> (in Mullbinden).`) },
+  { horseIdx:12, type:'klammer', treatment:'bucket', title:"Chestnuts Futtersack-Klammer", intro:"Chestnut ist ein Suffolk Punch und damit ein schweres Kaltblut, dessen Futter sackweise angeliefert wird. Du, als Tierärztin, achtest bei ihm besonders aufs Gewicht: Jedes Kilo zu viel drückt auf Gelenke, die ohnehin eine Menge zu tragen haben, und begünstigt Arthrose (Ar-thro-se). Darum wird genau Buch geführt, was reinkommt und was verbraucht wird. Beim Zusammenrechnen ändert eine Klammer manchmal alles und manchmal gar nichts.", cured:"Chestnuts Ration ist abgewogen, sein Gewicht sinkt langsam, und seine Gelenke danken es ihm. 🍂", make:()=>Qklammer((e1,e2)=>`Im Futterlager wird Buch geführt. Rechne beide Aufgaben aus: <b>${e1}</b> und <b>${e2}</b> (in Säcken).`) },
+  { horseIdx:7, type:'klammer', treatment:'salve', title:"Cupcakes Salben-Klammer", intro:"Cupcake hat Mauke (Mau-ke) in der Fesselbeuge: eine nässende, verkrustete Entzündung in der Hautfalte, die entsteht, wenn es dort dauernd feucht und schmutzig ist. Du, als Tierärztin, machst die Stelle trocken und sauber, schneidest das Fell kurz und trägst zweimal täglich Salbe auf. Der Stall muss trocken bleiben, sonst geht es sofort wieder los. In der Apotheke zählt ihr die Tuben nach, und dabei kommt es auf die Klammer an.", cured:"Cupcakes Fesselbeuge ist trocken, weich und ohne Krusten, und sie darf wieder auf die Weide. 🧁", make:()=>Qklammer((e1,e2)=>`In der Apotheke werden die Salben gezählt. Rechne beide Aufgaben aus: <b>${e1}</b> und <b>${e2}</b> (in Tuben).`) },
+
+  { horseIdx:4, type:'add', treatment:'bucket', title:"Midnights Futter-Lieferung", intro:"Bei Midnight wird die Winterlieferung abgeladen, und du, als Tierärztin, gehst die Posten mit durch. Ein Pferd frisst am Tag mehrere Kilogramm Raufutter, und ein Stall braucht über den Winter Tonnen davon; wer zu knapp plant, muss im Februar teuer und oft schlechter nachkaufen. Schlechtes Heu heißt Husten, Koliken und abnehmende Pferde. Weil mehrere Posten auf einmal ankommen, schreibst du sie stellengerecht untereinander und addierst schriftlich.", cured:"Das Lager ist voll, jeder Posten ist eingetragen, und Midnight ist bis zum Frühling versorgt. 🌙", make:()=>Qaddmehr((p)=>`Die Winterlieferung besteht aus mehreren Posten: <b>${p.join('</b> kg, <b>')}</b> kg. Rechne schriftlich zusammen: Wie viel Futter ist das insgesamt?`) },
+  { horseIdx:9, type:'add', treatment:'injection', title:"Lunas Klinik-Posten", intro:"Luna musste in die Klinik, und am Ende liegt eine Rechnung mit vielen einzelnen Posten auf dem Tisch. Du, als Tierärztin, gehst sie mit der Besitzerin durch und erklärst jeden: Untersuchung, Narkose (Nar-ko-se), Operation, Nachsorge, Medikamente. Gleichzeitig erzählst du von der OP-Versicherung (O-Pe-Ver-si-che-rung), die wenige Euro im Monat kostet und verhindert, dass jemand zwischen Geld und dem Leben seines Pferdes entscheiden muss. Die Posten werden stellengerecht untereinander addiert.", cured:"Luna ist gesund zurück im Stall, die Rechnung ist nachgerechnet, und die Versicherung übernimmt. ✨", make:()=>Qaddmehr((p)=>`Auf Lunas Klinik-Rechnung stehen mehrere Posten: <b>${p.join('</b> €, <b>')}</b> €. Rechne schriftlich zusammen: Wie hoch ist die Summe?`) },
+
+  { horseIdx:2, type:'sub', treatment:'bucket', title:"Thunders Heuvorrat schrumpft", intro:"Thunders Heulager war im Herbst randvoll, und jetzt im Januar schaust du, als Tierärztin, mit dem Stallbesitzer nach, was noch übrig ist. Du rechnest streng: Ein Pferd braucht täglich rund eineinhalb bis zwei Kilogramm Raufutter je hundert Kilogramm Gewicht, und es darf nie länger als vier Stunden ohne Heu stehen, sonst greift die Magensäure die Magenwand an. Zweimal wurde schon größer entnommen, und beides muss vom Vorrat abgezogen werden, eins nach dem anderen.", cured:"Der Vorrat reicht bis ins Frühjahr, die Nachbestellung läuft, und Thunders Raufe bleibt gefüllt. 💨", make:()=>Qsubkette((a,b,c)=>`Im Lager lagen <b>${a}</b> Kilogramm Heu. Im Dezember wurden <b>${b}</b> Kilogramm entnommen, im Januar noch einmal <b>${c}</b> Kilogramm. Rechne schriftlich nacheinander: Wie viel ist jetzt noch da?`) },
+  { horseIdx:10, type:'sub', treatment:'bucket', title:"Auroras Wasservorrat", intro:"Auroras Stall liegt abgelegen, und das Wasser steht in einem großen Tank, der nur alle paar Wochen gefüllt wird. Du, als Tierärztin, rechnest mit, denn Wasser ist bei Pferden keine Nebensache: Dreißig bis fünfzig Liter am Tag sind normal, bei Hitze und Arbeit mehr, und zu wenig davon ist eine der häufigsten Ursachen für eine Verstopfungskolik (Ver-stop-fungs-ko-lik). Zweimal wurde schon größer entnommen, und beide Mengen ziehst du nacheinander vom Vorrat ab.", cured:"Der Tank ist nachgefüllt, alle Tränken laufen, und Auroras Hautfalte fällt sofort wieder zurück. 💧", make:()=>Qsubkette((a,b,c)=>`Im Tank waren <b>${a}</b> Liter Wasser. In der ersten Woche gingen <b>${b}</b> Liter weg, in der zweiten <b>${c}</b> Liter. Rechne schriftlich nacheinander: Wie viel ist noch im Tank?`) },
 ];
 let mScore = 0, mQ = 0, mPool = [], mFirstTry = true, mBusy = false, mPerfect = true;
 let mPhase = 'calc', mIngTotal = 0, mIngAdded = 0, mDrag = null, mDivPhase = null, mConvPhase = null, mTreat = null, mHelpShown = false, mTried = false;
@@ -3015,8 +3189,25 @@ let mChooseSlot = 0, mChooseCandidates = [], mChosen = false;   // Phase 1: one 
 // NACH DER KA: einfach auf false setzen, dann läuft wieder alles wie vorher (nichts wird gelöscht).
 const TEST_PREP = true;
 const TOPIC_CYCLE = ['add', 'wt', 'money', 'sub', 'len', 'tens', 'compare', 'round', 'zeit', 'halb', 'vol', 'estimate', 'stellenwert', 'platzhalter'];   // Normalbetrieb: 14 Themen, dazu longmult + div gepinnt
-const TEST_CYCLE  = ['add', 'sub', 'round', 'stellenwert', 'platzhalter', 'daten', 'median', 'diagramm', 'zahlenstrahl', 'vergleichen', 'zahlenmauer'];   // KA-Modus: nur Kap. 1 + 2
+// ⚠️ KA-Modus ist ZWEIGETEILT (2026-10-05, nach dem Zwischentest Buch S. 50):
+//   KA2_CYCLE = die 7 Kompetenzen des Zwischentests (Kapitel 2). Davon sind in JEDEM Spiel
+//               KA2_SLOTS Fragen garantiert — so wie früher longmult + div gepinnt waren.
+//   TEST_CYCLE = der Rest (Kapitel 1 + Zahlenmauer), füllt die übrigen Slots rotierend.
+// Grund: der Zwischentest prüft 7 Kompetenzen, von denen das Spiel vorher nur 2½ konnte, und
+// Kapitel 1 war mit 8 Themen gegenüber Kapitel 2 fast 2:1 übergewichtet.
+// 🎯 NACH DER KA: TEST_PREP = false, dann greift wieder TOPIC_CYCLE mit longmult + div gepinnt.
+const KA2_CYCLE   = ['add', 'sub', 'platzhalter', 'ueberschlag', 'probe', 'vorteilhaft', 'klammer'];   // Buch S. 50, Kompetenz 1–7
+const KA2_SLOTS   = 2;                                                                                  // garantierte Kapitel-2-Fragen pro Spiel
+const TEST_CYCLE  = ['round', 'stellenwert', 'zahlenstrahl', 'vergleichen', 'daten', 'median', 'diagramm', 'zahlenmauer'];   // KA-Modus: Kapitel 1
 function cycleList() { return TEST_PREP ? TEST_CYCLE : TOPIC_CYCLE; }
+// eigener Zeiger für die gepinnten Kapitel-2-Themen, damit sie reihum ALLE drankommen (7 Themen / 2 pro Spiel)
+function getKa2Ptr() { try { const v = parseInt(localStorage.getItem('ellaKa2Cycle'), 10); return isNaN(v) ? 0 : ((v % KA2_CYCLE.length) + KA2_CYCLE.length) % KA2_CYCLE.length; } catch (e) { return 0; } }
+function setKa2Ptr(n) { try { localStorage.setItem('ellaKa2Cycle', String(n % KA2_CYCLE.length)); } catch (e) {} }
+function ka2Themes() {
+    const p = getKa2Ptr();
+    setKa2Ptr(p + KA2_SLOTS);
+    return Array.from({ length: KA2_SLOTS }, (_, i) => KA2_CYCLE[(p + i) % KA2_CYCLE.length]);
+}
 
 // ═══════════════════════════════════════════════════════════
 //  "WELCHE RECHEN-ARTEN?" — Erklärkarten auf der Hauptseite
@@ -3026,8 +3217,12 @@ function cycleList() { return TEST_PREP ? TEST_CYCLE : TOPIC_CYCLE; }
 const RECHENART_INFO = {
     longmult:     { e: '✖️', t: 'Große Mal-Aufgaben',            d: 'Eine große Zahl mal eine kleinere, schriftlich untereinander gerechnet. Denk an den Übertrag!' },
     div:          { e: '➗', t: 'Teilen mit Rest',                d: 'Teile gerecht auf. Erst schätzen, dann genau rechnen, und manchmal bleibt ein Rest übrig!' },
-    add:          { e: '➕', t: 'Schriftlich plusrechnen',        d: 'Zwei große Zahlen untereinander zusammenzählen. Denk an den Übertrag!' },
-    sub:          { e: '➖', t: 'Schriftlich minusrechnen',       d: 'Eine große Zahl von einer anderen abziehen. Du rechnest mit Ergänzen: von unten nach oben, wie viel fehlt bis zur oberen Ziffer?' },
+    add:          { e: '➕', t: 'Schriftlich plusrechnen',        d: 'Große Zahlen untereinander zusammenzählen – manchmal zwei, manchmal drei oder vier. Einer unter Einer stellen und an den Übertrag denken!' },
+    sub:          { e: '➖', t: 'Schriftlich minusrechnen',       d: 'Eine große Zahl von einer anderen abziehen, manchmal auch zwei nacheinander. Du rechnest mit Ergänzen: von unten nach oben, wie viel fehlt bis zur oberen Ziffer?' },
+    ueberschlag:  { e: '🤔', t: 'Überschlagen bei + und −',      d: 'Runde beide Zahlen auf die genannte Stelle und rechne dann im Kopf. So weißt du vorher ungefähr, was herauskommen muss.' },
+    probe:        { e: '🔄', t: 'Probe mit der Umkehr-Aufgabe',  d: 'Du bekommst eine fertig gelöste Aufgabe. Rechne die Gegenrechnung und entscheide, ob die Lösung stimmt – manchmal stimmt sie nämlich nicht!' },
+    vorteilhaft:  { e: '🧩', t: 'Vorteilhaft rechnen',           d: 'Vier Zahlen zusammenzählen. Suche zuerst zwei, die zusammen eine glatte Zahl ergeben – dann geht der Rest fast von allein.' },
+    klammer:      { e: '🔗', t: 'Klammerregel',                  d: 'Was in der Klammer steht, wird zuerst gerechnet. Rechne beide Aufgaben aus und sag, ob die Klammer das Ergebnis ändert.' },
     round:        { e: '🔢', t: 'Große Zahlen runden',           d: 'Zahlen bis 1 000 000 runden, auf Zehner, Hunderter, Tausender oder Zehntausender.' },
     stellenwert:  { e: '🏷️', t: 'Stellenwert',                   d: 'Welchen Wert hat eine bestimmte Ziffer? Die 7 in 47.320 ist keine 7, sondern 7000.' },
     platzhalter:  { e: '🔲', t: 'Die fehlende Zahl',              d: 'In der Rechnung fehlt eine Zahl, zum Beispiel 340 + ⬜ = 500. Die Umkehr-Aufgabe hilft dir weiter.' },
@@ -3052,10 +3247,10 @@ function renderMathsInfo() {
     if (!sub || !grid) return;
     sub.textContent = 'Im 🩺 Tierarzt-Mathe-Spiel mischst du die Medizin, indem du Aufgaben löst. Jede Aufgabe ist eine Sachaufgabe: Lies die Geschichte und finde selbst heraus, welche Rechnung du brauchst! Wenn du nicht weiterkommst, hilft dir der 🖐 Hilfe-Knopf. '
         + (TEST_PREP
-            ? 'Gerade übst du für die Klassenarbeit, darum kommen nur die Rechen-Arten aus Kapitel 1 und 2 dran:'
+            ? 'Gerade übst du für die Klassenarbeit. In jedem Spiel kommen 2 Aufgaben aus Kapitel 2 dran (die ersten in der Liste), dazu 3 wechselnde aus Kapitel 1:'
             : 'In jedem Spiel kommen auf jeden Fall eine große Mal-Aufgabe und eine Teil-Aufgabe dran, dazu wechseln diese Rechen-Arten:');
-    // gepinnte Typen zuerst (nur im Normalbetrieb), dann der laufende Cycle, zum Schluss die Fachbegriff-Runde
-    const themes = (TEST_PREP ? [] : ['longmult', 'div']).concat(cycleList()).concat(['fachbegriff']);
+    // gepinnte Typen zuerst (im KA-Modus die Kapitel-2-Kompetenzen), dann der laufende Cycle, zum Schluss die Fachbegriff-Runde
+    const themes = (TEST_PREP ? KA2_CYCLE : ['longmult', 'div']).concat(cycleList()).concat(['fachbegriff']);
     const seen = {}, cards = [];
     themes.forEach(function (th) {
         const key = (RECHENART_INFO[th] && RECHENART_INFO[th].ref) || th;   // convert-Familien auf eine Karte falten
@@ -3103,11 +3298,12 @@ function pickForThemes(themes, usedHorse) {
 }
 
 function buildMathPool() {
-    const L = cycleList(), per = TEST_PREP ? 5 : 3;          // KA-Modus: alle 5 Slots aus dem Test-Cycle
+    const L = cycleList(), per = TEST_PREP ? 5 - KA2_SLOTS : 3;   // KA-Modus: KA2_SLOTS sind für Kapitel 2 reserviert
     const ptr = getTopicPtr();
     const themes = Array.from({ length: per }, (_, i) => L[(ptr + i) % L.length]);
     setTopicPtr(ptr + per);   // this session consumes `per` cycle themes
-    const order = shuffle(TEST_PREP ? themes : ['longmult', 'div', ...themes]);   // im Normalbetrieb sind longmult + div gepinnt
+    const pinned = TEST_PREP ? ka2Themes() : ['longmult', 'div'];   // KA-Modus: Kapitel-2-Kompetenzen; sonst longmult + div
+    const order = shuffle([...pinned, ...themes]);
     const usedHorse = new Set();
     const out = pickForThemes(order, usedHorse);
     // "Choose your patient": the first slot is hers. Offer the auto-picked horse plus up
@@ -3480,6 +3676,7 @@ function renderProblem(q) {
     document.getElementById('mHelpBtn').classList.remove('hidden');
     mDivPhase = null;
     mConvPhase = null;
+    mP2 = null;        // eine offene Schritt-②-Nachfrage gehört nicht in die nächste Frage
     if (q.kind === 'div') { mDivPhase = 'estimate'; inputs.innerHTML = calcField('mEst', 'Ungefähr wie viel?', 'int'); }
     else if (q.kind === 'convert') {
         if (q.comma) {   // ml→l style: step ① place the comma in the whole number, then convert on step ②
@@ -3498,7 +3695,9 @@ function renderProblem(q) {
     else if (q.kind === 'estimate') { inputs.innerHTML = calcField('mAns', 'Ungefähr wie viel?', 'int'); }
     else if (q.kind === 'daten')    { inputs.innerHTML = calcField('mMin', 'Minimum', 'int') + calcField('mMax', 'Maximum', 'int') + calcField('mSpann', 'Spannweite', 'int'); }
     else if (q.kind === 'median')   { inputs.innerHTML = calcField('mAns', 'Median', 'int'); }
-    else if (q.kind === 'zahlenstrahl' || q.kind === 'zahlenmauer') { inputs.innerHTML = q.fields.map(f => calcField(f.id, f.label, 'int')).join(''); }
+    else if (q.kind === 'zahlenstrahl' || q.kind === 'zahlenmauer' || q.kind === 'klammer') { inputs.innerHTML = q.fields.map(f => calcField(f.id, f.label, 'int')).join(''); }
+    else if (q.kind === 'ueberschlag') { inputs.innerHTML = calcField('mAns', 'Ungefähr wie viel?', 'int'); }
+    else if (q.kind === 'probe')       { inputs.innerHTML = calcField('mAns', 'Probe-Ergebnis', 'int'); }
     else if (q.kind === 'vergleichen') {
         if (q.mode === 'zeichen') {
             inputs.innerHTML = '<div class="cmp-btns">' + ['<', '=', '>'].map(s =>
@@ -3542,20 +3741,54 @@ function checkMathAnswer() {
         case 'compare':  return checkCompare(q, fbEl);
         case 'daten':    return checkDaten(q, fbEl);                       // drei Felder auf einmal
         case 'zahlenstrahl': case 'zahlenmauer': return checkMulti(q, fbEl);
+        case 'klammer':  return checkMulti(q, fbEl, toPhase2);              // zwei Ergebnisse, dann "sind sie gleich?"
         case 'vergleichen': return;                                        // reine Tipp-Aufgabe (answerVergleich/answerOrdne)
+        case 'platzhalter': case 'probe':
+                         return checkExactNum(q, fbEl, q.answer, false, toPhase2);   // Zahl, dann die Nachfrage aus Schritt ②
         case 'add': case 'sub': case 'round': case 'tens': case 'halb': case 'estimate': case 'timecalc':
-        case 'stellenwert': case 'platzhalter': case 'median': case 'diagramm':
+        case 'stellenwert': case 'median': case 'diagramm': case 'ueberschlag': case 'vorteilhaft':
                          return checkExactNum(q, fbEl, q.answer, false);   // year-update + KA-prep types: one exact whole number
     }
 }
 
 // single-answer types: long multiplication, money multiplication, unit conversion
-function checkExactNum(q, fbEl, expect, isDec) {
+// `onDone` ist optional: Typen mit einer Nachfrage (Schritt ②) geben hier toPhase2 mit, statt direkt zu heilen.
+function checkExactNum(q, fbEl, expect, isDec, onDone) {
     const v = parseNum(document.getElementById('mAns').value, isDec);
     if (isNaN(v)) return needInput(fbEl, '✏️ Tippe zuerst deine Antwort ein!');
     mTried = true;   // she has made a real attempt → the Hilfe reveal is now allowed
     const ok = isDec ? near(v, expect) : (v === expect);
-    if (ok) mathCorrect(q, fbEl); else mathWrong(fbEl);
+    if (ok) (onDone || mathCorrect)(q, fbEl); else mathWrong(fbEl);
+}
+
+// ── Schritt ②: die Nachfrage nach dem Zahlen-Teil (Fachbegriff / stimmt die Probe / sind sie gleich) ──
+// Eine gemeinsame Mechanik für platzhalter, probe und klammer. mP2 hält die laufende Nachfrage.
+let mP2 = null;
+function toPhase2(q, fbEl) { startPhase2(q, fbEl, q.phase2); }
+function startPhase2(q, fbEl, cfg) {
+    mP2 = cfg;
+    mHelpShown = true;                                             // Hilfe darf den Schritt-②-Text nicht überschreiben
+    document.getElementById('mProblem').style.display = '';
+    document.getElementById('mHelpBtn').classList.add('hidden');
+    document.getElementById('mMixBtn').classList.add('hidden');    // reine Tipp-Aufgabe, kein Prüf-Knopf
+    document.getElementById('mCalcLabel').textContent = cfg.label;
+    document.getElementById('mInputs').innerHTML = '<div class="cmp-btns">' +
+        cfg.options.map((o, i) => `<button class="cmp-btn" id="mP2b${i}" onclick="answerPhase2(${i})">${o}</button>`).join('') + '</div>';
+    fbEl.className = 'calc-feedback ok';
+    fbEl.textContent = cfg.ok || '👍 Zahl stimmt! Jetzt noch die Frage dazu.';
+}
+function answerPhase2(i) {
+    if (mBusy || !mP2) return;
+    const q = mPool[mQ], fbEl = document.getElementById('mFeedback');
+    if (i === mP2.correct) {
+        mP2 = null;
+        document.getElementById('mMixBtn').classList.remove('hidden');
+        return mathCorrect(q, fbEl);
+    }
+    mFirstTry = false; mPerfect = false;                           // falsche Nachfrage bricht den Perfekt-Bonus, wie überall
+    const btn = document.getElementById('mP2b' + i); if (btn) btn.disabled = true;
+    fbEl.className = 'calc-feedback no';
+    fbEl.textContent = mP2.hint;
 }
 
 // division: estimate (rounding) first, then the exact answer with a remainder
@@ -3648,12 +3881,12 @@ function checkDaten(q, fbEl) {
 
 // Mehrere Antwortfelder auf einmal (zahlenstrahl, zahlenmauer) — q.fields = [{id,label,expect}].
 // Falsche Felder werden benannt und geleert, richtige bleiben stehen.
-function checkMulti(q, fbEl) {
+function checkMulti(q, fbEl, onDone) {
     const vals = q.fields.map(f => parseNum(document.getElementById(f.id).value));
     if (vals.some(v => isNaN(v))) return needInput(fbEl, '✏️ Fülle alle Felder aus!');
     mTried = true;
     const bad = q.fields.filter((f, i) => vals[i] !== f.expect);
-    if (!bad.length) return mathCorrect(q, fbEl);
+    if (!bad.length) return (onDone || mathCorrect)(q, fbEl);
     mFirstTry = false; mPerfect = false;
     revealHelp(true);
     bad.forEach(f => { document.getElementById(f.id).value = ''; });
@@ -4565,6 +4798,28 @@ const EXAM = {
   "Welche Pflege für Locken?": { q:"Warum wird lockiges Fell gewaschen statt kräftig gebürstet?", correct:"Weil kräftiges Bürsten die Locken zerstören würde.", wrong:["Weil Bürsten die Haut blau färbt.", "Weil Locken nur im Wasser wachsen."] },
   "Die Zählung der Wildpferde": { q:"Warum ist eine Krankheit bei einer winzigen Population so gefährlich?", correct:"Weil sie die ganze kleine Herde auf einmal auslöschen kann.", wrong:["Weil kleine Herden lauter wiehern.", "Weil seltene Pferde schneller laufen."] },
   "Die Heu-Mauer für den Winter": { q:"Warum wird auf magerem Land im Winter zugefüttert?", correct:"Weil die Pferde dort kaum noch etwas zu fressen finden.", wrong:["Weil Heu im Winter billiger ist.", "Damit das Fell heller wird."] },
+
+  // ── Kap.-2-Zwischentest-Fälle (2026-10-05) ──
+  "Midnights Heu-Überschlag": { q:"Warum darf ein Pferd nie lange ohne Heu stehen?", correct:"Sein Magen bildet ununterbrochen Säure, auch wenn er leer ist.", wrong:["Weil es sonst das Kauen verlernt.", "Weil Heu nur warm gefressen werden darf."] },
+  "Patches und der Wasserzähler": { q:"Was prüfst du mit dem Hautfaltentest am Hals?", correct:"Ob dem Pferd Flüssigkeit fehlt: eine stehen bleibende Falte ist ein Warnzeichen.", wrong:["Wie dick das Winterfell schon ist.", "Ob das Pferd gerade Fieber bekommt."] },
+  "Lunas Impf-Bestellung": { q:"Warum ist es gut, wenn möglichst viele Pferde im Stall geimpft sind?", correct:"Weil ein Erreger dann kaum noch ein ungeschütztes Pferd findet.", wrong:["Weil die Impfung dann billiger wird.", "Weil geimpfte Pferde schneller laufen."] },
+  "Sagas Einstreu-Rechnung": { q:"Warum ist Ammoniak aus nasser Einstreu gefährlich?", correct:"Es ist schwerer als Luft und reizt genau dort die Atemwege, wo das Pferd liegt.", wrong:["Es färbt das Fell gelb.", "Es lockt Mäuse in den Stall."] },
+  "Biscuits Tabletten-Probe": { q:"Warum darf man die Menge eines Medikaments nie schätzen?", correct:"Zu wenig wirkt nicht, zu viel kann Magen und Nieren schädigen.", wrong:["Weil Tabletten sonst schlecht schmecken.", "Weil das Pferd sonst das Fressen verweigert."] },
+  "Sunnys Boxenruhe-Probe": { q:"Warum heilen Sehnen so viel langsamer als andere Verletzungen?", correct:"Weil sie kaum durchblutet werden.", wrong:["Weil sie aus Knochen bestehen.", "Weil sie nur im Sommer heilen können."] },
+  "Auroras Impf-Abstand": { q:"Wozu dient die zweite Spritze der Grundimmunisierung?", correct:"Sie macht den Schutz erst richtig stark und haltbar.", wrong:["Sie ersetzt die erste Spritze, falls die danebenging.", "Sie wirkt nur gegen Würmer."] },
+  "Chestnuts Huf-Protokoll": { q:"Warum tut ein Hufgeschwür so extrem weh?", correct:"Der Eiter kann durch das harte Horn nicht abfließen und drückt.", wrong:["Weil das Hufhorn selbst Nerven hat.", "Weil der Huf dabei zu schnell wächst."] },
+  "Stellas Trink-Protokoll": { q:"Warum ist Wasser die wichtigste Hilfe gegen eine Verstopfungskolik?", correct:"Ohne genug Wasser wird das Futter zu einem festen Pfropf, der nicht weiterwandert.", wrong:["Weil Wasser die Schmerzen betäubt.", "Weil das Pferd dann weniger frisst."] },
+  "Cupcakes Portions-Plan": { q:"Warum bekommen Ponys besonders wenig Kraftfutter?", correct:"Sie holen aus wenig Futter sehr viel heraus und bekommen sonst EMS und Hufrehe.", wrong:["Weil ihr Magen keine Körner verdauen kann.", "Damit sie nicht zu schnell wachsen."] },
+  "Brios Schritt-Minuten": { q:"Warum wird ein verletztes Pferd im Schritt geführt statt nur in der Box zu stehen?", correct:"Bewegung durchblutet das heilende Gewebe und hält den Darm in Gang.", wrong:["Damit es seine Box nicht zu sehr einschmutzt.", "Weil Stehen die Hufe weich macht."] },
+  "Freyas Impftag auf vier Höfen": { q:"Warum muss Impfstoff durchgehend gekühlt bleiben?", correct:"Sonst verliert er seine Wirkung.", wrong:["Sonst wird er zu dickflüssig für die Spritze.", "Damit er nicht nach Heu riecht."] },
+  "Thunders Heuballen-Klammer": { q:"Woran erkennst du Heu, das du nicht verfüttern darfst?", correct:"An grauweißen Flecken und muffigem Geruch: das ist Schimmel.", wrong:["Daran, dass es besonders grün aussieht.", "Daran, dass die Ballen schwer sind."] },
+  "Dottys Verbands-Zählung": { q:"Was ist wildes Fleisch bei einer Wunde am Röhrbein?", correct:"Überschüssiges Gewebe, das als Wulst über die Wundränder wächst.", wrong:["Ein Stück Muskel, das aus der Wunde rutscht.", "Fleisch, das man einem Pferd zu fressen gibt."] },
+  "Chestnuts Futtersack-Klammer": { q:"Warum achtest du bei einem schweren Kaltblut besonders aufs Gewicht?", correct:"Jedes Kilo zu viel belastet Gelenke, die ohnehin viel tragen, und fördert Arthrose.", wrong:["Weil es sonst nicht mehr durch die Stalltür passt.", "Damit sein Fell im Winter dichter wird."] },
+  "Cupcakes Salben-Klammer": { q:"Wodurch entsteht Mauke in der Fesselbeuge?", correct:"Dadurch, dass die Hautfalte dauernd feucht und schmutzig ist.", wrong:["Durch zu viel Sonne auf den Beinen.", "Durch zu hartes Bürsten der Mähne."] },
+  "Midnights Futter-Lieferung": { q:"Warum plant ein Stall den Heuvorrat lieber großzügig?", correct:"Weil im Spätwinter nachgekauftes Heu teuer und oft schlechter ist.", wrong:["Weil Heu mit der Zeit immer besser wird.", "Weil Pferde im Winter gar kein Heu fressen."] },
+  "Lunas Klinik-Posten": { q:"Wofür ist eine OP-Versicherung für ein Pferd gut?", correct:"Sie übernimmt die Klinikkosten, damit niemand zwischen Geld und dem Leben des Pferdes entscheiden muss.", wrong:["Sie macht die Operation schmerzfreier.", "Sie ersetzt die jährlichen Impfungen."] },
+  "Thunders Heuvorrat schrumpft": { q:"Wie viel Raufutter braucht ein Pferd am Tag ungefähr?", correct:"Etwa eineinhalb bis zwei Kilogramm je hundert Kilogramm Körpergewicht.", wrong:["Etwa ein halbes Kilogramm, mehr verträgt es nicht.", "So viel wie es will, Menge spielt keine Rolle."] },
+  "Auroras Wasservorrat": { q:"Wie viel trinkt ein Pferd an einem normalen Tag?", correct:"Ungefähr dreißig bis fünfzig Liter, bei Hitze und Arbeit mehr.", wrong:["Ungefähr fünf Liter, wie ein großer Hund.", "Nur so viel, wie im Heu an Feuchtigkeit steckt."] },
 };
 const EXAM_LEN = 5;
 let exQs = [], exIdx = 0, exRight = 0, exMissed = [];
@@ -4975,7 +5230,7 @@ function recordGameLog() {
         localStorage.setItem('ellaGameLog', JSON.stringify(log.slice(-100)));   // keep last ~100; mirrored to the cloud via the append-merge
     } catch (e) {}
 }
-const STAT_TYPE_LABEL = { longmult:'Schriftlich ×', div:'Teilen ÷', add:'Plus +', sub:'Minus −', money:'Geld €', compare:'Preisvergleich', round:'Runden', tens:'×÷ 10/100', halb:'Halbschriftlich', estimate:'Überschlagen', timecalc:'Zeit ⏰', convert:'Einheiten', stellenwert:'Stellenwert', platzhalter:'Platzhalter', daten:'Daten 📊', median:'Median', diagramm:'Diagramm', zahlenstrahl:'Zahlenstrahl', vergleichen:'Vergleichen', zahlenmauer:'Zahlenmauer' };
+const STAT_TYPE_LABEL = { longmult:'Schriftlich ×', div:'Teilen ÷', add:'Plus +', sub:'Minus −', money:'Geld €', compare:'Preisvergleich', round:'Runden', tens:'×÷ 10/100', halb:'Halbschriftlich', estimate:'Überschlagen', timecalc:'Zeit ⏰', convert:'Einheiten', stellenwert:'Stellenwert', platzhalter:'Platzhalter', daten:'Daten 📊', median:'Median', diagramm:'Diagramm', zahlenstrahl:'Zahlenstrahl', vergleichen:'Vergleichen', zahlenmauer:'Zahlenmauer', ueberschlag:'Überschlagen +/−', probe:'Probe 🔄', vorteilhaft:'Vorteilhaft', klammer:'Klammern' };
 function statFmtTime(s) { s = Math.round(s); return s >= 60 ? Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + ' min' : s + 's'; }
 function statDate(ts) { try { const d = new Date(ts), p = n => String(n).padStart(2, '0'); return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '. ' + p(d.getHours()) + ':' + p(d.getMinutes()); } catch (e) { return ''; } }
 function barChart(vals, color, fmt) {
@@ -5161,7 +5416,7 @@ const FIREBASE_CONFIG = {
     minKey('ellaHorseBase');        // niedrigste Basis gewinnt → sie verliert nie eine verdiente Wahl
     unionClaim('ellaClaimedHorses');
     unionArr('ellaSeenConcepts'); unionMap('ellaHorseGifts'); unionLog('ellaGameLog');
-    ['ellaFeedTokens','ellaGifts','ellaCollectProgress','ellaTopicCycle','ellaNudgeOn','ellaCollection'].forEach(newest);
+    ['ellaFeedTokens','ellaGifts','ellaCollectProgress','ellaTopicCycle','ellaKa2Cycle','ellaNudgeOn','ellaCollection'].forEach(newest);
     [a,b].forEach(function(o){ Object.keys(o).forEach(function(k){ if(!(k in out)) newest(k); }); });   // any other progress key → newer wins
     return out;
   }
