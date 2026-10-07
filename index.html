@@ -665,6 +665,13 @@
             <label class="admin-label">Trinkets in her collection</label>
             <input id="adminTrinkets" type="number" inputmode="numeric" class="admin-input">
             <div id="adminMsg" class="admin-msg"></div>
+            <hr style="border:none;border-top:1px solid #eadff5;margin:14px 0 8px;">
+            <div class="admin-title" style="font-size:1rem;">🐴 Pferde-Wahlen</div>
+            <div id="adminPickInfo" class="admin-msg" style="color:#7a5a9e;"></div>
+            <div class="admin-btns">
+                <button class="admin-cancel" onclick="adminRecalPicks()">Neu eichen (behält ihre Pferde)</button>
+            </div>
+            <div id="adminPickMsg" class="admin-msg"></div>
             <div class="admin-btns">
                 <button class="mix-btn" onclick="adminApply()">Save</button>
                 <button class="admin-cancel" onclick="adminReset0()">Reset to 0</button>
@@ -4495,18 +4502,38 @@ function isHorseUnlocked(h) {
 }
 
 // ── Wählbare Pferde (2026-09-30): alle HORSE_PICK_POINTS Punkte darf Ella sich ein neues Pferd
-//    aussuchen, Rasse UND Name. Die Basis wird EINMAL gesetzt (aktuelle Punkte minus 50), damit sie
-//    sofort eine Wahl offen hat und danach für je 50 weitere Punkte eine weitere. ──
-const HORSE_PICK_POINTS = 50;
+//    aussuchen, Rasse UND Name. Die Basis wird EINMAL gesetzt (aktuelle Punkte minus HORSE_PICK_POINTS),
+//    danach gibt es für je HORSE_PICK_POINTS weitere Punkte eine weitere Wahl. ──
+const HORSE_PICK_POINTS = 150;   // 2026-10-05: war 50 — bei bis zu ~36 Punkten pro Spiel gab das alle 1½ Spiele ein Pferd
 function getClaimedHorses() { try { var a = JSON.parse(localStorage.getItem('ellaClaimedHorses') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
 function saveClaimedHorses(a) { try { localStorage.setItem('ellaClaimedHorses', JSON.stringify(a)); } catch (e) {} }
 function isHorseClaimed(idx) { return getClaimedHorses().some(function (c) { return c.i === idx; }); }
 function getPickBase() {
     try {
         var raw = localStorage.getItem('ellaHorseBase');
-        if (raw === null) { var b = Math.max(0, getVetPoints() - HORSE_PICK_POINTS); localStorage.setItem('ellaHorseBase', String(b)); return b; }
-        var v = parseInt(raw, 10); return isNaN(v) ? 0 : v;
+        if (raw !== null) { var v = parseInt(raw, 10); return isNaN(v) ? 0 : v; }
+        // ⚠️⚠️ NIE eine Basis festschreiben, solange die Punkte noch nicht da sind. renderPickButton()
+        // läuft beim Laden SYNCHRON, lange bevor die Cloud geantwortet hat. Auf einem frischen Gerät
+        // (neuer Browser, geleerter Cache, privates Fenster) ist ellaVetPoints dann noch null, also
+        // getVetPoints() = 0 — und eine hier gespeicherte 0 verschenkt nach dem Sync SOFORT alle
+        // Wahlen (floor(560/50) = 11). mergeKeys nimmt für ellaHorseBase die NIEDRIGSTE Zahl, also
+        // hätte sich die kaputte 0 auch noch auf jedes andere Gerät verteilt. Genau das ist passiert.
+        if (localStorage.getItem('ellaVetPoints') === null) return getVetPoints();   // nichts speichern → 0 Wahlen, bis der Sync da ist
+        var b = Math.max(0, getVetPoints() - HORSE_PICK_POINTS);
+        localStorage.setItem('ellaHorseBase', String(b));
+        return b;
     } catch (e) { return 0; }
+}
+// Einmal pro Gerät: Basis aus Punkten und bereits gewählten Pferden neu berechnen, damit die durch
+// den Bug oben verschenkten Wahlen verschwinden. Sie BEHÄLT alle Pferde, die sie schon benannt hat;
+// die nächste Wahl gibt es nach regulär verdienten HORSE_PICK_POINTS Punkten.
+// Der Wert ist deterministisch (Punkte und Wahlliste mergen beide korrekt), also rechnet jedes Gerät
+// dieselbe Zahl aus — damit ist auch das minKey-Merge unschädlich, sobald alle Geräte einmal geladen haben.
+function recalibratePickBase() {
+    var claimed = getClaimedHorses().length;
+    var b = getVetPoints() - HORSE_PICK_POINTS * claimed;   // darf negativ sein: picksAvailable rechnet damit korrekt weiter
+    try { localStorage.setItem('ellaHorseBase', String(b)); } catch (e) {}
+    return b;
 }
 function picksAvailable() {
     var earned = Math.floor((getVetPoints() - getPickBase()) / HORSE_PICK_POINTS);
@@ -5291,9 +5318,22 @@ function adminCheckPw() {
         document.getElementById('adminPts').value = getVetPoints();
         document.getElementById('adminFeed').value = getFeedTokens();
         document.getElementById('adminTrinkets').value = getTrinketCount();
+        renderAdminPickInfo();
     } else {
         const m = document.getElementById('adminPwMsg'); m.style.color = '#e74c3c'; m.textContent = 'Wrong password.';
     }
+}
+// Diagnose + Notfall-Reparatur der Pferde-Wahl-Ökonomie (siehe getPickBase / recalibratePickBase)
+function renderAdminPickInfo() {
+    const el = document.getElementById('adminPickInfo'); if (!el) return;
+    el.textContent = `${getVetPoints()} Punkte · Basis ${getPickBase()} · ${getClaimedHorses().length} von ${getClaimedHorses().length + unclaimedHorses().length} Pferden gewählt · ${picksAvailable()} Wahl(en) offen · ${HORSE_PICK_POINTS} Punkte pro Wahl`;
+}
+function adminRecalPicks() {
+    recalibratePickBase();
+    renderAdminPickInfo(); renderPickButton();
+    const m = document.getElementById('adminPickMsg');
+    m.style.color = '#27ae60';
+    m.textContent = `✅ Neu geeicht: 0 offene Wahlen, nächste nach ${HORSE_PICK_POINTS} Punkten. Jetzt ⬆ Save to cloud drücken!`;
 }
 function adminApply() {
     const p = parseInt(document.getElementById('adminPts').value, 10);
@@ -5365,7 +5405,7 @@ const FIREBASE_CONFIG = {
 // ⬆⬆
 
 (function () {
-  const SKIP = { ellaMagicWord: 1, ellaSyncTs: 1, ellaPlayers: 1, ellaReclaimedCase: 1 };
+  const SKIP = { ellaMagicWord: 1, ellaSyncTs: 1, ellaPlayers: 1, ellaReclaimedCase: 1, ellaPickFix1: 1 };
   const isProgressKey = k => !!k && k.indexOf('ella') === 0 && !SKIP[k];
   const rawSet = localStorage.setItem.bind(localStorage);
   const setRaw = (k, v) => rawSet(k, v);
@@ -5614,14 +5654,33 @@ const FIREBASE_CONFIG = {
     } catch(e){}
   }
 
+  // ── Einmal-Reparatur der Pferde-Wahl-Basis (2026-10-05) ──
+  // Der Bug in getPickBase() hat auf frischen Geräten ellaHorseBase=0 festgeschrieben, bevor die
+  // Punkte aus der Cloud da waren → nach dem Sync standen ihr alle 10 Wahlen auf einmal offen.
+  // Läuft EINMAL pro Gerät, NACH dem ersten Pull (sonst rechnet sie wieder mit 0 Punkten), rechnet
+  // die Basis aus den dann korrekten Punkten + bereits gewählten Pferden neu und schiebt sie hoch.
+  // ellaPickFix1 steht in SKIP, ist also gerätelokal und wird nicht mitsynchronisiert.
+  function fixPickBaseOnce(){
+    try {
+      if (localStorage.getItem('ellaPickFix1')) return;
+      if (localStorage.getItem('ellaVetPoints') === null) return;    // noch keine echten Punkte → später nochmal
+      setRaw('ellaPickFix1','1');
+      recalibratePickBase();
+      refreshAll(); schedulePush();
+    } catch(e){}
+  }
+
   // ── init ──
   (function(){ var mw=getMagicWord(); if(mw){ var s=slugName(mw); if(s && s!==mw) setRaw('ellaMagicWord', s); } })();   // consolidate any old mixed-case identity → one lowercase key
   var migMode = migratePlayers();
   try { renderPlayerChip(); } catch(e){}
   if (fbInit()) {
     if (migMode === 'adopt') { try { dbRef.set(snapshot()); } catch(e){} }   // local is the source of truth → upload it
-    else pullOnce();                                                          // otherwise take the newer/real cloud copy (an empty cloud can't overwrite real local)
+    else pullOnce(fixPickBaseOnce);                                           // otherwise take the newer/real cloud copy (an empty cloud can't overwrite real local)
     reclaimOldCaseNode();                                                     // fold in any save left under an old capital-case node
+    if (migMode === 'adopt') fixPickBaseOnce();                               // kein Pull → direkt eichen
+  } else {
+    fixPickBaseOnce();   // ohne Firebase (offline / nicht angemeldet) sind die lokalen Punkte die Wahrheit; der null-Guard schützt den Erstlauf
   }
 })();
 </script>
